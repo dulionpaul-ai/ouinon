@@ -6,6 +6,7 @@ import 'package:ouinon/main.dart';
 import 'package:ouinon/screens/accueil_screen.dart';
 import 'package:ouinon/screens/aujourdhui_screen.dart';
 import 'package:ouinon/screens/edition_question_screen.dart';
+import 'package:ouinon/screens/reglages_screen.dart';
 import 'package:ouinon/screens/stats_screen.dart';
 import 'package:ouinon/utils/jour.dart';
 import 'package:ouinon/widgets/rond.dart';
@@ -271,5 +272,37 @@ void main() {
     expect(find.text('Bienvenue dans Ouinon'), findsNothing);
     expect(notifs.replanifications, greaterThan(0));
     expect(find.text('Questions'), findsOneWidget);
+  });
+
+  testWidgets('heure précise non autorisée : demandée une seule fois', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({'bienvenue_vue': true});
+    notifs.precise = false;
+    await ouvre(tester, const AccueilScreen());
+    expect(find.text('Questions à l\'heure pile'), findsOneWidget);
+    await tester.tap(find.text('Autoriser'));
+    await attends(tester);
+    expect(notifs.demandesHeurePrecise, 1);
+
+    // Deuxième ouverture : plus de fenêtre.
+    await tester.pumpWidget(const SizedBox());
+    await ouvre(tester, const AccueilScreen());
+    expect(find.text('Questions à l\'heure pile'), findsNothing);
+  });
+
+  testWidgets('Réglages : heure précise et prochaine question', (tester) async {
+    notifs.precise = false;
+    await ouvre(tester, ReglagesScreen(base: base));
+    expect(find.textContaining('Heure précise non autorisée'), findsOneWidget);
+    expect(find.text('Autoriser l\'heure précise'), findsOneWidget);
+    expect(find.textContaining('Prochaine question :'), findsOneWidget);
+    expect(
+      find.text('27 notifications programmées sur le téléphone.'),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Autoriser l\'heure précise'));
+    await attends(tester);
+    expect(notifs.demandesHeurePrecise, 1);
   });
 }

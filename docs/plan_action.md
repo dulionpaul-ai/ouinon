@@ -26,8 +26,9 @@ fait, version par version : `docs/historique.md`.
 7. [x] Retours de Paul sur l'APK n° 4 intégrés dans l'APK n° 5
    (22/10/2026) : cadran sans clavier, ordre des réponses inversé
    partout, nombre de réponses modifiable, « + Autre », page Jour qui
-   glisse. APK n° 6 : logo réduit de 5 %. Prochain APK :
-   `version: 1.0.0+7`.
+   glisse. APK n° 6 : logo réduit de 5 %. APK n° 7 : heure précise
+   (notifications du soir pas reçues chez Paul), prochaine question dans
+   les Réglages. Prochain APK : `version: 1.0.0+8`.
 8. [ ] Test longue durée par Paul (2 à 3 semaines de vraies réponses),
    corrections.
 9. [ ] Plus tard, avec l'accord de Paul : iPhone (TestFlight), sauvegarde,
@@ -49,10 +50,12 @@ fait, version par version : `docs/historique.md`.
 - **iPhone : 64 notifications programmées au maximum.** Correction :
   sur iPhone, le nombre de jours programmés est réduit selon le nombre
   de questions.
-- **Heure exacte.** Android demande une autorisation spéciale pour
-  l'heure à la seconde près, que le Play Store réserve aux réveils.
-  Correction : heure « à quelques minutes près », sans autorisation
-  spéciale.
+- **Heure exacte.** D'abord, heure approximative pour éviter une
+  autorisation. Erreur : Android peut alors retarder une notification
+  de plusieurs heures (soir du 22/10/2026, rien reçu chez Paul).
+  Correction (APK n° 7) : heure précise avec l'autorisation « Alarmes et
+  rappels », demandée une fois et dans les Réglages ; heure
+  approximative seulement si elle est refusée.
 - **Faux liens avec 7 jours.** Choix de Paul : croisements dès 7 jours
   communs. Correction : on demande en plus au moins 3 jours de chaque
   côté de la comparaison et un écart d'au moins 20 points, et la phrase

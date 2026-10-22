@@ -48,9 +48,17 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 - **Limites** : Android 500 alarmes par appli (on en garde 400) ;
   iPhone 64 notifications en attente (63 + le rappel). Avec beaucoup de
   questions, moins de jours sont programmés d'avance.
-- **Heure « à quelques minutes près »** (`inexactAllowWhileIdle`) : pas
-  d'autorisation spéciale « alarme exacte », que le Play Store réserve
-  aux réveils.
+- **Heure précise** (`exactAllowWhileIdle`) quand la personne a accordé
+  « Alarmes et rappels » (`SCHEDULE_EXACT_ALARM`, demandée une fois au
+  démarrage et dans les Réglages). Sinon heure approximative
+  (`inexactAllowWhileIdle`) : Android peut alors décaler une
+  notification d'environ les trois quarts du temps qui la sépare de sa
+  programmation, donc de plusieurs heures pour une notification
+  programmée des jours à l'avance. Constaté le 22/10/2026 (aucune
+  notification le soir chez Paul). On n'utilise pas `USE_EXACT_ALARM`,
+  réservé par le Play Store aux réveils et agendas.
+- **Réglages** : état des autorisations, prochaine question prévue,
+  nombre de notifications en attente sur le téléphone.
 - **Appli fermée** : Android lance un petit moteur Flutter
   d'arrière-plan qui appelle `reponseNotifArrierePlan` ; il ouvre la base,
   enregistre, reprogramme. L'appli relit la base à son retour au premier

@@ -23,6 +23,8 @@ Future<Base> ouvreBase({bool depart = true}) async {
 class FaussesNotifications extends Notifications {
   int replanifications = 0;
   final retirees = <String>[];
+  bool precise = true;
+  int demandesHeurePrecise = 0;
 
   @override
   Future<void> prepare() async {}
@@ -42,6 +44,15 @@ class FaussesNotifications extends Notifications {
 
   @override
   Future<bool> demandeAutorisation() async => true;
+
+  @override
+  Future<bool> heurePrecise() async => precise;
+
+  @override
+  Future<void> demandeHeurePrecise() async => demandesHeurePrecise++;
+
+  @override
+  Future<int> enAttente() async => 27;
 
   @override
   Future<void> essaie(Question q) async {}

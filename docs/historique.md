@@ -80,3 +80,17 @@ Paul a demandé d'attendre la fin de ses retours, puis a validé l'APK.
   s'enregistre dans l'appli (APK n° 5) : le point le plus risqué du plan
   est validé.
 - Logo de l'icône réduit de 5 % (`TAILLE` dans `tool/icones.py`).
+
+## APK n° 7 (1.0.0+7) : notifications à l'heure
+
+- Le soir du 22/10/2026, Paul ne reçoit pas les questions de 21 h.
+  Cause : les notifications étaient en « heure approximative », qu'Android
+  peut retarder de plusieurs heures quand elles sont programmées
+  longtemps à l'avance (et une question déjà répondue dans l'appli est
+  volontairement sautée).
+- Correction : heure précise avec l'autorisation Android « Alarmes et
+  rappels » (demandée une fois au démarrage, et bouton dans les
+  Réglages) ; heure approximative seulement si refusée.
+- Réglages : état de l'heure précise, prochaine question prévue, nombre
+  de notifications programmées, rappel qu'une question déjà répondue
+  n'envoie pas de notification.

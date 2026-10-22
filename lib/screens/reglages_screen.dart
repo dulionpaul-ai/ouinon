@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import '../data/base.dart';
 import '../data/notifications.dart';
 import '../theme/app_theme.dart';
+import '../utils/date_fr.dart';
+import '../utils/jour.dart';
+import '../utils/planification.dart';
 import '../widgets/rond.dart';
 
 /// Réglages : autorisation des notifications, essai d'une notification,
@@ -16,21 +19,63 @@ class ReglagesScreen extends StatefulWidget {
   State<ReglagesScreen> createState() => _ReglagesScreenState();
 }
 
-class _ReglagesScreenState extends State<ReglagesScreen> {
+class _ReglagesScreenState extends State<ReglagesScreen>
+    with WidgetsBindingObserver {
   bool? _autorisees;
+  bool? _precise;
+  NotifPrevue? _prochaine;
+  int? _enAttente;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _verifie();
   }
 
-  Future<void> _verifie() async {
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// Retour des réglages d'Android : on revérifie et on reprogramme.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState etat) {
+    if (etat == AppLifecycleState.resumed) _verifie(replanifier: true);
+  }
+
+  Future<void> _verifie({bool replanifier = false}) async {
     bool? ok;
+    bool? precise;
+    int? enAttente;
     try {
       ok = await Notifications.instance.autorisees();
+      precise = await Notifications.instance.heurePrecise();
+      if (replanifier) {
+        await Notifications.instance.replanifie(widget.base);
+      }
+      enAttente = await Notifications.instance.enAttente();
     } catch (_) {}
-    if (mounted) setState(() => _autorisees = ok);
+    final maintenant = DateTime.now();
+    final plan = planifie(
+      questions: await widget.base.questions(),
+      repondues: await widget.base.reponduesDepuis(jourDe(maintenant)),
+      maintenant: maintenant,
+    );
+    if (!mounted) return;
+    setState(() {
+      _autorisees = ok;
+      _precise = precise;
+      _enAttente = enAttente;
+      _prochaine = plan.notifs.isEmpty ? null : plan.notifs.first;
+    });
+  }
+
+  Future<void> _autoriseHeurePrecise() async {
+    try {
+      await Notifications.instance.demandeHeurePrecise();
+    } catch (_) {}
   }
 
   Future<void> _autorise() async {
@@ -98,9 +143,7 @@ class _ReglagesScreenState extends State<ReglagesScreen> {
             Text(switch (_autorisees) {
               true => 'Autorisées.',
               false => 'Bloquées : sans elles, tu ne reçois pas tes questions.',
-              null =>
-                'Chaque question arrive à son heure, à quelques minutes '
-                    'près.',
+              null => 'Chaque question arrive en notification à son heure.',
             }, style: doux),
             const SizedBox(height: 14),
             if (_autorisees != true) ...[
@@ -108,8 +151,52 @@ class _ReglagesScreenState extends State<ReglagesScreen> {
                 onPressed: _autorise,
                 child: const Text('Autoriser les notifications'),
               ),
-              const SizedBox(height: 8),
             ],
+            const SizedBox(height: 14),
+            Text(switch (_precise) {
+              true =>
+                'Heure précise autorisée : les questions arrivent à '
+                    'l\'heure.',
+              false =>
+                'Heure précise non autorisée : les questions peuvent arriver '
+                    'avec des heures de retard.',
+              null => '',
+            }, style: doux),
+            if (_precise == false) ...[
+              const SizedBox(height: 10),
+              FilledButton(
+                onPressed: _autoriseHeurePrecise,
+                child: const Text('Autoriser l\'heure précise'),
+              ),
+            ],
+            const SizedBox(height: 14),
+            Text(
+              _prochaine == null
+                  ? 'Aucune question programmée.'
+                  : 'Prochaine question : ${_prochaine!.question.texte} '
+                        '${dateCourte(_prochaine!.quand).toLowerCase()} à '
+                        // Espace insécable : « 9 h » ne se coupe pas.
+                        '${heureFr(_prochaine!.quand.hour * 60 + _prochaine!.quand.minute).replaceAll(' ', '\u00a0')}.',
+              style: doux.copyWith(
+                color: Teintes.de(context).texte,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            if (_enAttente != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                '$_enAttente notification${_enAttente! > 1 ? 's' : ''} '
+                'programmée${_enAttente! > 1 ? 's' : ''} sur le téléphone.',
+                style: doux,
+              ),
+            ],
+            const SizedBox(height: 4),
+            Text(
+              'Une question déjà répondue dans l\'appli n\'envoie pas de '
+              'notification ce jour-là.',
+              style: doux,
+            ),
+            const SizedBox(height: 14),
             FilledButton(
               onPressed: _essaie,
               style: FilledButton.styleFrom(

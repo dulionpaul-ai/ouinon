@@ -15,6 +15,7 @@ import 'package:ouinon/screens/accueil_screen.dart';
 import 'package:ouinon/screens/edition_question_screen.dart';
 import 'package:ouinon/screens/fiche_question_screen.dart';
 import 'package:ouinon/screens/questions_screen.dart';
+import 'package:ouinon/screens/reglages_screen.dart';
 import 'package:ouinon/screens/stats_screen.dart';
 import 'package:ouinon/utils/jour.dart';
 import 'package:ouinon/widgets/rond.dart';
@@ -171,6 +172,17 @@ void main() {
         EditionQuestionScreen(base: base, question: q),
         mode,
         hauteur: 1400,
+      );
+    });
+
+    testWidgets('réglages $suffixe', (tester) async {
+      (Notifications.instance as FaussesNotifications).precise = false;
+      await capture(
+        tester,
+        '11-reglages-$suffixe',
+        ReglagesScreen(base: base),
+        mode,
+        hauteur: 1100,
       );
     });
 

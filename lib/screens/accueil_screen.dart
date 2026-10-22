@@ -23,6 +23,7 @@ class AccueilScreen extends StatefulWidget {
 class _AccueilScreenState extends State<AccueilScreen>
     with WidgetsBindingObserver {
   static const _cleBienvenue = 'bienvenue_vue';
+  static const _cleHeurePrecise = 'heure_precise_demandee';
 
   Base? _base;
   Object? _erreur;
@@ -82,7 +83,10 @@ class _AccueilScreenState extends State<AccueilScreen>
 
   Future<void> _bienvenue() async {
     final prefs = await SharedPreferences.getInstance();
-    if (prefs.getBool(_cleBienvenue) ?? false) return;
+    if (prefs.getBool(_cleBienvenue) ?? false) {
+      await _heurePrecise(prefs);
+      return;
+    }
     if (!mounted) return;
     final autoriser = await showDialog<bool>(
       context: context,
@@ -114,6 +118,49 @@ class _AccueilScreenState extends State<AccueilScreen>
         await Notifications.instance.demandeAutorisation();
       } catch (_) {}
       await _replanifie();
+      await _heurePrecise(prefs);
+    }
+  }
+
+  /// Une seule fois : proposer l'heure précise (« Alarmes et rappels »).
+  /// Sans elle, Android peut retarder les questions de plusieurs heures.
+  Future<void> _heurePrecise(SharedPreferences prefs) async {
+    if (prefs.getBool(_cleHeurePrecise) ?? false) return;
+    bool precise;
+    try {
+      precise = await Notifications.instance.heurePrecise();
+    } catch (_) {
+      return;
+    }
+    if (precise) return;
+    await prefs.setBool(_cleHeurePrecise, true);
+    if (!mounted) return;
+    final autoriser = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Questions à l\'heure pile'),
+        content: const Text(
+          'Pour que chaque question arrive à son heure, Android demande '
+          'une autorisation : « Alarmes et rappels ».\n\n'
+          'Sans elle, les questions peuvent arriver avec des heures de '
+          'retard.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Plus tard'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Autoriser'),
+          ),
+        ],
+      ),
+    );
+    if (autoriser ?? false) {
+      try {
+        await Notifications.instance.demandeHeurePrecise();
+      } catch (_) {}
     }
   }
 

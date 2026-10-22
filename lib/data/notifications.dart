@@ -114,6 +114,32 @@ class Notifications {
         false;
   }
 
+  AndroidFlutterLocalNotificationsPlugin? get _android => _plugin
+      .resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin
+      >();
+
+  /// L'heure précise est-elle autorisée (Android : « Alarmes et
+  /// rappels ») ? Toujours vrai ailleurs.
+  Future<bool> heurePrecise() async {
+    await prepare();
+    final android = _android;
+    if (android == null) return true;
+    return await android.canScheduleExactNotifications() ?? false;
+  }
+
+  /// Ouvre le réglage Android « Alarmes et rappels » de l'appli.
+  Future<void> demandeHeurePrecise() async {
+    await prepare();
+    await _android?.requestExactAlarmsPermission();
+  }
+
+  /// Nombre de notifications en attente sur le téléphone.
+  Future<int> enAttente() async {
+    await prepare();
+    return (await _plugin.pendingNotificationRequests()).length;
+  }
+
   /// Réponse à une notification (bouton), appli ouverte ou non.
   Future<void> traiteReponse(NotificationResponse reponse) async {
     final action = reponse.actionId;
@@ -148,6 +174,13 @@ class Notifications {
     if (defaultTargetPlatform == TargetPlatform.iOS) {
       await _initialise(questions);
     }
+    // Heure précise si « Alarmes et rappels » est autorisé. Sinon, heure
+    // approximative : Android peut alors décaler la notification d'autant
+    // plus qu'elle est programmée longtemps à l'avance (plusieurs heures
+    // de retard possibles : le soir du 22/10/2026, Paul n'a rien reçu).
+    final mode = await heurePrecise()
+        ? AndroidScheduleMode.exactAllowWhileIdle
+        : AndroidScheduleMode.inexactAllowWhileIdle;
     await _plugin.cancelAllPendingNotifications();
     for (final n in plan.notifs) {
       await _plugin.zonedSchedule(
@@ -156,7 +189,7 @@ class Notifications {
         body: majuscule(jourEtDate(n.jour)),
         scheduledDate: _tz(n.quand),
         notificationDetails: _details(n.question),
-        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        androidScheduleMode: mode,
         payload: '${n.question.id}|${cleJour(n.jour)}',
       );
     }
@@ -168,7 +201,7 @@ class Notifications {
         body: 'Ouvre l\'appli pour continuer à recevoir tes questions.',
         scheduledDate: _tz(rappel),
         notificationDetails: _detailsSimples,
-        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        androidScheduleMode: mode,
       );
     }
   }

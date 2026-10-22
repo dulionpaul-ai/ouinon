@@ -77,5 +77,10 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
   --split-per-abi --target-platform android-arm64`. Signés avec la clé de
   test du dépôt (`android/app/cle-test.jks`, pas un secret) : chaque APK
   s'installe par-dessus le précédent sans effacer les réponses.
+- Dans une session Claude, Maven Central peut répondre « trop de
+  demandes » (429) : un script Gradle propre à la session
+  (`~/.gradle/init.d/miroir.gradle.kts`, hors du dépôt) remplace son
+  adresse par le miroir Google
+  `https://maven-central.storage-download.googleapis.com/maven2/`.
 - Codemagic (`codemagic.yaml`, lancement à la main) : APK et TestFlight.
 - Flutter 3.47.7 partout.

@@ -14,7 +14,9 @@ marche, appli fermée, sur le téléphone de Paul.
    fermée, programmation 14 jours d'avance, rappel « continuer »,
    bienvenue + autorisation au premier lancement, bouton « Essayer une
    notification » dans les Réglages). **Premier APK à tester par Paul**
-   (Android).
+   (Android) : APK 1.0.0 (9 Mo) envoyé le 22/10/2026. Pas d'émulateur
+   dans la session : le vrai test des boutons appli fermée se fait sur
+   le téléphone de Paul.
 4. [ ] Écrans : codés le 22/10/2026 : Aujourd'hui (avec les jours
    passés), Mes questions (ajout, modification, ordre, pause,
    suppression), 4 questions de départ. À tester par Paul.

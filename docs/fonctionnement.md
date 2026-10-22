@@ -20,7 +20,7 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 | `utils/jour.dart`, `utils/date_fr.dart` | Jours de calendrier (« 2026-10-22 ») et dates en français. |
 | `screens/` | Accueil (onglets), Aujourd'hui, Stats, fiche d'une question, Mes questions, modification, Réglages. |
 | `theme/app_theme.dart` | Style « Bulles » (clair) et « Nuit ronde » (sombre) : couleurs dans `Teintes`, polices Unbounded (titres) et Figtree (texte), embarquées dans `assets/fonts` (licence OFL). Réponses : citron, abricot, corail. |
-| `widgets/rond.dart` | Briques rondes : carte, pastille, bouton rond, grand titre, barre d'onglets flottante, choix en pilules. |
+| `widgets/rond.dart` | Briques rondes : carte, pastille, bouton rond et bouton +, grand titre (réduit plutôt que coupé), barre d'onglets flottante, choix en pilules, pilule à toucher, jour de la semaine en rond. Pas de puces Material (police et couleurs mal reprises). |
 
 ## Notifications
 
@@ -72,7 +72,8 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 
 - Captures d'écran avec les vraies polices : `flutter test
   tool/captures_test.dart --update-goldens` (images dans `tool/captures/`,
-  non commitées).
+  non commitées), dont un petit téléphone (360 de large) avec texte
+  agrandi 1,3 fois : tout débordement fait échouer la capture.
 
 - `flutter analyze` et `flutter test` (tests dans `test/`, base SQLite
   en mémoire, notifications simulées).

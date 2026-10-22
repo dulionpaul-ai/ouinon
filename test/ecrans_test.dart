@@ -8,6 +8,7 @@ import 'package:ouinon/screens/aujourdhui_screen.dart';
 import 'package:ouinon/screens/edition_question_screen.dart';
 import 'package:ouinon/screens/stats_screen.dart';
 import 'package:ouinon/utils/jour.dart';
+import 'package:ouinon/widgets/rond.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'outils.dart';
@@ -78,10 +79,20 @@ void main() {
     );
     await tester.enterText(find.byKey(const ValueKey('reponse1')), 'Un peu');
     await tester.enterText(find.byKey(const ValueKey('reponse2')), 'Beaucoup');
-    await tester.tap(find.text('sam.'));
-    await tester.tap(find.text('dim.'));
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('jour6')),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.byKey(const ValueKey('jour5')));
+    await tester.tap(find.byKey(const ValueKey('jour6')));
     await tester.pump();
-    expect(find.text('En semaine'), findsOneWidget);
+    expect(
+      tester
+          .widget<PiluleChoix>(find.widgetWithText(PiluleChoix, 'En semaine'))
+          .choisie,
+      isTrue,
+    );
     await tester.ensureVisible(find.text('Enregistrer'));
     await tester.tap(find.text('Enregistrer'));
     await attends(tester);
@@ -96,6 +107,11 @@ void main() {
     await tester.ensureVisible(find.text('Enregistrer'));
     await tester.tap(find.text('Enregistrer'));
     await attends(tester);
+    await tester.scrollUntilVisible(
+      find.text('Écris la question.'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text('Écris la question.'), findsOneWidget);
     expect(await tester.runAsync(base.questions), hasLength(4));
   });

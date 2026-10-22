@@ -33,6 +33,13 @@ marche, appli fermée, sur le téléphone de Paul.
    (https://claude.ai/artifact/8JC7nnJjfsTQoX79W3FXtW : Croisement,
    Interrupteur, Oui | Non, Trois réponses). Reste : choix de Paul,
    puis icône de l'appli (Android et iPhone).
+   Retours de Paul sur l'APK n° 2 (captures du 22/10/2026) corrigés dans
+   l'APK n° 3 : titre « Questions » coupé, jours illisibles en sombre,
+   intitulés des champs mal placés. En plus : bouton + rond, carte
+   « Ajouter une question » en bas de liste, modèles de réponses, jours
+   en ronds avec raccourcis (tous les jours, semaine, week-end), heure
+   en grosse pastille, « Enregistrer » toujours visible, vibration
+   légère à chaque réponse, avancement du jour sous le titre.
 7. [ ] Test longue durée par Paul (2 à 3 semaines de vraies réponses),
    corrections.
 8. [ ] Plus tard, avec l'accord de Paul : iPhone (TestFlight), sauvegarde,

@@ -182,17 +182,14 @@ class AppTheme {
       chipTheme: ChipThemeData(
         shape: const StadiumBorder(),
         side: BorderSide.none,
-        backgroundColor: t.carte,
-        selectedColor: t.texte,
-        labelStyle: TextStyle(
-          fontFamily: policeTexte,
-          fontWeight: FontWeight.w700,
-          color: t.texte,
-        ),
-        secondaryLabelStyle: TextStyle(
-          fontFamily: policeTexte,
-          fontWeight: FontWeight.w700,
-          color: t.fond,
+        backgroundColor: t.puce,
+        selectedColor: t.accent,
+        labelStyle: WidgetStateTextStyle.resolveWith(
+          (etats) => TextStyle(
+            fontFamily: policeTexte,
+            fontWeight: FontWeight.w700,
+            color: etats.contains(WidgetState.selected) ? t.surAccent : t.texte,
+          ),
         ),
       ),
       dialogTheme: DialogThemeData(

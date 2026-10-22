@@ -12,6 +12,7 @@ import 'package:ouinon/data/base.dart';
 import 'package:ouinon/data/notifications.dart';
 import 'package:ouinon/main.dart';
 import 'package:ouinon/screens/accueil_screen.dart';
+import 'package:ouinon/screens/edition_question_screen.dart';
 import 'package:ouinon/screens/fiche_question_screen.dart';
 import 'package:ouinon/screens/questions_screen.dart';
 import 'package:ouinon/screens/stats_screen.dart';
@@ -73,9 +74,14 @@ void main() {
     WidgetTester tester,
     String nom,
     Widget ecran,
-    ThemeMode mode,
-  ) async {
-    tester.view.physicalSize = const Size(780, 1688);
+    ThemeMode mode, {
+    double hauteur = 844,
+    double largeur = 390,
+    double texte = 1,
+  }) async {
+    tester.view.physicalSize = Size(largeur * 2, hauteur * 2);
+    tester.platformDispatcher.textScaleFactorTestValue = texte;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
     tester.view.devicePixelRatio = 2;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(OuinonApp(accueil: ecran, themeMode: mode));
@@ -127,6 +133,27 @@ void main() {
       );
     });
 
+    testWidgets('nouvelle question $suffixe', (tester) async {
+      await capture(
+        tester,
+        '5-nouvelle-$suffixe',
+        EditionQuestionScreen(base: base),
+        mode,
+        hauteur: 1250,
+      );
+    });
+
+    testWidgets('modifier $suffixe', (tester) async {
+      final q = (await tester.runAsync(() => base.question(1)))!;
+      await capture(
+        tester,
+        '6-modifier-$suffixe',
+        EditionQuestionScreen(base: base, question: q),
+        mode,
+        hauteur: 1400,
+      );
+    });
+
     testWidgets('questions $suffixe', (tester) async {
       await capture(
         tester,
@@ -144,4 +171,60 @@ void main() {
       );
     });
   }
+
+  // Petit téléphone (360 de large) et gros texte (1,3) : rien ne déborde.
+  testWidgets('petit écran, gros texte', (tester) async {
+    await remplit(tester);
+    await capture(
+      tester,
+      '7-petit-jour',
+      const AccueilScreen(),
+      ThemeMode.dark,
+      largeur: 360,
+      hauteur: 760,
+      texte: 1.3,
+    );
+  });
+
+  testWidgets('petit écran, gros texte, questions', (tester) async {
+    await capture(
+      tester,
+      '8-petit-questions',
+      Scaffold(body: QuestionsScreen(base: base)),
+      ThemeMode.dark,
+      largeur: 360,
+      hauteur: 760,
+      texte: 1.3,
+    );
+  });
+
+  testWidgets('petit écran, gros texte, nouvelle question', (tester) async {
+    await capture(
+      tester,
+      '9-petit-nouvelle',
+      EditionQuestionScreen(base: base),
+      ThemeMode.dark,
+      largeur: 360,
+      hauteur: 1400,
+      texte: 1.3,
+    );
+  });
+
+  testWidgets('petit écran, gros texte, fiche', (tester) async {
+    await remplit(tester);
+    final q = (await tester.runAsync(() => base.question(1)))!;
+    await capture(
+      tester,
+      '10-petit-fiche',
+      FicheQuestionScreen(
+        base: base,
+        question: q,
+        maintenant: () => maintenant,
+      ),
+      ThemeMode.light,
+      largeur: 360,
+      hauteur: 1600,
+      texte: 1.3,
+    );
+  });
 }

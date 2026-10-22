@@ -142,35 +142,42 @@ class _AujourdhuiScreenState extends State<AujourdhuiScreen> {
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(6, 18, 6, 18),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(child: GrandTitre(_titre)),
-                  if (_questions.isNotEmpty)
+                  GrandTitre(_titre),
+                  if (_questions.isNotEmpty) ...[
+                    const SizedBox(height: 10),
                     Semantics(
                       container: true,
                       label:
                           '$faites sur ${_questions.length} répondue'
                           '${faites > 1 ? 's' : ''}',
                       excludeSemantics: true,
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 6),
-                        child: Row(
-                          children: [
-                            for (var i = 0; i < _questions.length; i++)
-                              Container(
-                                width: 12,
-                                height: 12,
-                                margin: const EdgeInsets.only(left: 5),
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: i < faites ? t.texte : t.trait,
-                                ),
+                      child: Row(
+                        children: [
+                          for (var i = 0; i < _questions.length; i++)
+                            Container(
+                              width: 10,
+                              height: 10,
+                              margin: const EdgeInsets.only(right: 5),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: i < faites ? t.texte : t.trait,
                               ),
-                          ],
-                        ),
+                            ),
+                          const SizedBox(width: 6),
+                          Text(
+                            '$faites sur ${_questions.length}',
+                            style: TextStyle(
+                              color: t.doux,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
+                  ],
                 ],
               ),
             ),

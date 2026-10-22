@@ -69,16 +69,10 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                 Row(
                   children: [
                     const Expanded(child: GrandTitre('Questions')),
-                    FilledButton.icon(
+                    const SizedBox(width: 12),
+                    BoutonPlus(
+                      infobulle: 'Ajouter une question',
                       onPressed: _ouvre,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: t.accent,
-                        foregroundColor: t.surAccent,
-                        minimumSize: const Size(0, 48),
-                        padding: const EdgeInsets.symmetric(horizontal: 18),
-                      ),
-                      icon: const Icon(Icons.add_rounded),
-                      label: const Text('Ajouter'),
                     ),
                   ],
                 ),
@@ -88,6 +82,21 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                       ? 'Aucune question pour l\'instant.'
                       : 'Touche pour modifier, appui long pour déplacer.',
                   style: TextStyle(color: t.doux),
+                ),
+              ],
+            ),
+          ),
+          footer: CarteRonde(
+            onTap: _ouvre,
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.add_rounded, color: t.texte),
+                const SizedBox(width: 8),
+                const Text(
+                  'Ajouter une question',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
                 ),
               ],
             ),

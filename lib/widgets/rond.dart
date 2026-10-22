@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
+import '../utils/date_fr.dart';
 
 /// Carte blanche très arrondie (32), le bloc de base du style.
 class CarteRonde extends StatelessWidget {
@@ -111,16 +112,23 @@ class GrandTitre extends StatelessWidget {
 
   const GrandTitre(this.texte, {super.key});
 
+  /// Réduit plutôt que coupé en deux lignes (gros texte du téléphone).
   @override
-  Widget build(BuildContext context) => Text(
-    texte,
-    style: TextStyle(
-      fontFamily: AppTheme.policeTitre,
-      fontSize: 30,
-      fontWeight: FontWeight.w700,
-      letterSpacing: -0.9,
-      height: 1.1,
-      color: Teintes.de(context).texte,
+  Widget build(BuildContext context) => FittedBox(
+    fit: BoxFit.scaleDown,
+    alignment: Alignment.centerLeft,
+    child: Text(
+      texte,
+      maxLines: 1,
+      softWrap: false,
+      style: TextStyle(
+        fontFamily: AppTheme.policeTitre,
+        fontSize: 30,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.9,
+        height: 1.1,
+        color: Teintes.de(context).texte,
+      ),
     ),
   );
 }
@@ -259,6 +267,132 @@ class ChoixPilules<T> extends StatelessWidget {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// Bouton rond citron (ajouter).
+class BoutonPlus extends StatelessWidget {
+  final String infobulle;
+  final VoidCallback onPressed;
+
+  const BoutonPlus({
+    super.key,
+    required this.infobulle,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Teintes.de(context);
+    return IconButton(
+      tooltip: infobulle,
+      onPressed: onPressed,
+      style: IconButton.styleFrom(
+        backgroundColor: t.accent,
+        foregroundColor: t.surAccent,
+        fixedSize: const Size(56, 56),
+        shape: const CircleBorder(),
+      ),
+      icon: const Icon(Icons.add_rounded, size: 30),
+    );
+  }
+}
+
+/// Un jour de la semaine à cocher : rond, initiale, citron si choisi.
+class JourRond extends StatelessWidget {
+  final int index;
+  final bool choisi;
+  final VoidCallback onTap;
+
+  /// Diamètre (44 au plus, moins sur un téléphone étroit).
+  final double taille;
+
+  const JourRond({
+    super.key,
+    required this.index,
+    required this.choisi,
+    required this.onTap,
+    this.taille = 44,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Teintes.de(context);
+    return Semantics(
+      button: true,
+      selected: choisi,
+      label: nomJour(index + 1),
+      excludeSemantics: true,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        width: taille,
+        height: taille,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: choisi ? t.accent : t.puce,
+        ),
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: onTap,
+            child: Center(
+              child: Text(
+                initialesJours[index],
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: choisi ? t.surAccent : t.doux,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Petite pilule à toucher (modèle de réponses, raccourci de jours) ;
+/// citron quand elle est choisie.
+class PiluleChoix extends StatelessWidget {
+  final String texte;
+  final bool choisie;
+  final VoidCallback onTap;
+
+  const PiluleChoix(
+    this.texte, {
+    super.key,
+    this.choisie = false,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Teintes.de(context);
+    return Semantics(
+      button: true,
+      selected: choisie,
+      child: Material(
+        color: choisie ? t.accent : t.puce,
+        shape: const StadiumBorder(),
+        child: InkWell(
+          customBorder: const StadiumBorder(),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+            child: Text(
+              texte,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: choisie ? t.surAccent : t.texte,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

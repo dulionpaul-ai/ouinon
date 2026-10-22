@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../models/question.dart';
 import '../theme/app_theme.dart';
@@ -73,7 +74,10 @@ class _Pilule extends StatelessWidget {
           type: MaterialType.transparency,
           child: InkWell(
             customBorder: const StadiumBorder(),
-            onTap: onTap,
+            onTap: () {
+              HapticFeedback.selectionClick();
+              onTap();
+            },
             child: Center(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),

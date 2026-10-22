@@ -19,7 +19,7 @@ class BarreBilan extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final vide = Theme.of(context).colorScheme.outlineVariant;
+    final vide = Teintes.de(context).puce;
     return ClipRRect(
       borderRadius: BorderRadius.circular(hauteur / 2),
       child: SizedBox(
@@ -27,6 +27,7 @@ class BarreBilan extends StatelessWidget {
         child: bilan.total == 0
             ? ColoredBox(color: vide)
             : Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   for (var i = 0; i < bilan.comptes.length; i++)
                     if (bilan.comptes[i] > 0)
@@ -64,8 +65,9 @@ class Colonnes extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final vert = AppTheme.couleurReponse(context, 0, 2);
-    final fond = theme.colorScheme.outlineVariant;
+    final t = Teintes.de(context);
+    final vert = t.meilleure;
+    final fond = t.puce;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
@@ -80,8 +82,8 @@ class Colonnes extends StatelessWidget {
                     height: hauteur,
                     alignment: Alignment.bottomCenter,
                     decoration: BoxDecoration(
-                      color: fond.withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(4),
+                      color: fond,
+                      borderRadius: BorderRadius.circular(99),
                     ),
                     child: bilans[i].partMeilleure == null
                         ? null
@@ -94,7 +96,7 @@ class Colonnes extends StatelessWidget {
                             child: DecoratedBox(
                               decoration: BoxDecoration(
                                 color: vert,
-                                borderRadius: BorderRadius.circular(4),
+                                borderRadius: BorderRadius.circular(99),
                               ),
                             ),
                           ),

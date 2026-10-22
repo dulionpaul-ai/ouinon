@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../data/base.dart';
 import '../data/notifications.dart';
+import '../theme/app_theme.dart';
+import '../widgets/rond.dart';
 
 /// Réglages : autorisation des notifications, essai d'une notification,
 /// et ce que l'appli fait (ou pas) de tes réponses.
@@ -72,54 +74,75 @@ class _ReglagesScreenState extends State<ReglagesScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final doux = theme.textTheme.bodyMedium?.copyWith(
-      color: theme.colorScheme.onSurfaceVariant,
+    final doux = TextStyle(color: Teintes.de(context).doux, height: 1.35);
+    Widget bloc(String titre, List<Widget> contenu) => Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: CarteRonde(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(titre, style: theme.textTheme.titleMedium),
+            const SizedBox(height: 8),
+            ...contenu,
+          ],
+        ),
+      ),
     );
     return Scaffold(
       appBar: AppBar(title: const Text('Réglages')),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
+        padding: const EdgeInsets.fromLTRB(14, 8, 14, 32),
         children: [
-          Text('Notifications', style: theme.textTheme.titleMedium),
-          const SizedBox(height: 8),
-          Text(switch (_autorisees) {
-            true => 'Autorisées.',
-            false => 'Bloquées : sans elles, tu ne reçois pas tes questions.',
-            null =>
-              'Chaque question arrive à son heure, à quelques minutes '
-                  'près.',
-          }, style: doux),
-          const SizedBox(height: 12),
-          if (_autorisees != true)
+          bloc('Notifications', [
+            Text(switch (_autorisees) {
+              true => 'Autorisées.',
+              false => 'Bloquées : sans elles, tu ne reçois pas tes questions.',
+              null =>
+                'Chaque question arrive à son heure, à quelques minutes '
+                    'près.',
+            }, style: doux),
+            const SizedBox(height: 14),
+            if (_autorisees != true) ...[
+              FilledButton(
+                onPressed: _autorise,
+                child: const Text('Autoriser les notifications'),
+              ),
+              const SizedBox(height: 8),
+            ],
             FilledButton(
-              onPressed: _autorise,
-              child: const Text('Autoriser les notifications'),
+              onPressed: _essaie,
+              style: FilledButton.styleFrom(
+                backgroundColor: Teintes.de(context).accent,
+                foregroundColor: Teintes.de(context).surAccent,
+              ),
+              child: const Text('Essayer une notification'),
             ),
-          const SizedBox(height: 8),
-          OutlinedButton(
-            onPressed: _essaie,
-            child: const Text('Essayer une notification maintenant'),
+          ]),
+          bloc('Tes réponses', [
+            Text(
+              'Tout reste sur ce téléphone : pas de compte, pas de serveur, '
+              'aucun envoi. Si tu désinstalles l\'appli, tes réponses sont '
+              'effacées.',
+              style: doux,
+            ),
+          ]),
+          bloc('À savoir', [
+            Text(
+              'Ouinon montre ce qui va souvent ensemble dans tes réponses. '
+              'Ce ne sont pas des causes, et l\'appli ne donne aucun conseil '
+              'de santé.',
+              style: doux,
+            ),
+          ]),
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: Text(
+              'Ouinon 1.0.0',
+              textAlign: TextAlign.center,
+              style: doux,
+            ),
           ),
-          const SizedBox(height: 28),
-          Text('Tes réponses', style: theme.textTheme.titleMedium),
-          const SizedBox(height: 8),
-          Text(
-            'Tout reste sur ce téléphone : pas de compte, pas de serveur, '
-            'aucun envoi. Si tu désinstalles l\'appli, tes réponses sont '
-            'effacées.',
-            style: doux,
-          ),
-          const SizedBox(height: 28),
-          Text('À savoir', style: theme.textTheme.titleMedium),
-          const SizedBox(height: 8),
-          Text(
-            'Oui-Non montre ce qui va souvent ensemble dans tes réponses. '
-            'Ce ne sont pas des causes, et l\'appli ne donne aucun conseil '
-            'de santé.',
-            style: doux,
-          ),
-          const SizedBox(height: 28),
-          Text('Version 1.0.0', style: doux),
         ],
       ),
     );

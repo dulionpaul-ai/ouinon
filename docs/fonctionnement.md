@@ -1,4 +1,4 @@
-# Fonctionnement de Oui-Non
+# Fonctionnement de Ouinon
 
 ## En deux mots
 
@@ -19,7 +19,8 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 | `utils/stats.dart` | Bilans, évolution, jour de la semaine, croisements et leurs phrases (testé). |
 | `utils/jour.dart`, `utils/date_fr.dart` | Jours de calendrier (« 2026-10-22 ») et dates en français. |
 | `screens/` | Accueil (onglets), Aujourd'hui, Stats, fiche d'une question, Mes questions, modification, Réglages. |
-| `theme/app_theme.dart` | Style provisoire « Blanc net » ; couleurs des réponses (vert, orange, rouge). |
+| `theme/app_theme.dart` | Style « Bulles » (clair) et « Nuit ronde » (sombre) : couleurs dans `Teintes`, polices Unbounded (titres) et Figtree (texte), embarquées dans `assets/fonts` (licence OFL). Réponses : citron, abricot, corail. |
+| `widgets/rond.dart` | Briques rondes : carte, pastille, bouton rond, grand titre, barre d'onglets flottante, choix en pilules. |
 
 ## Notifications
 
@@ -68,6 +69,10 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
   2 fois sur 10 les autres jours. » Jamais de mot de cause.
 
 ## Vérifications et compilation
+
+- Captures d'écran avec les vraies polices : `flutter test
+  tool/captures_test.dart --update-goldens` (images dans `tool/captures/`,
+  non commitées).
 
 - `flutter analyze` et `flutter test` (tests dans `test/`, base SQLite
   en mémoire, notifications simulées).

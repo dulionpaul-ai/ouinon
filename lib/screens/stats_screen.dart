@@ -4,7 +4,9 @@ import '../data/base.dart';
 import '../models/question.dart';
 import '../utils/jour.dart';
 import '../utils/stats.dart';
+import '../theme/app_theme.dart';
 import '../widgets/barres.dart';
+import '../widgets/rond.dart';
 import 'fiche_question_screen.dart';
 
 /// Les liens les plus nets entre questions, puis le bilan des 30 derniers
@@ -59,68 +61,81 @@ class _StatsScreenState extends State<StatsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final doux = theme.textTheme.bodyMedium?.copyWith(
-      color: theme.colorScheme.onSurfaceVariant,
-    );
+    final t = Teintes.de(context);
+    final doux = TextStyle(color: t.doux);
     final aujourdhui = jourDe(widget.maintenant());
     final liensMontres = _tousLesLiens
         ? _liens
         : _liens.take(_liensMontres).toList();
     return Scaffold(
-      appBar: AppBar(title: const Text('Stats'), titleSpacing: 24),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
-        children: [
-          Text('Ce qui va avec quoi', style: theme.textTheme.titleLarge),
-          const SizedBox(height: 8),
-          if (_liens.isEmpty)
-            Text(
-              'Les liens entre tes questions apparaîtront après au moins '
-              '$minJoursCommuns jours de réponses, quand un écart net se '
-              'dessine.',
-              style: doux,
-            )
-          else ...[
-            for (final l in liensMontres)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(phraseLien(l), style: theme.textTheme.bodyLarge),
-                    const SizedBox(height: 2),
-                    Text('Sur ${l.jours} jours.', style: doux),
-                  ],
+      body: SafeArea(
+        bottom: false,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 120),
+          children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(6, 22, 6, 18),
+              child: GrandTitre('Stats'),
+            ),
+            _Section('Ce qui va avec quoi'),
+            if (_liens.isEmpty)
+              CarteRonde(
+                child: Text(
+                  'Les liens entre tes questions apparaîtront après au moins '
+                  '$minJoursCommuns jours de réponses, quand un écart net se '
+                  'dessine.',
+                  style: doux,
                 ),
-              ),
-            if (_liens.length > _liensMontres)
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton(
-                  onPressed: () =>
-                      setState(() => _tousLesLiens = !_tousLesLiens),
-                  child: Text(
-                    _tousLesLiens
-                        ? 'Voir moins'
-                        : 'Voir les ${_liens.length} liens',
+              )
+            else ...[
+              for (final l in liensMontres)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: CarteRonde(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          phraseLien(l),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            height: 1.35,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Pastille('Sur ${l.jours} jours.'),
+                      ],
+                    ),
                   ),
                 ),
+              if (_liens.length > _liensMontres)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    onPressed: () =>
+                        setState(() => _tousLesLiens = !_tousLesLiens),
+                    child: Text(
+                      _tousLesLiens
+                          ? 'Voir moins'
+                          : 'Voir les ${_liens.length} liens',
+                    ),
+                  ),
+                ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(6, 2, 6, 0),
+                child: Text(
+                  'Ce sont des coïncidences observées dans tes réponses, pas '
+                  'des causes.',
+                  style: doux.copyWith(fontSize: 13),
+                ),
               ),
-            const SizedBox(height: 4),
-            Text(
-              'Ce sont des coïncidences observées dans tes réponses, pas des '
-              'causes.',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
+            ],
+            const SizedBox(height: 18),
+            _Section('30 derniers jours'),
+            for (final q in _questions) _carte(context, q, aujourdhui, doux),
           ],
-          const SizedBox(height: 28),
-          Text('30 derniers jours', style: theme.textTheme.titleLarge),
-          const SizedBox(height: 4),
-          for (final q in _questions) _carte(context, q, aujourdhui, doux),
-        ],
+        ),
       ),
     );
   }
@@ -129,7 +144,7 @@ class _StatsScreenState extends State<StatsScreen> {
     BuildContext context,
     Question q,
     DateTime aujourdhui,
-    TextStyle? doux,
+    TextStyle doux,
   ) {
     final b = bilan(
       q,
@@ -137,20 +152,19 @@ class _StatsScreenState extends State<StatsScreen> {
       debut: ajouteJours(aujourdhui, -29),
       fin: aujourdhui,
     );
-    return InkWell(
-      borderRadius: BorderRadius.circular(12),
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => FicheQuestionScreen(
-            base: widget.base,
-            question: q,
-            maintenant: widget.maintenant,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: CarteRonde(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => FicheQuestionScreen(
+              base: widget.base,
+              question: q,
+              maintenant: widget.maintenant,
+            ),
           ),
         ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -160,17 +174,17 @@ class _StatsScreenState extends State<StatsScreen> {
                   child: Text(
                     q.texte,
                     style: const TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                 ),
-                const Icon(Icons.chevron_right),
+                Icon(Icons.chevron_right_rounded, color: doux.color),
               ],
             ),
+            const SizedBox(height: 12),
+            BarreBilan(question: q, bilan: b, hauteur: 14),
             const SizedBox(height: 8),
-            BarreBilan(question: q, bilan: b),
-            const SizedBox(height: 6),
             Text(
               b.total == 0
                   ? 'Pas encore de réponse.'
@@ -183,4 +197,17 @@ class _StatsScreenState extends State<StatsScreen> {
       ),
     );
   }
+}
+
+/// Intertitre de section.
+class _Section extends StatelessWidget {
+  final String texte;
+
+  const _Section(this.texte);
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(6, 0, 6, 10),
+    child: Text(texte, style: Theme.of(context).textTheme.titleLarge),
+  );
 }

@@ -12,21 +12,21 @@ Future<void> main() async {
   } catch (_) {
     // Sans notifications plutôt que sans appli.
   }
-  runApp(const OuiNonApp());
+  runApp(const OuinonApp());
 }
 
-class OuiNonApp extends StatelessWidget {
+class OuinonApp extends StatelessWidget {
   final Widget? accueil;
 
   /// Thème imposé (tests) ; sinon celui du téléphone.
   final ThemeMode themeMode;
 
-  const OuiNonApp({super.key, this.accueil, this.themeMode = ThemeMode.system});
+  const OuinonApp({super.key, this.accueil, this.themeMode = ThemeMode.system});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Oui-Non',
+      title: 'Ouinon',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.clair(),
       darkTheme: AppTheme.sombre(),

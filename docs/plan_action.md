@@ -6,7 +6,7 @@ marche, appli fermée, sur le téléphone de Paul.
 1. [x] Cadrage : questions à Paul et choix enregistrés le 22/10/2026
    (`docs/revue_produit.md`).
 2. [x] Socle : fait le 22/10/2026. Projet Flutter 3.47.7
-   (`fr.ouinon.app`, « Oui-Non »), structure Trousse à Pharma, base
+   (`fr.ouinon.app`, « Ouinon »), structure Trousse à Pharma, base
    SQLite (questions, réponses), vérifications GitHub Actions (format,
    analyse, tests), clé de test Android stable, Codemagic préparé.
 3. [ ] Notifications avec boutons : codé le 22/10/2026 (chaque question
@@ -24,10 +24,12 @@ marche, appli fermée, sur le téléphone de Paul.
    7 j / 30 j / tout, semaine par semaine, selon le jour, calendrier
    modifiable), liens entre questions (même jour et lendemain). À tester
    par Paul avec de vraies réponses.
-6. [ ] Style : 3 propositions envoyées le 22/10/2026
-   (https://claude.ai/artifact/8wYzPghoUihjK5CGqjZQSg : A Blanc net,
-   B Doux, C Nuit). L'appli utilise A en attendant le choix de Paul.
-   Reste : appliquer son choix, icône, mode sombre fin.
+6. [ ] Style : première série (A, B, C) jugée trop « appli d'IA » par
+   Paul le 22/10/2026. Nouvelle série ronde et moderne sur la même page
+   (https://claude.ai/artifact/8wYzPghoUihjK5CGqjZQSg : D Bulles,
+   E Galets, F Nuit ronde). Appliqué dans l'appli : D en clair, F en
+   sombre, polices Unbounded + Figtree (APK n° 2). Le nom devient
+   « Ouinon » (tout attaché). Reste : validation de Paul, icône.
 7. [ ] Test longue durée par Paul (2 à 3 semaines de vraies réponses),
    corrections.
 8. [ ] Plus tard, avec l'accord de Paul : iPhone (TestFlight), sauvegarde,

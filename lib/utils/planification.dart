@@ -16,7 +16,7 @@ class NotifPrevue {
 /// ouverture de l'appli pour continuer (docs/plan_action.md, relecture).
 const horizonJours = 14;
 
-/// Identifiant de la notification « Ouvre Oui-Non pour continuer ».
+/// Identifiant de la notification « Ouvre Ouinon pour continuer ».
 const idRappelContinuer = 1;
 
 /// Identifiant d'une notification : la question et le jour, pour la

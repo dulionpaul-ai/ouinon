@@ -9,6 +9,7 @@ import '../utils/jour.dart';
 import '../utils/stats.dart';
 import '../widgets/barres.dart';
 import '../widgets/boutons_reponse.dart';
+import '../widgets/rond.dart';
 import 'edition_question_screen.dart';
 
 /// Tout sur une question : bilan (7 jours, 30 jours, depuis le début),
@@ -146,68 +147,103 @@ class _FicheQuestionScreenState extends State<FicheQuestionScreen> {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
+        padding: const EdgeInsets.fromLTRB(14, 8, 14, 32),
         children: [
-          SegmentedButton<_Periode>(
-            segments: const [
-              ButtonSegment(value: _Periode.semaine, label: Text('7 jours')),
-              ButtonSegment(value: _Periode.mois, label: Text('30 jours')),
-              ButtonSegment(value: _Periode.tout, label: Text('Tout')),
+          ChoixPilules<_Periode>(
+            options: const [
+              (_Periode.semaine, '7 jours'),
+              (_Periode.mois, '30 jours'),
+              (_Periode.tout, 'Tout'),
             ],
-            selected: {_periode},
-            showSelectedIcon: false,
-            onSelectionChanged: (s) => setState(() => _periode = s.first),
+            valeur: _periode,
+            onChoix: (p) => setState(() => _periode = p),
           ),
-          const SizedBox(height: 16),
-          BarreBilan(question: _q, bilan: b, hauteur: 14),
-          const SizedBox(height: 12),
-          for (var i = 0; i < _q.nbReponses; i++)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Row(
-                children: [
-                  Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: AppTheme.couleurReponse(context, i, _q.nbReponses),
-                      shape: BoxShape.circle,
+          const SizedBox(height: 10),
+          CarteRonde(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                BarreBilan(question: _q, bilan: b, hauteur: 18),
+                const SizedBox(height: 14),
+                for (var i = 0; i < _q.nbReponses; i++)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 5),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 14,
+                          height: 14,
+                          decoration: BoxDecoration(
+                            color: AppTheme.couleurReponse(
+                              context,
+                              i,
+                              _q.nbReponses,
+                            ),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            _q.reponses[i],
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                        Text(
+                          b.total == 0
+                              ? '0'
+                              : '${b.comptes[i]} · '
+                                    '${(100 * b.comptes[i] / b.total).round()} %',
+                          style: doux,
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(child: Text(_q.reponses[i])),
-                  Text(
-                    b.total == 0
-                        ? '0'
-                        : '${b.comptes[i]} · '
-                              '${(100 * b.comptes[i] / b.total).round()} %',
-                    style: doux,
-                  ),
-                ],
-              ),
+                if (b.total == 0)
+                  Text('Pas de réponse sur cette période.', style: doux),
+              ],
             ),
-          if (b.total == 0)
-            Text('Pas de réponse sur cette période.', style: doux),
-          const SizedBox(height: 28),
-          Text('Semaine par semaine', style: theme.textTheme.titleMedium),
-          const SizedBox(height: 4),
-          Text('Part de « ${_q.reponses[0]} »', style: doux),
-          const SizedBox(height: 12),
-          Colonnes(
-            bilans: semaines,
-            etiquettes: [for (final l in lundis) '${l.day}/${l.month}'],
           ),
-          const SizedBox(height: 28),
-          Text('Selon le jour', style: theme.textTheme.titleMedium),
-          const SizedBox(height: 4),
-          Text('Part de « ${_q.reponses[0]} », depuis le début', style: doux),
-          const SizedBox(height: 12),
-          Colonnes(
-            bilans: parJourSemaine(_q, _reponses),
-            etiquettes: initialesJours,
+          const SizedBox(height: 10),
+          CarteRonde(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text('Semaine par semaine', style: theme.textTheme.titleMedium),
+                const SizedBox(height: 2),
+                Text(
+                  'Part de « ${_q.reponses[0]} », semaines du lundi',
+                  style: doux,
+                ),
+                const SizedBox(height: 14),
+                Colonnes(
+                  bilans: semaines,
+                  etiquettes: [for (final l in lundis) '${l.day}'],
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 28),
-          _calendrier(context, auj, doux),
+          const SizedBox(height: 10),
+          CarteRonde(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text('Selon le jour', style: theme.textTheme.titleMedium),
+                const SizedBox(height: 2),
+                Text(
+                  'Part de « ${_q.reponses[0]} », depuis le début',
+                  style: doux,
+                ),
+                const SizedBox(height: 14),
+                Colonnes(
+                  bilans: parJourSemaine(_q, _reponses),
+                  etiquettes: initialesJours,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          CarteRonde(child: _calendrier(context, auj, doux)),
         ],
       ),
     );

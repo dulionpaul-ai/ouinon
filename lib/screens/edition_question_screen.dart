@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/base.dart';
 import '../models/question.dart';
 import '../utils/date_fr.dart';
+import '../widgets/rond.dart';
 
 /// Ajout ou modification d'une question : texte, 2 ou 3 réponses (la
 /// meilleure d'abord), heure de la notification, jours.
@@ -193,13 +194,12 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
           ),
           const SizedBox(height: 12),
           if (_nouvelle)
-            SegmentedButton<int>(
-              segments: const [
-                ButtonSegment(value: 2, label: Text('2 réponses')),
-                ButtonSegment(value: 3, label: Text('3 réponses')),
-              ],
-              selected: {nb},
-              onSelectionChanged: (s) => _nombre(s.first),
+            ChoixPilules<int>(
+              options: const [(2, '2 réponses'), (3, '3 réponses')],
+              valeur: nb,
+              onChoix: (n) {
+                if (n != nb) _nombre(n);
+              },
             )
           else
             Text(

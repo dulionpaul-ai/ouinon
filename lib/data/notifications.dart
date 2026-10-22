@@ -159,7 +159,7 @@ class Notifications {
     if (rappel != null) {
       await _plugin.zonedSchedule(
         id: idRappelContinuer,
-        title: 'Oui-Non',
+        title: 'Ouinon',
         body: 'Ouvre l\'appli pour continuer à recevoir tes questions.',
         scheduledDate: _tz(rappel),
         notificationDetails: _detailsSimples,

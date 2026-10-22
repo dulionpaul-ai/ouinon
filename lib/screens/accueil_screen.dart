@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/base.dart';
 import '../data/notifications.dart';
+import '../widgets/rond.dart';
 import 'aujourdhui_screen.dart';
 import 'questions_screen.dart';
 import 'stats_screen.dart';
@@ -87,7 +88,7 @@ class _AccueilScreenState extends State<AccueilScreen>
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: const Text('Bienvenue dans Oui-Non'),
+        title: const Text('Bienvenue dans Ouinon'),
         content: const Text(
           'Chaque question arrive en notification, à son heure. Tu réponds '
           'directement avec les boutons, sans ouvrir l\'appli.\n\n'
@@ -143,26 +144,11 @@ class _AccueilScreenState extends State<AccueilScreen>
           QuestionsScreen(base: base),
         ],
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _onglet,
-        onDestinationSelected: (i) => setState(() => _onglet = i),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.today_outlined),
-            selectedIcon: Icon(Icons.today),
-            label: 'Aujourd\'hui',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.insights_outlined),
-            selectedIcon: Icon(Icons.insights),
-            label: 'Stats',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.checklist_outlined),
-            selectedIcon: Icon(Icons.checklist),
-            label: 'Questions',
-          ),
-        ],
+      extendBody: true,
+      bottomNavigationBar: BarreOnglets(
+        index: _onglet,
+        libelles: const ['Jour', 'Stats', 'Questions'],
+        onChoix: (i) => setState(() => _onglet = i),
       ),
     );
   }

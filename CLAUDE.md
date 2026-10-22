@@ -1,4 +1,4 @@
-# Oui-Non
+# Ouinon
 
 Appli mobile Flutter (Android d'abord, iPhone ensuite) de suivi de vie
 minimaliste : chaque question à suivre (« Sport ? », « En forme ? »,
@@ -44,4 +44,4 @@ Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
   réponse : rien n'est enregistré.
 - Le jour d'une réponse est le jour de la notification qui l'a posée
   (une nuit de lundi à mardi, demandée mardi matin, compte pour mardi).
-- Identifiant de l'appli prévu : `fr.ouinon.app`, nom affiché « Oui-Non ».
+- Identifiant de l'appli prévu : `fr.ouinon.app`, nom affiché « Ouinon ».

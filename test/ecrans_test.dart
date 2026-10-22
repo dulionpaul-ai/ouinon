@@ -28,38 +28,42 @@ void main() {
   Future<void> ouvre(WidgetTester tester, Widget ecran) async {
     await tester.binding.setSurfaceSize(const Size(400, 900));
     addTearDown(() => tester.binding.setSurfaceSize(null));
-    await tester.pumpWidget(OuiNonApp(accueil: ecran));
+    await tester.pumpWidget(OuinonApp(accueil: ecran));
     await attends(tester);
   }
 
   testWidgets('Aujourd\'hui : répondre, changer, effacer', (tester) async {
+    final semantique = tester.ensureSemantics();
     await ouvre(tester, AujourdhuiScreen(base: base, maintenant: midi));
     expect(find.text('Aujourd\'hui'), findsOneWidget);
-    expect(find.text('Jeudi 22 octobre'), findsOneWidget);
+    expect(find.text('Jeu. 22 oct.'), findsOneWidget);
     expect(find.text('Sommeil ?'), findsOneWidget);
-    expect(find.text('0 sur 4 répondue'), findsOneWidget);
+    expect(find.bySemanticsLabel('0 sur 4 répondue'), findsOneWidget);
 
     await tester.tap(find.text('6 à 8 h'));
     await attends(tester);
     final jour = DateTime(2026, 10, 22);
     expect(await tester.runAsync(() => base.reponsesDuJour(jour)), {1: 1});
-    expect(find.text('1 sur 4 répondue'), findsOneWidget);
+    expect(find.bySemanticsLabel('1 sur 4 répondue'), findsOneWidget);
     expect(notifs.retirees, hasLength(1));
 
     // Toucher la réponse choisie l'efface.
     await tester.tap(find.text('6 à 8 h'));
     await attends(tester);
     expect(await tester.runAsync(() => base.reponsesDuJour(jour)), isEmpty);
+    semantique.dispose();
   });
 
   testWidgets('Aujourd\'hui : revenir sur hier', (tester) async {
+    final semantique = tester.ensureSemantics();
     await tester.runAsync(() => base.repond(3, DateTime(2026, 10, 21), 0));
     await ouvre(tester, AujourdhuiScreen(base: base, maintenant: midi));
     await tester.tap(find.byTooltip('Jour d\'avant'));
     await attends(tester);
     expect(find.text('Hier'), findsOneWidget);
-    expect(find.text('Mercredi 21 octobre'), findsOneWidget);
-    expect(find.text('1 sur 4 répondue'), findsOneWidget);
+    expect(find.text('Mer. 21 oct.'), findsOneWidget);
+    expect(find.bySemanticsLabel('1 sur 4 répondue'), findsOneWidget);
+    semantique.dispose();
   });
 
   testWidgets('nouvelle question à 3 réponses, en semaine', (tester) async {
@@ -125,10 +129,10 @@ void main() {
   ) async {
     SharedPreferences.setMockInitialValues({});
     await ouvre(tester, const AccueilScreen());
-    expect(find.text('Bienvenue dans Oui-Non'), findsOneWidget);
+    expect(find.text('Bienvenue dans Ouinon'), findsOneWidget);
     await tester.tap(find.text('Autoriser les notifications'));
     await attends(tester);
-    expect(find.text('Bienvenue dans Oui-Non'), findsNothing);
+    expect(find.text('Bienvenue dans Ouinon'), findsNothing);
     expect(notifs.replanifications, greaterThan(0));
     expect(find.text('Questions'), findsOneWidget);
   });

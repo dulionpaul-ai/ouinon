@@ -10,7 +10,7 @@ Privée (rien ne quitte le téléphone), gratuite, sans pub, épurée.
 
 | Sujet | Choix |
 |---|---|
-| Nom affiché | Oui-Non |
+| Nom affiché | Ouinon (tout attaché, choix du 22/10/2026 ; d’abord « Oui-Non ») |
 | Réponses | 2 ou 3 par question, au choix |
 | Classement | Toujours de la meilleure à la moins bonne (vert / orange / rouge) |
 | Notifications | Chaque question à son heure |
@@ -24,7 +24,7 @@ Privée (rien ne quitte le téléphone), gratuite, sans pub, épurée.
 | Téléphones | Android d'abord, iPhone ensuite |
 | Publication | Pour Paul d'abord, stores ensuite (avec son accord) |
 | Sauvegarde | Plus tard |
-| Style | Simple, moderne, épuré : propositions à faire |
+| Style | Ultra moderne et rond, police originale (22/10/2026) : « Bulles » en clair, « Nuit ronde » en sombre, à valider |
 
 ## V1 : cinq écrans
 

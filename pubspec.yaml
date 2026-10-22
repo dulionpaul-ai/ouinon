@@ -1,10 +1,10 @@
 name: ouinon
-description: "Oui-Non : réponds depuis la notif, vois ce qui va avec quoi."
+description: "Ouinon : réponds depuis la notif, vois ce qui va avec quoi."
 publish_to: 'none'
 
 # Version et numéro de compilation (x.y.z+n) : monter n avant chaque envoi
 # sur un store (il doit toujours augmenter).
-version: 1.0.0+1
+version: 1.0.0+2
 
 environment:
   sdk: ^3.13.5
@@ -29,3 +29,22 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  # Unbounded (titres) et Figtree (texte), licence OFL : assets/fonts/OFL-*.txt.
+  fonts:
+    - family: Unbounded
+      fonts:
+        - asset: assets/fonts/Unbounded-500.ttf
+          weight: 500
+        - asset: assets/fonts/Unbounded-700.ttf
+          weight: 700
+    - family: Figtree
+      fonts:
+        - asset: assets/fonts/Figtree-500.ttf
+          weight: 500
+        - asset: assets/fonts/Figtree-600.ttf
+          weight: 600
+        - asset: assets/fonts/Figtree-700.ttf
+          weight: 700
+        - asset: assets/fonts/Figtree-800.ttf
+          weight: 800

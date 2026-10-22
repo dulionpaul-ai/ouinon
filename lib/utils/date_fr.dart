@@ -37,6 +37,17 @@ String jourEtDate(DateTime date) =>
     '${_jours[date.weekday - 1]} ${date.day == 1 ? '1er' : date.day} '
     '${_mois[date.month - 1]}';
 
+/// « Jeu. 22 oct. », « Mer. 1er avr. ».
+String dateCourte(DateTime date) =>
+    '${majuscule(joursCourts[date.weekday - 1])} '
+    '${date.day == 1 ? '1er' : date.day} ${moisCourts[date.month - 1]}';
+
+/// « janv. », « oct. »…
+const moisCourts = [
+  'janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', //
+  'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.',
+];
+
 /// « octobre 2026 ».
 String moisEtAnnee(DateTime date) => '${_mois[date.month - 1]} ${date.year}';
 

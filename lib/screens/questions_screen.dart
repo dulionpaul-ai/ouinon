@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../data/base.dart';
 import '../models/question.dart';
 import '../utils/date_fr.dart';
+import '../theme/app_theme.dart';
+import '../widgets/rond.dart';
 import 'edition_question_screen.dart';
 
 /// La liste des choses suivies : ajouter, ouvrir pour modifier, changer
@@ -53,50 +55,102 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final t = Teintes.de(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Mes questions'), titleSpacing: 24),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _ouvre,
-        icon: const Icon(Icons.add),
-        label: const Text('Ajouter'),
-      ),
-      body: _questions.isEmpty
-          ? Center(
-              child: Text(
-                'Aucune question pour l\'instant.',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            )
-          : ReorderableListView(
-              padding: const EdgeInsets.only(bottom: 96),
-              onReorderItem: _deplace,
+      body: SafeArea(
+        bottom: false,
+        child: ReorderableListView(
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 120),
+          header: Padding(
+            padding: const EdgeInsets.fromLTRB(6, 22, 6, 18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                for (final q in _questions)
-                  ListTile(
-                    key: ValueKey(q.id),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-                    title: Text(
-                      q.texte,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: q.active
-                            ? null
-                            : theme.colorScheme.onSurfaceVariant,
+                Row(
+                  children: [
+                    const Expanded(child: GrandTitre('Questions')),
+                    FilledButton.icon(
+                      onPressed: _ouvre,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: t.accent,
+                        foregroundColor: t.surAccent,
+                        minimumSize: const Size(0, 48),
+                        padding: const EdgeInsets.symmetric(horizontal: 18),
                       ),
+                      icon: const Icon(Icons.add_rounded),
+                      label: const Text('Ajouter'),
                     ),
-                    subtitle: Text(
-                      q.active
-                          ? '${heureFr(q.heure)} · ${joursFr(q.jours)} · '
-                                '${q.reponses.join(' / ')}'
-                          : 'En pause',
-                    ),
-                    onTap: () => _ouvre(q),
-                  ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  _questions.isEmpty
+                      ? 'Aucune question pour l\'instant.'
+                      : 'Touche pour modifier, appui long pour déplacer.',
+                  style: TextStyle(color: t.doux),
+                ),
               ],
             ),
+          ),
+          onReorderItem: _deplace,
+          children: [
+            for (final q in _questions)
+              Padding(
+                key: ValueKey(q.id),
+                padding: const EdgeInsets.only(bottom: 10),
+                child: CarteRonde(
+                  onTap: () => _ouvre(q),
+                  padding: const EdgeInsets.fromLTRB(22, 18, 14, 18),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              q.texte,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: q.active ? t.texte : t.doux,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              q.active
+                                  ? '${heureFr(q.heure)} · ${joursFr(q.jours)}'
+                                  : 'En pause',
+                              style: TextStyle(color: t.doux),
+                            ),
+                            const SizedBox(height: 10),
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 6,
+                              children: [
+                                for (final (i, r) in q.reponses.indexed)
+                                  Pastille(
+                                    r,
+                                    fond: q.active
+                                        ? AppTheme.couleurReponse(
+                                            context,
+                                            i,
+                                            q.nbReponses,
+                                          )
+                                        : t.puce,
+                                  ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(Icons.chevron_right_rounded, color: t.doux),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

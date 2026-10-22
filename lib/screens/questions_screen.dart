@@ -136,7 +136,9 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                               spacing: 6,
                               runSpacing: 6,
                               children: [
-                                for (final (i, r) in q.reponses.indexed)
+                                // Dans l'ordre des boutons : la meilleure à droite.
+                                for (final (i, r)
+                                    in q.reponses.indexed.toList().reversed)
                                   Pastille(
                                     r,
                                     fond: q.active

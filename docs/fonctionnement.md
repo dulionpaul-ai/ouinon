@@ -58,8 +58,11 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
   long sur la notification ; `AppDelegate.swift` enregistre les modules
   pour le moteur d'arrière-plan.
 - **Ordre des boutons** : la moins bonne réponse à gauche, la meilleure
-  à droite (choix de Paul du 22/10/2026). Les identifiants ne changent
-  pas (« r0 » = meilleure).
+  à droite (choix de Paul du 22/10/2026), dans la notification comme
+  dans l'appli (boutons de la page Jour, barre de bilan, pastilles de la
+  liste). Les identifiants ne changent pas (« r0 » = meilleure). Les
+  listes verticales (saisie des réponses, légende) gardent la meilleure
+  en haut.
 - **Réponse dans l'appli** : la notification affichée de ce jour est
   retirée.
 - Redémarrage du téléphone : les notifications en attente sont remises

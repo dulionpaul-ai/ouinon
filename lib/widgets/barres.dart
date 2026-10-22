@@ -4,7 +4,8 @@ import '../models/question.dart';
 import '../theme/app_theme.dart';
 import '../utils/stats.dart';
 
-/// Barre horizontale découpée selon les réponses (vert / orange / rouge).
+/// Barre horizontale découpée selon les réponses : rouge à gauche, vert à
+/// droite, dans l'ordre des boutons.
 class BarreBilan extends StatelessWidget {
   final Question question;
   final Bilan bilan;
@@ -29,7 +30,7 @@ class BarreBilan extends StatelessWidget {
             : Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  for (var i = 0; i < bilan.comptes.length; i++)
+                  for (var i = bilan.comptes.length - 1; i >= 0; i--)
                     if (bilan.comptes[i] > 0)
                       Expanded(
                         flex: bilan.comptes[i],

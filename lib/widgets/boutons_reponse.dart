@@ -4,8 +4,10 @@ import 'package:flutter/services.dart';
 import '../models/question.dart';
 import '../theme/app_theme.dart';
 
-/// Les 2 ou 3 réponses d'une question, en pilules côte à côte. La réponse
-/// choisie prend sa couleur ; la toucher à nouveau l'efface.
+/// Les 2 ou 3 réponses d'une question, en pilules côte à côte : la moins
+/// bonne à gauche, la meilleure à droite, comme dans la notification
+/// (choix de Paul). La réponse choisie prend sa couleur ; la toucher à
+/// nouveau l'efface.
 class BoutonsReponse extends StatelessWidget {
   final Question question;
   final int? choix;
@@ -24,8 +26,8 @@ class BoutonsReponse extends StatelessWidget {
     final nb = question.nbReponses;
     return Row(
       children: [
-        for (var i = 0; i < nb; i++) ...[
-          if (i > 0) const SizedBox(width: 6),
+        for (var i = nb - 1; i >= 0; i--) ...[
+          if (i < nb - 1) const SizedBox(width: 6),
           Expanded(
             child: _Pilule(
               texte: question.reponses[i],

@@ -73,3 +73,10 @@ Paul a demandé d'attendre la fin de ses retours, puis a validé l'APK.
   `tool/installer_outils.sh`).
 - Le travail est versé dans `main` avec l'accord de Paul ; les sessions
   suivantes partent de `main` et y poussent directement.
+
+## APK n° 6 (1.0.0+6) : logo un peu plus petit
+
+- Paul confirme que la réponse depuis une notification fonctionne et
+  s'enregistre dans l'appli (APK n° 5) : le point le plus risqué du plan
+  est validé.
+- Logo de l'icône réduit de 5 % (`TAILLE` dans `tool/icones.py`).

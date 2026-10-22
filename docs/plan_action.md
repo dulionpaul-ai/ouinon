@@ -9,11 +9,12 @@ fait, version par version : `docs/historique.md`.
 2. [x] Socle : projet Flutter 3.47.7 (`fr.ouinon.app`, « Ouinon »),
    base SQLite, vérifications GitHub Actions, clé de test Android,
    Codemagic préparé.
-3. [ ] Notifications avec boutons : codées (chaque question à son heure
-   et ses jours, 2 ou 3 boutons, la moins bonne à gauche, réponse
-   enregistrée appli fermée, 14 jours programmés, rappel « continuer »,
-   « Essayer une notification » dans les Réglages). **Reste : confirmer
-   avec Paul que les boutons marchent appli fermée sur son téléphone.**
+3. [x] Notifications avec boutons : chaque question à son heure et ses
+   jours, 2 ou 3 boutons, la moins bonne à gauche, réponse enregistrée
+   appli fermée, 14 jours programmés, rappel « continuer », « Essayer
+   une notification » dans les Réglages. **Confirmé par Paul sur son
+   téléphone le 22/10/2026 (APK n° 5)** : la réponse donnée depuis la
+   notification est bien enregistrée dans l'appli.
 4. [x] Écrans : Jour (pages qui glissent), Questions, Nouvelle question
    / Modifier (suggestions modifiables, cadran d'heure, jours en
    ronds), Réglages, 4 questions de départ.
@@ -25,7 +26,8 @@ fait, version par version : `docs/historique.md`.
 7. [x] Retours de Paul sur l'APK n° 4 intégrés dans l'APK n° 5
    (22/10/2026) : cadran sans clavier, ordre des réponses inversé
    partout, nombre de réponses modifiable, « + Autre », page Jour qui
-   glisse. Prochain APK : `version: 1.0.0+6`.
+   glisse. APK n° 6 : logo réduit de 5 %. Prochain APK :
+   `version: 1.0.0+7`.
 8. [ ] Test longue durée par Paul (2 à 3 semaines de vraies réponses),
    corrections.
 9. [ ] Plus tard, avec l'accord de Paul : iPhone (TestFlight), sauvegarde,
@@ -67,5 +69,5 @@ fait, version par version : `docs/historique.md`.
 
 ## À faire par Paul
 
-- Sur l'APK n° 5 : Réglages → « Essayer une notification », répondre
-  avec un bouton sans ouvrir l'appli, vérifier la réponse dans « Jour ».
+- Répondre aux questions pendant quelques semaines, puis donner son avis
+  sur les stats.

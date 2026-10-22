@@ -28,7 +28,8 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 - Logo n° 3 (choix de Paul du 22/10/2026) : rond coupé en deux, moitié
   citron, moitié corail, sur fond sombre. `tool/icones.py` (Python +
   Pillow) écrit toutes les icônes : Android classiques, adaptatives
-  (avec monochrome pour Android 13) et iPhone.
+  (avec monochrome pour Android 13) et iPhone. Taille du logo réglée par
+  `TAILLE` (0,95 : réduit de 5 % à la demande de Paul).
 - Petite icône des notifications : `drawable/ic_stat_ouinon.xml` (logo
   en blanc), gardée par `raw/keep.xml`. Écran de démarrage sombre.
 

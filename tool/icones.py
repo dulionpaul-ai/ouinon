@@ -1,5 +1,6 @@
 """Icônes de Ouinon (logo n° 3, choix de Paul du 22/10/2026) : un rond
 coupé en deux, moitié citron (oui), moitié corail (non), sur fond sombre.
+Logo réduit de 5 % le 22/10/2026 (Paul le trouvait un peu gros).
 
 Lancement depuis la racine du dépôt : python3 tool/icones.py
 Écrit les icônes Android (classiques, adaptatives, monochrome) et iPhone.
@@ -11,6 +12,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 
 FOND = (0x17, 0x17, 0x1A, 255)
+TAILLE = 0.95  # part du logo d'origine (réduit de 5 %)
 CITRON = (0xD4, 0xFF, 0x3A, 255)
 CORAIL = (0xFF, 0x6B, 0x5E, 255)
 BLANC = (255, 255, 255, 255)
@@ -55,11 +57,11 @@ for nom, f in DENSITES.items():
     dossier.mkdir(parents=True, exist_ok=True)
     # Icône classique (avant Android 8) : carré arrondi.
     c = round(48 * f)
-    image(c, FOND, c * 0.6, rayon=c * 0.22).save(dossier / "ic_launcher.png")
+    image(c, FOND, c * 0.6 * TAILLE, rayon=c * 0.22).save(dossier / "ic_launcher.png")
     # Icône adaptative : 108 dp, logo dans la zone sûre (66 dp).
     c = round(108 * f)
-    image(c, None, 58 * f).save(dossier / "ic_launcher_foreground.png")
-    image(c, None, 58 * f, gauche=BLANC, droite=BLANC).save(
+    image(c, None, 58 * f * TAILLE).save(dossier / "ic_launcher_foreground.png")
+    image(c, None, 58 * f * TAILLE, gauche=BLANC, droite=BLANC).save(
         dossier / "ic_launcher_monochrome.png"
     )
 
@@ -91,6 +93,6 @@ for entree in contenu["images"]:
     taille = float(entree["size"].split("x")[0])
     echelle = int(entree["scale"].rstrip("x"))
     cote = round(taille * echelle)
-    image(cote, FOND, cote * 0.6).convert("RGB").save(IOS / entree["filename"])
+    image(cote, FOND, cote * 0.6 * TAILLE).convert("RGB").save(IOS / entree["filename"])
 
 print("Icônes écrites.")

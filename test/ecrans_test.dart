@@ -20,6 +20,7 @@ void main() {
   DateTime midi() => DateTime(2026, 10, 22, 12);
 
   setUp(() async {
+    SharedPreferences.setMockInitialValues({});
     base = await ouvreBase();
     Base.remplace(base);
     notifs = FaussesNotifications();
@@ -89,7 +90,7 @@ void main() {
     await tester.pump();
     expect(
       tester
-          .widget<PiluleChoix>(find.widgetWithText(PiluleChoix, 'En semaine'))
+          .widget<PiluleChoix>(find.widgetWithText(PiluleChoix, 'Semaine'))
           .choisie,
       isTrue,
     );
@@ -100,6 +101,52 @@ void main() {
     expect(q.texte, 'Stressé ?');
     expect(q.reponses, ['Pas du tout', 'Un peu', 'Beaucoup']);
     expect(q.jours, 0x1F);
+  });
+
+  testWidgets('suggestions : créer « 1 / 2 / 3 », puis la supprimer', (
+    tester,
+  ) async {
+    await ouvre(tester, EditionQuestionScreen(base: base));
+    await tester.tap(find.text('3 réponses'));
+    await attends(tester);
+    expect(find.text('Bien / Moyen / Pas bien'), findsOneWidget);
+    expect(find.text('Oui / Non'), findsNothing);
+
+    await tester.tap(find.text('+ Nouvelle'));
+    await tester.pumpAndSettle();
+    final champs = find.descendant(
+      of: find.byType(AlertDialog),
+      matching: find.byType(TextField),
+    );
+    await tester.enterText(champs.at(0), '3');
+    await tester.enterText(champs.at(1), '2');
+    await tester.enterText(champs.at(2), '1');
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('Enregistrer'),
+      ),
+    );
+    await attends(tester);
+    await tester.pumpAndSettle();
+    // Gardée, et appliquée aux réponses.
+    expect(find.text('3 / 2 / 1'), findsOneWidget);
+    expect(
+      tester
+          .widget<TextField>(find.byKey(const ValueKey('reponse0')))
+          .controller!
+          .text,
+      '3',
+    );
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('suggestions_reponses'), contains('"3","2","1"'));
+
+    await tester.longPress(find.text('3 / 2 / 1'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Supprimer').last);
+    await attends(tester);
+    await tester.pumpAndSettle();
+    expect(find.text('3 / 2 / 1'), findsNothing);
   });
 
   testWidgets('question sans texte refusée', (tester) async {

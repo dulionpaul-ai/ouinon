@@ -40,6 +40,12 @@ marche, appli fermée, sur le téléphone de Paul.
    en ronds avec raccourcis (tous les jours, semaine, week-end), heure
    en grosse pastille, « Enregistrer » toujours visible, vibration
    légère à chaque réponse, avancement du jour sous le titre.
+   APK n° 4 (22/10/2026) : logo n° 3 choisi par Paul (« Ouinon » avec
+   O majuscule) devenu l'icône de l'appli et des notifications ; appli
+   toujours sombre ; suggestions de réponses modifiables (créer,
+   modifier, supprimer) ; raccourcis de jours sur une ligne ; « vert /
+   rouge » dans l'aide ; pilules de l'écran Jour moins hautes pour voir
+   les 4 questions sans faire défiler.
 7. [ ] Test longue durée par Paul (2 à 3 semaines de vraies réponses),
    corrections.
 8. [ ] Plus tard, avec l'accord de Paul : iPhone (TestFlight), sauvegarde,

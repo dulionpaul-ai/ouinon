@@ -68,7 +68,7 @@ class _Pilule extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         curve: Curves.easeOut,
-        height: 54,
+        height: 44,
         decoration: ShapeDecoration(color: fond, shape: const StadiumBorder()),
         child: Material(
           type: MaterialType.transparency,
@@ -90,7 +90,7 @@ class _Pilule extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: couleurTexte,
-                      fontSize: 15,
+                      fontSize: 14,
                       fontWeight: choisie ? FontWeight.w800 : FontWeight.w600,
                     ),
                   ),

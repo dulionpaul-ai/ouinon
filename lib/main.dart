@@ -18,19 +18,15 @@ Future<void> main() async {
 class OuinonApp extends StatelessWidget {
   final Widget? accueil;
 
-  /// Thème imposé (tests) ; sinon celui du téléphone.
-  final ThemeMode themeMode;
-
-  const OuinonApp({super.key, this.accueil, this.themeMode = ThemeMode.system});
+  const OuinonApp({super.key, this.accueil});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Ouinon',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.clair(),
-      darkTheme: AppTheme.sombre(),
-      themeMode: themeMode,
+      // Toujours sombre (choix de Paul du 22/10/2026).
+      theme: AppTheme.sombre(),
       locale: const Locale('fr', 'FR'),
       supportedLocales: const [Locale('fr', 'FR')],
       localizationsDelegates: GlobalMaterialLocalizations.delegates,

@@ -84,7 +84,7 @@ void main() {
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
     tester.view.devicePixelRatio = 2;
     addTearDown(tester.view.reset);
-    await tester.pumpWidget(OuinonApp(accueil: ecran, themeMode: mode));
+    await tester.pumpWidget(OuinonApp(accueil: ecran));
     await attends(tester, 15);
     await expectLater(
       find.byType(MaterialApp),
@@ -92,7 +92,7 @@ void main() {
     );
   }
 
-  for (final mode in [ThemeMode.light, ThemeMode.dark]) {
+  for (final mode in [ThemeMode.dark]) {
     final suffixe = mode == ThemeMode.light ? 'clair' : 'sombre';
 
     testWidgets('jour $suffixe', (tester) async {

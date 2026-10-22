@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/base.dart';
+import '../data/suggestions.dart';
 import '../models/question.dart';
 import '../utils/date_fr.dart';
 import '../theme/app_theme.dart';
@@ -31,6 +32,7 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
   late int _heure;
   late int _jours;
   String? _erreur;
+  List<List<String>> _suggestions = const [];
 
   bool get _nouvelle => widget.question == null;
 
@@ -45,6 +47,9 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
     ];
     _heure = q?.heure ?? 21 * 60;
     _jours = q?.jours ?? Question.tousLesJours;
+    Suggestions.charge().then((s) {
+      if (mounted) setState(() => _suggestions = s);
+    });
   }
 
   @override
@@ -56,45 +61,97 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
     super.dispose();
   }
 
-  /// Réponses toutes prêtes, pour aller vite.
-  static const _modeles = [
-    ['Oui', 'Non'],
-    ['Bien', 'Moyen', 'Pas bien'],
-    ['Beaucoup', 'Un peu', 'Pas du tout'],
-  ];
+  List<String> get _actuelles => [for (final c in _reponses) c.text.trim()];
 
-  void _modele(List<String> m) => setState(() {
+  bool _pareil(List<String> a, List<String> b) =>
+      a.length == b.length && a.indexed.every((e) => b[e.$1] == e.$2);
+
+  void _applique(List<String> m) => setState(() {
     for (final c in _reponses) {
       c.dispose();
     }
     _reponses = [for (final r in m) TextEditingController(text: r)];
   });
 
-  void _nombre(int nb) {
-    final avant = [for (final c in _reponses) c.text];
-    final inchange = _parDefaut.values.any(
-      (d) =>
-          d.length == avant.length &&
-          d.indexed.every((e) => avant[e.$1] == e.$2),
+  Future<void> _enregistreSuggestions(List<List<String>> s) async {
+    setState(() => _suggestions = s);
+    await Suggestions.enregistre(s);
+  }
+
+  /// Fenêtre pour créer (`index` nul) ou modifier une suggestion.
+  Future<void> _editeSuggestion({int? index}) async {
+    final depart = index == null
+        ? List.filled(_reponses.length, '')
+        : _suggestions[index];
+    final valeurs = await showDialog<List<String>>(
+      context: context,
+      builder: (context) => _FenetreSuggestion(
+        titre: index == null ? 'Nouvelle suggestion' : 'Modifier la suggestion',
+        depart: depart,
+      ),
     );
-    setState(() {
-      if (inchange) {
-        for (final c in _reponses) {
-          c.dispose();
-        }
-        _reponses = [
-          for (final r in _parDefaut[nb]!) TextEditingController(text: r),
-        ];
-      } else if (nb > _reponses.length) {
-        _reponses = [
+    if (valeurs == null || valeurs.any((v) => v.isEmpty)) return;
+    final liste = [..._suggestions];
+    if (index == null) {
+      liste.add(valeurs);
+    } else {
+      liste[index] = valeurs;
+    }
+    await _enregistreSuggestions(liste);
+    _applique(valeurs);
+  }
+
+  Future<void> _optionsSuggestion(int index) async {
+    final choix = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.edit_rounded),
+              title: const Text('Modifier'),
+              onTap: () => Navigator.pop(context, 'modifier'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete_outline_rounded),
+              title: const Text('Supprimer'),
+              onTap: () => Navigator.pop(context, 'supprimer'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (choix == 'modifier') {
+      await _editeSuggestion(index: index);
+    } else if (choix == 'supprimer') {
+      await _enregistreSuggestions([..._suggestions]..removeAt(index));
+    }
+  }
+
+  void _nombre(int nb) {
+    final actuelles = _actuelles;
+    final connues = [..._suggestions, ..._parDefaut.values];
+    final inchangees = connues.any((m) => _pareil(m, actuelles));
+    if (inchangees) {
+      _applique(
+        _suggestions.firstWhere(
+          (m) => m.length == nb,
+          orElse: () => _parDefaut[nb]!,
+        ),
+      );
+    } else if (nb > _reponses.length) {
+      setState(
+        () => _reponses = [
           _reponses[0],
           TextEditingController(),
           ..._reponses.skip(1),
-        ];
-      } else {
-        _reponses.removeAt(1).dispose();
-      }
-    });
+        ],
+      );
+    } else {
+      setState(() => _reponses.removeAt(1).dispose());
+    }
   }
 
   Future<void> _choisitHeure() async {
@@ -216,8 +273,7 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(6, 0, 6, 12),
             child: Text(
-              'La meilleure en haut (citron), la moins bonne en bas '
-              '(corail).',
+              'La meilleure en haut (vert), la moins bonne en bas (rouge).',
               style: doux,
             ),
           ),
@@ -230,16 +286,9 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
               },
             ),
             const SizedBox(height: 10),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: [
-                for (final m in _modeles)
-                  PiluleChoix(m.join(' / '), onTap: () => _modele(m)),
-              ],
-            ),
+            _blocSuggestions(doux),
             const SizedBox(height: 12),
-          ] else
+          ] else ...[
             Padding(
               padding: const EdgeInsets.fromLTRB(6, 0, 6, 12),
               child: Text(
@@ -248,6 +297,9 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
                 style: doux,
               ),
             ),
+            _blocSuggestions(doux),
+            const SizedBox(height: 12),
+          ],
           for (final (i, c) in _reponses.indexed)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
@@ -345,20 +397,26 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
                   },
                 ),
                 const SizedBox(height: 12),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
+                Row(
                   children: [
-                    for (final (masque, libelle) in const [
-                      (0x7F, 'Tous les jours'),
-                      (0x1F, 'En semaine'),
-                      (0x60, 'Le week-end'),
-                    ])
-                      PiluleChoix(
-                        libelle,
-                        choisie: _jours == masque,
-                        onTap: () => setState(() => _jours = masque),
+                    // Largeur selon la longueur du libellé : même taille
+                    // de texte pour les trois.
+                    for (final (i, (masque, libelle, part)) in const [
+                      (0x7F, 'Tous les jours', 14),
+                      (0x1F, 'Semaine', 9),
+                      (0x60, 'Week-end', 10),
+                    ].indexed) ...[
+                      if (i > 0) const SizedBox(width: 6),
+                      Expanded(
+                        flex: part,
+                        child: PiluleChoix(
+                          libelle,
+                          centree: true,
+                          choisie: _jours == masque,
+                          onTap: () => setState(() => _jours = masque),
+                        ),
                       ),
+                    ],
                   ],
                 ),
               ],
@@ -394,6 +452,108 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
           ],
         ],
       ),
+    );
+  }
+
+  /// Les suggestions du nombre de réponses choisi : toucher pour remplir,
+  /// appui long pour modifier ou supprimer, « + » pour en créer une.
+  Widget _blocSuggestions(TextStyle doux) {
+    final nb = _reponses.length;
+    final actuelles = _actuelles;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            for (final (i, m) in _suggestions.indexed)
+              if (m.length == nb)
+                PiluleChoix(
+                  m.join(' / '),
+                  choisie: _pareil(m, actuelles),
+                  onTap: () => _applique(m),
+                  onLongPress: () => _optionsSuggestion(i),
+                ),
+            PiluleChoix('+ Nouvelle', onTap: () => _editeSuggestion()),
+          ],
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(6, 8, 6, 0),
+          child: Text(
+            'Touche une suggestion pour remplir ; appui long pour la '
+            'modifier ou la supprimer.',
+            style: doux.copyWith(fontSize: 13),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Fenêtre de saisie d'une suggestion ; rend les réponses saisies (nulle si
+/// annulée). Garde ses propres champs jusqu'à sa fermeture complète.
+class _FenetreSuggestion extends StatefulWidget {
+  final String titre;
+  final List<String> depart;
+
+  const _FenetreSuggestion({required this.titre, required this.depart});
+
+  @override
+  State<_FenetreSuggestion> createState() => _FenetreSuggestionState();
+}
+
+class _FenetreSuggestionState extends State<_FenetreSuggestion> {
+  late final _champs = [
+    for (final r in widget.depart) TextEditingController(text: r),
+  ];
+
+  @override
+  void dispose() {
+    for (final c in _champs) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(widget.titre),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final (i, c) in _champs.indexed)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: TextField(
+                controller: c,
+                autofocus: i == 0,
+                maxLength: Question.longueurMaxReponse,
+                textCapitalization: TextCapitalization.sentences,
+                decoration: InputDecoration(
+                  counterText: '',
+                  hintText: i == 0
+                      ? 'Meilleure réponse'
+                      : i == _champs.length - 1
+                      ? 'Moins bonne réponse'
+                      : 'Entre les deux',
+                ),
+              ),
+            ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Annuler'),
+        ),
+        TextButton(
+          onPressed: () =>
+              Navigator.pop(context, [for (final c in _champs) c.text.trim()]),
+          child: const Text('Enregistrer'),
+        ),
+      ],
     );
   }
 }

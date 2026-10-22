@@ -361,12 +361,18 @@ class PiluleChoix extends StatelessWidget {
   final String texte;
   final bool choisie;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
+
+  /// Texte centré et réduit si besoin (pilules côte à côte sur une ligne).
+  final bool centree;
 
   const PiluleChoix(
     this.texte, {
     super.key,
     this.choisie = false,
     required this.onTap,
+    this.onLongPress,
+    this.centree = false,
   });
 
   @override
@@ -381,19 +387,34 @@ class PiluleChoix extends StatelessWidget {
         child: InkWell(
           customBorder: const StadiumBorder(),
           onTap: onTap,
+          onLongPress: onLongPress,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
-            child: Text(
-              texte,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: choisie ? t.surAccent : t.texte,
-              ),
+            padding: EdgeInsets.symmetric(
+              horizontal: centree ? 6 : 16,
+              vertical: 11,
             ),
+            child: _texte(t),
           ),
         ),
       ),
     );
+  }
+
+  Widget _texte(Teintes t) {
+    final texte = Text(
+      this.texte,
+      maxLines: 1,
+      style: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w700,
+        color: choisie ? t.surAccent : t.texte,
+      ),
+    );
+    return centree
+        ? Center(
+            heightFactor: 1,
+            child: FittedBox(fit: BoxFit.scaleDown, child: texte),
+          )
+        : texte;
   }
 }

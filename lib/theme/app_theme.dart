@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 
-/// Style « Bulles » (proposition D, 22/10/2026) : tout est rond, cartes
-/// blanches sur fond crème, réponses en pilules colorées (citron, abricot,
-/// corail), titres en Unbounded, texte en Figtree. Mode sombre « Nuit
-/// ronde » (proposition F). Polices embarquées, licence OFL
-/// (`assets/fonts/OFL-*.txt`).
+/// Style « Nuit ronde » (propositions D et F, 22/10/2026), toujours sombre
+/// (choix de Paul) : tout est rond, cartes sombres, réponses en pilules
+/// colorées (citron, abricot, corail), titres en Unbounded, texte en
+/// Figtree. Polices embarquées, licence OFL (`assets/fonts/OFL-*.txt`).
 class AppTheme {
   static const policeTitre = 'Unbounded';
   static const policeTexte = 'Figtree';
-
-  static ThemeData clair() => _theme(Teintes.clair, Brightness.light);
 
   static ThemeData sombre() => _theme(Teintes.sombre, Brightness.dark);
 
@@ -245,7 +242,7 @@ class AppTheme {
       const Color(0xFF111114);
 }
 
-/// Les couleurs du style, en clair et en sombre.
+/// Les couleurs du style.
 class Teintes extends ThemeExtension<Teintes> {
   final Color fond;
   final Color carte;
@@ -283,22 +280,6 @@ class Teintes extends ThemeExtension<Teintes> {
     required this.moinsBonne,
   });
 
-  static const clair = Teintes(
-    fond: Color(0xFFF3F0E8),
-    carte: Color(0xFFFFFFFF),
-    puce: Color(0xFFF3F0E8),
-    texte: Color(0xFF17171A),
-    doux: Color(0xFF66625A),
-    trait: Color(0xFFE3DED2),
-    accent: Color(0xFFC5F25C),
-    surAccent: Color(0xFF17171A),
-    barre: Color(0xFF17171A),
-    texteBarre: Color(0xFFE9E5DA),
-    meilleure: Color(0xFFC5F25C),
-    moyenne: Color(0xFFFFCF5C),
-    moinsBonne: Color(0xFFFF7B6B),
-  );
-
   static const sombre = Teintes(
     fond: Color(0xFF0F0F12),
     carte: Color(0xFF1A1A1F),
@@ -316,7 +297,7 @@ class Teintes extends ThemeExtension<Teintes> {
   );
 
   static Teintes de(BuildContext context) =>
-      Theme.of(context).extension<Teintes>() ?? clair;
+      Theme.of(context).extension<Teintes>() ?? sombre;
 
   @override
   Teintes copyWith() => this;

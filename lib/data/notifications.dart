@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/painting.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tzdata;
@@ -59,7 +60,9 @@ class Notifications {
   Future<void> _initialise(List<Question> questions) async {
     await _plugin.initialize(
       settings: InitializationSettings(
-        android: const AndroidInitializationSettings('@mipmap/ic_launcher'),
+        android: const AndroidInitializationSettings(
+          '@drawable/ic_stat_ouinon',
+        ),
         iOS: DarwinInitializationSettings(
           requestAlertPermission: false,
           requestBadgePermission: false,
@@ -206,6 +209,8 @@ class Notifications {
       importance: Importance.high,
       priority: Priority.high,
       category: AndroidNotificationCategory.reminder,
+      icon: '@drawable/ic_stat_ouinon',
+      color: const Color(0xFFD4FF3A),
       actions: [
         for (var i = 0; i < q.nbReponses; i++)
           AndroidNotificationAction('r$i', q.reponses[i]),
@@ -219,6 +224,8 @@ class Notifications {
       _canal,
       'Questions',
       channelDescription: 'Les questions du jour, avec leurs réponses.',
+      icon: '@drawable/ic_stat_ouinon',
+      color: Color(0xFFD4FF3A),
     ),
     iOS: DarwinNotificationDetails(),
   );

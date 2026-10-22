@@ -141,7 +141,7 @@ class _AujourdhuiScreenState extends State<AujourdhuiScreen> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(6, 18, 6, 18),
+              padding: const EdgeInsets.fromLTRB(6, 14, 6, 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -192,8 +192,9 @@ class _AujourdhuiScreenState extends State<AujourdhuiScreen> {
               ),
             for (final q in _questions)
               Padding(
-                padding: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.only(bottom: 8),
                 child: CarteRonde(
+                  padding: const EdgeInsets.fromLTRB(18, 14, 14, 14),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -203,7 +204,7 @@ class _AujourdhuiScreenState extends State<AujourdhuiScreen> {
                             child: Text(
                               q.texte,
                               style: const TextStyle(
-                                fontSize: 19,
+                                fontSize: 17,
                                 fontWeight: FontWeight.w800,
                               ),
                             ),
@@ -211,7 +212,7 @@ class _AujourdhuiScreenState extends State<AujourdhuiScreen> {
                           Pastille(heureFr(q.heure)),
                         ],
                       ),
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 10),
                       BoutonsReponse(
                         question: q,
                         choix: _reponses[q.id],

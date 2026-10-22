@@ -24,7 +24,8 @@ Privée (rien ne quitte le téléphone), gratuite, sans pub, épurée.
 | Téléphones | Android d'abord, iPhone ensuite |
 | Publication | Pour Paul d'abord, stores ensuite (avec son accord) |
 | Sauvegarde | Plus tard |
-| Style | Ultra moderne et rond, police originale (22/10/2026) : « Bulles » en clair, « Nuit ronde » en sombre, à valider |
+| Style | Ultra moderne et rond, police originale, toujours sombre (« Nuit ronde ») |
+| Logo | N° 3 : rond coupé en deux, citron et corail ; nom « Ouinon » |
 
 ## V1 : cinq écrans
 

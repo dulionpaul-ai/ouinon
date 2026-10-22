@@ -29,7 +29,10 @@ marche, appli fermée, sur le téléphone de Paul.
    (https://claude.ai/artifact/8wYzPghoUihjK5CGqjZQSg : D Bulles,
    E Galets, F Nuit ronde). Appliqué dans l'appli : D en clair, F en
    sombre, polices Unbounded + Figtree (APK n° 2). Le nom devient
-   « Ouinon » (tout attaché). Reste : validation de Paul, icône.
+   « Ouinon » (tout attaché). Logo : 4 pistes proposées le 22/10/2026
+   (https://claude.ai/artifact/8JC7nnJjfsTQoX79W3FXtW : Croisement,
+   Interrupteur, Oui | Non, Trois réponses). Reste : choix de Paul,
+   puis icône de l'appli (Android et iPhone).
 7. [ ] Test longue durée par Paul (2 à 3 semaines de vraies réponses),
    corrections.
 8. [ ] Plus tard, avec l'accord de Paul : iPhone (TestFlight), sauvegarde,

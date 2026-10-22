@@ -17,6 +17,7 @@ import 'package:ouinon/screens/fiche_question_screen.dart';
 import 'package:ouinon/screens/questions_screen.dart';
 import 'package:ouinon/screens/stats_screen.dart';
 import 'package:ouinon/utils/jour.dart';
+import 'package:ouinon/widgets/choix_heure.dart';
 import 'package:ouinon/widgets/rond.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -78,6 +79,7 @@ void main() {
     double hauteur = 844,
     double largeur = 390,
     double texte = 1,
+    Future<void> Function(WidgetTester)? avant,
   }) async {
     tester.view.physicalSize = Size(largeur * 2, hauteur * 2);
     tester.platformDispatcher.textScaleFactorTestValue = texte;
@@ -86,6 +88,7 @@ void main() {
     addTearDown(tester.view.reset);
     await tester.pumpWidget(OuinonApp(accueil: ecran));
     await attends(tester, 15);
+    if (avant != null) await avant(tester);
     await expectLater(
       find.byType(MaterialApp),
       matchesGoldenFile('captures/$nom.png'),
@@ -140,6 +143,28 @@ void main() {
         EditionQuestionScreen(base: base),
         mode,
         hauteur: 1250,
+      );
+    });
+
+    testWidgets('choix heure $suffixe', (tester) async {
+      await capture(
+        tester,
+        '5b-heure-$suffixe',
+        Builder(
+          builder: (context) => Scaffold(
+            body: Center(
+              child: FilledButton(
+                onPressed: () => choisirHeure(context, 21 * 60),
+                child: const Text('Heure'),
+              ),
+            ),
+          ),
+        ),
+        mode,
+        avant: (tester) async {
+          await tester.tap(find.text('Heure'));
+          await tester.pumpAndSettle();
+        },
       );
     });
 

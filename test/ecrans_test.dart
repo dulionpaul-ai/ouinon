@@ -149,6 +149,32 @@ void main() {
     expect(find.text('3 / 2 / 1'), findsNothing);
   });
 
+  testWidgets('heure : roulettes et bouton Valider', (tester) async {
+    await ouvre(tester, EditionQuestionScreen(base: base));
+    await tester.scrollUntilVisible(
+      find.text('21 h'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('21 h'));
+    await tester.pumpAndSettle();
+    expect(find.text('Valider l\'heure'), findsOneWidget);
+    // Deux crans vers le haut sur les heures, un sur les minutes.
+    await tester.drag(
+      find.byKey(const ValueKey('roulette-heures')),
+      const Offset(0, -96),
+    );
+    await tester.pumpAndSettle();
+    await tester.drag(
+      find.byKey(const ValueKey('roulette-minutes')),
+      const Offset(0, -48),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Valider l\'heure'));
+    await tester.pumpAndSettle();
+    expect(find.text('23 h 05'), findsOneWidget);
+  });
+
   testWidgets('question sans texte refusée', (tester) async {
     await ouvre(tester, EditionQuestionScreen(base: base));
     await tester.ensureVisible(find.text('Enregistrer'));

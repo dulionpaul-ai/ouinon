@@ -5,6 +5,7 @@ import '../data/suggestions.dart';
 import '../models/question.dart';
 import '../utils/date_fr.dart';
 import '../theme/app_theme.dart';
+import '../widgets/choix_heure.dart';
 import '../widgets/rond.dart';
 
 /// Ajout ou modification d'une question : texte, 2 ou 3 réponses (la
@@ -155,17 +156,8 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
   }
 
   Future<void> _choisitHeure() async {
-    final choisie = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay(hour: _heure ~/ 60, minute: _heure % 60),
-      builder: (context, enfant) => MediaQuery(
-        data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
-        child: enfant!,
-      ),
-    );
-    if (choisie != null) {
-      setState(() => _heure = choisie.hour * 60 + choisie.minute);
-    }
+    final choisie = await choisirHeure(context, _heure);
+    if (choisie != null) setState(() => _heure = choisie);
   }
 
   Future<void> _enregistre() async {

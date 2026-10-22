@@ -21,6 +21,7 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 | `utils/jour.dart`, `utils/date_fr.dart` | Jours de calendrier (« 2026-10-22 ») et dates en français. |
 | `screens/` | Accueil (onglets), Aujourd'hui, Stats, fiche d'une question, Mes questions, modification, Réglages. |
 | `theme/app_theme.dart` | Style « Nuit ronde », toujours sombre (choix de Paul du 22/10/2026) : couleurs dans `Teintes`, polices Unbounded (titres) et Figtree (texte), embarquées dans `assets/fonts` (licence OFL). Réponses : citron, abricot, corail. |
+| `widgets/choix_heure.dart` | Choix de l'heure : panneau du bas à deux roulettes (heures, minutes de 5 en 5) avec son bouton « Valider l'heure » ; il cache « Enregistrer » pendant le choix (retour de Paul : la fenêtre d'heure d'Android prêtait à confusion, et son bouton clavier ne servait à rien). |
 | `widgets/rond.dart` | Briques rondes : carte, pastille, bouton rond et bouton +, grand titre (réduit plutôt que coupé), barre d'onglets flottante, choix en pilules, pilule à toucher, jour de la semaine en rond. Pas de puces Material (police et couleurs mal reprises). |
 
 ## Icône

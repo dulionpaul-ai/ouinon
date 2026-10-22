@@ -46,6 +46,10 @@ marche, appli fermée, sur le téléphone de Paul.
    modifier, supprimer) ; raccourcis de jours sur une ligne ; « vert /
    rouge » dans l'aide ; pilules de l'écran Jour moins hautes pour voir
    les 4 questions sans faire défiler.
+   Retours de Paul sur l'APK n° 4 (en cours, pas d'APK avant la fin de
+   ses retours) : heure choisie avec des roulettes dans un panneau du
+   bas (plus de confusion avec « Enregistrer », plus de bouton
+   clavier).
 7. [ ] Test longue durée par Paul (2 à 3 semaines de vraies réponses),
    corrections.
 8. [ ] Plus tard, avec l'accord de Paul : iPhone (TestFlight), sauvegarde,

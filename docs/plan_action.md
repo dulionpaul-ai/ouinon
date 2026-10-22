@@ -65,14 +65,12 @@ marche, appli fermée, sur le téléphone de Paul.
 - **Supprimer une question.** Proposer d'abord « Mettre en pause »
   (garde l'historique) ; la suppression efface aussi ses réponses,
   après confirmation.
-- **Accès GitHub.** Le dépôt `ouinon` refuse pour l'instant les envois
-  de Claude : Paul doit installer l'appli Claude sur ce dépôt
-  (https://claude.ai/connect-github), sinon le travail reste dans la
-  session.
+- **Accès GitHub.** Bloqué au début ; réglé par Paul le 22/10/2026
+  (appli Claude installée sur le dépôt). Code envoyé, vérifications
+  GitHub au vert.
 
 ## À faire par Paul
 
-- Installer l'appli Claude GitHub sur le dépôt `ouinon`.
 - Choisir un des 3 styles proposés (étape 6).
 - Installer l'APK, autoriser les notifications, essayer une notification
   depuis les Réglages, puis répondre quelques jours.

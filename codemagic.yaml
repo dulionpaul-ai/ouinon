@@ -1,0 +1,67 @@
+# Oui-Non — compilation sur Codemagic (même principe que Trousse à Pharma).
+#
+# Lancement à la main (codemagic.io, « Start new build ») : rien ne part
+# sur les stores sans l'accord de Paul.
+#
+# Les APK de test Android sont fabriqués dans les sessions Claude ;
+# Codemagic sert surtout pour l'iPhone (étape « iPhone » du plan).
+# Le numéro de version vient de pubspec.yaml (`version: x.y.z+n`) : monter
+# n avant chaque envoi sur TestFlight (il doit toujours augmenter).
+
+workflows:
+  # APK à installer directement sur un téléphone Android pour tester.
+  android-apk:
+    name: Android (APK de test)
+    max_build_duration: 45
+    instance_type: mac_mini_m2
+    environment:
+      flutter: 3.47.7
+      java: 17
+    scripts:
+      - name: Dépendances
+        script: flutter pub get
+      - name: Tests
+        script: flutter test
+      - name: APK
+        script: flutter build apk --release
+    artifacts:
+      - build/app/outputs/flutter-apk/app-release.apk
+
+  # iPhone : IPA signé et envoyé sur TestFlight, avec la clé App Store
+  # Connect déjà posée pour Wavents (même compte Apple). Prérequis : l'appli
+  # créée dans App Store Connect avec l'identifiant fr.ouinon.app.
+  ios-testflight:
+    name: iOS (TestFlight)
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: Wavents
+    environment:
+      flutter: 3.47.7
+      xcode: latest
+      cocoapods: default
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: fr.ouinon.app
+    scripts:
+      - name: Dépendances
+        script: flutter pub get
+      - name: Pods
+        script: |
+          if [ -f ios/Podfile ]; then
+            cd ios && pod install --repo-update
+          fi
+      - name: Profils de signature
+        script: xcode-project use-profiles
+      - name: Tests
+        script: flutter test
+      - name: IPA
+        script: |
+          flutter build ipa --release \
+            --export-options-plist=/Users/builder/export_options.plist
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true

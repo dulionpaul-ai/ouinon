@@ -1,15 +1,74 @@
 # Plan d'action
 
-Ordre du risque : prouver d'abord que la réponse depuis la notif marche
-sur les deux téléphones.
+Ordre du risque : prouver d'abord que la réponse depuis la notification
+marche, appli fermée, sur le téléphone de Paul.
 
-1. [ ] Cadrage : `CLAUDE.md`, `docs/revue_produit.md` (proposition du
-   22/10/2026). **À valider par Paul.**
-2. [ ] Socle : projet Flutter (`fr.ouinon.app`), structure Trousse à
-   Pharma, base SQLite, analyse + tests sur GitHub Actions, Codemagic.
-3. [ ] Notifs oui/non : boutons dans la notification, réponse
-   enregistrée même appli fermée. Premier APK à tester par Paul.
-4. [ ] Mes questions + écran Aujourd'hui + historique.
-5. [ ] Liens entre questions (seuil 14 jours, décalage d'un jour).
-6. [ ] Sauvegarde, finitions, mode sombre.
-7. [ ] Bêta avec Paul et ses proches, puis fiches stores (avec accord).
+1. [x] Cadrage : questions à Paul et choix enregistrés le 22/10/2026
+   (`docs/revue_produit.md`).
+2. [x] Socle : fait le 22/10/2026. Projet Flutter 3.47.7
+   (`fr.ouinon.app`, « Oui-Non »), structure Trousse à Pharma, base
+   SQLite (questions, réponses), vérifications GitHub Actions (format,
+   analyse, tests), clé de test Android stable, Codemagic préparé.
+3. [ ] Notifications avec boutons : codé le 22/10/2026 (chaque question
+   à son heure et ses jours, 2 ou 3 boutons, réponse enregistrée appli
+   fermée, programmation 14 jours d'avance, rappel « continuer »,
+   bienvenue + autorisation au premier lancement, bouton « Essayer une
+   notification » dans les Réglages). **Premier APK à tester par Paul**
+   (Android).
+4. [ ] Écrans : codés le 22/10/2026 : Aujourd'hui (avec les jours
+   passés), Mes questions (ajout, modification, ordre, pause,
+   suppression), 4 questions de départ. À tester par Paul.
+5. [ ] Stats : codées le 22/10/2026 : fiche d'une question (bilan
+   7 j / 30 j / tout, semaine par semaine, selon le jour, calendrier
+   modifiable), liens entre questions (même jour et lendemain). À tester
+   par Paul avec de vraies réponses.
+6. [ ] Style : 3 propositions envoyées le 22/10/2026
+   (https://claude.ai/artifact/8wYzPghoUihjK5CGqjZQSg : A Blanc net,
+   B Doux, C Nuit). L'appli utilise A en attendant le choix de Paul.
+   Reste : appliquer son choix, icône, mode sombre fin.
+7. [ ] Test longue durée par Paul (2 à 3 semaines de vraies réponses),
+   corrections.
+8. [ ] Plus tard, avec l'accord de Paul : iPhone (TestFlight), sauvegarde,
+   fiches Play Store et App Store.
+
+## Relecture du plan (22/10/2026) : risques et corrections
+
+- **Notification sans réponse le jour même.** Une notification qui se
+  répète toute seule ne sait pas de quel jour elle parle, et on ne peut
+  pas en sauter une si la question a déjà sa réponse. Correction :
+  chaque notification est programmée une par une pour les 14 prochains
+  jours, avec la question et le jour à l'intérieur. Les jours déjà
+  répondus sont sautés. Tout est reprogrammé à chaque ouverture de
+  l'appli et à chaque réponse (même depuis la notif).
+- **Paul ne touche à rien pendant 14 jours.** Les notifications
+  s'arrêteraient. Correction : la dernière notification programmée
+  rappelle d'ouvrir l'appli ; une seule réponse suffit à repartir pour
+  14 jours.
+- **iPhone : 64 notifications programmées au maximum.** Correction :
+  sur iPhone, le nombre de jours programmés est réduit selon le nombre
+  de questions (à traiter avec l'étape iPhone).
+- **Heure exacte.** Android demande une autorisation spéciale pour
+  l'heure à la seconde près, que le Play Store réserve aux réveils.
+  Correction : heure « à quelques minutes près », sans autorisation
+  spéciale.
+- **Faux liens avec 7 jours.** Choix de Paul : croisements dès 7 jours
+  communs. Correction : on demande en plus au moins 3 jours de chaque
+  côté de la comparaison et un écart d'au moins 20 points, et la phrase
+  dit sur combien de jours elle s'appuie.
+- **Changer le nombre de réponses d'une question.** Rendrait
+  l'historique faux. Correction : nombre figé à la création ; pour en
+  changer, on crée une nouvelle question.
+- **Supprimer une question.** Proposer d'abord « Mettre en pause »
+  (garde l'historique) ; la suppression efface aussi ses réponses,
+  après confirmation.
+- **Accès GitHub.** Le dépôt `ouinon` refuse pour l'instant les envois
+  de Claude : Paul doit installer l'appli Claude sur ce dépôt
+  (https://claude.ai/connect-github), sinon le travail reste dans la
+  session.
+
+## À faire par Paul
+
+- Installer l'appli Claude GitHub sur le dépôt `ouinon`.
+- Choisir un des 3 styles proposés (étape 6).
+- Installer l'APK, autoriser les notifications, essayer une notification
+  depuis les Réglages, puis répondre quelques jours.

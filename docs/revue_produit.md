@@ -1,39 +1,45 @@
-# Revue produit (proposition du 22/10/2026, à valider par Paul)
+# Revue produit (choix de Paul du 22/10/2026)
 
 ## Promesse
 
-« Réponds oui ou non en une seconde, sans ouvrir l'appli. Au bout de
-quelques semaines, découvre ce qui va avec quoi dans ta vie. »
-Privée (rien ne quitte le téléphone), gratuite et sans pub, ultra rapide.
+« Réponds en une seconde depuis la notif, sans ouvrir l'appli. Au fil
+des semaines, vois ce qui va avec quoi dans ta vie. »
+Privée (rien ne quitte le téléphone), gratuite, sans pub, épurée.
 
-## V1 : six fonctions
+## Les choix de Paul
 
-1. **Mes questions** : un catalogue prêt à l'emploi (sommeil, sport,
-   café, alcool, écrans le soir, humeur, mal de tête, stress…) et des
-   questions libres. Pour chacune : l'heure de la notif et les jours.
-2. **Réponse depuis la notif** : deux boutons « Oui » / « Non »
-   directement dans la notification, sans ouvrir l'appli.
-3. **Aujourd'hui** : un seul écran avec les questions du jour, à cocher
-   oui / non si on a raté la notif (rattrapage possible sur 2 jours).
-4. **Historique** : un calendrier par question (pastilles vert/gris).
-5. **Liens** : phrases simples qui croisent deux questions, y compris
-   avec un jour de décalage (alcool le soir → sommeil le lendemain).
-   Affichées seulement après 14 jours de réponses communes, et seulement
-   si l'écart est net. Formulation : « va souvent avec », jamais « cause ».
-6. **Sauvegarde** : export et import d'un fichier, fait par la personne
-   elle-même (pas de cloud).
+| Sujet | Choix |
+|---|---|
+| Nom affiché | Oui-Non |
+| Réponses | 2 ou 3 par question, au choix |
+| Classement | Toujours de la meilleure à la moins bonne (vert / orange / rouge) |
+| Notifications | Chaque question à son heure |
+| Relance | Aucune ; on rattrape dans l'appli |
+| Jours | Au choix par question (tous les jours par défaut) |
+| Objectifs, séries | Pas pour l'instant |
+| Note écrite | Non, que les réponses |
+| Stats | Bilan par question, calendrier, jour de la semaine, croisements |
+| Croisements | Même jour et lendemain, affichés dès 7 jours communs |
+| Nuit | Compte pour le jour qui suit |
+| Téléphones | Android d'abord, iPhone ensuite |
+| Publication | Pour Paul d'abord, stores ensuite (avec son accord) |
+| Sauvegarde | Plus tard |
+| Style | Simple, moderne, épuré : propositions à faire |
 
-Plus tard : widget, rappels groupés, questions à 3 choix, partage
-d'une image de stats. Jamais : compte, serveur, publicité, conseil
-médical.
+## V1 : cinq écrans
 
-## Design (proposition)
+1. **Aujourd'hui** : les questions du jour, avec leurs boutons de
+   réponse ; on peut changer une réponse ou revenir sur un jour passé.
+2. **Mes questions** : ajouter, modifier, mettre en pause, supprimer.
+   Pour chacune : le texte, 2 ou 3 réponses, l'heure, les jours.
+3. **Fiche d'une question** : bilan (7 jours, 30 jours, depuis le
+   début), évolution semaine par semaine, calendrier, jour de la semaine.
+4. **Liens** : les croisements les plus nets entre questions.
+5. **Réglages** : autorisation des notifications, à propos.
 
-Deux couleurs fortes : vert « Oui », gris ardoise « Non ». Fond clair,
-mode sombre dès la V1. Tutoiement. Logo : à proposer après validation.
+Questions de départ (modifiables) : Sport ? (Oui / Non), En forme ?
+(Bien / Moyen / Pas bien), Sorti dehors ? (Oui / Non), Sommeil ?
+(8 h et plus / 6 à 8 h / moins de 6 h).
 
-## Questions à trancher avec Paul
-
-- Le nom : « OuiNon » tel quel ?
-- Combien de notifs par jour au maximum (proposé : 5) ?
-- Catalogue de départ : quelles questions en premier ?
+Plus tard : sauvegarde, objectifs et séries, widget, iPhone, stores.
+Jamais : compte, serveur, publicité, conseil médical.

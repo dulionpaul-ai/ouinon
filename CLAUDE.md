@@ -1,10 +1,12 @@
-# OuiNon
+# Oui-Non
 
-Appli mobile Flutter (iPhone et Android) de suivi de vie minimaliste :
-l'appli pose des questions oui/non dans les notifications (« Bien
-dormi ? », « Café après 16 h ? »), on répond d'un geste sans ouvrir
-l'appli, puis l'appli croise les réponses pour faire ressortir des liens
-(« les jours avec café après 16 h, tu dors moins bien 2 fois sur 3 »).
+Appli mobile Flutter (Android d'abord, iPhone ensuite) de suivi de vie
+minimaliste : chaque question à suivre (« Sport ? », « En forme ? »,
+« Sommeil ? ») arrive en notification à son heure, on répond
+directement depuis la notification avec 2 ou 3 boutons, sans ouvrir
+l'appli. L'appli garde les réponses et en tire des stats : bilan par
+question, calendrier, jour de la semaine, et croisements entre questions
+(même jour et lendemain).
 Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
 
 ## Consignes de Paul
@@ -14,30 +16,32 @@ Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
 - Tout en français, sans exception : réponses, messages intermédiaires
   pendant le travail, points d'avancement.
 - Lire `docs/plan_action.md` en début de session et le tenir à jour.
-- Tenir `docs/fonctionnement.md` à jour à chaque changement d'architecture
-  (à créer avec le socle).
-- `docs/revue_produit.md` : périmètre V1 proposé le 22/10/2026,
-  à faire valider par Paul avant de coder au-delà du socle.
+- Tenir `docs/fonctionnement.md` à jour à chaque changement d'architecture.
+- `docs/revue_produit.md` : choix de Paul du 22/10/2026, référence pour
+  le périmètre V1.
 - Rien ne part sur le Play Store ou l'App Store sans l'accord explicite
   de Paul.
-- Structure du code reprise de Trousse à Pharma et Wavents :
+- Structure du code reprise de Trousse à Pharma (`dulionpaul-ai/trousse-a-pharma`) :
   `lib/models`, `lib/data`, `lib/screens`, `lib/utils`, `lib/theme`,
-  tests dans `test/`. Compilation sur Codemagic.
+  tests dans `test/`. Flutter 3.47.7 partout. APK de test fabriqués
+  dans la session ; Codemagic pour l'iPhone.
 
 ## Garde-fous (non négociables)
 
 - Aucune réponse ne quitte le téléphone : pas de compte, pas de serveur,
   pas d'outil d'analyse ni de publicité.
 - L'appli constate, elle ne conseille pas : jamais de diagnostic ni de
-  conseil médical. Les liens trouvés sont présentés comme des
-  coïncidences observées (« va souvent avec »), pas comme des causes.
-- Pas de lien affiché tant qu'il n'y a pas assez de réponses (seuil
-  minimal de jours, voir `docs/revue_produit.md`).
+  conseil médical. Les croisements sont présentés comme des coïncidences
+  observées (« va souvent avec »), jamais comme des causes.
 
 ## Conventions techniques
 
-- Une réponse = (question, jour, oui | non). « Pas répondu » n'est pas
-  « non » : on ne l'enregistre pas.
-- Le « jour » d'une réponse est le jour concerné, pas l'heure de la
-  réponse (« Bien dormi ? » posé le matin parle de la nuit d'avant).
-- Identifiant de l'appli prévu : `fr.ouinon.app` (à confirmer par Paul).
+- Une question a 2 ou 3 réponses, toujours rangées de la meilleure à la
+  moins bonne (indice 0 = meilleure). Ce nombre ne change plus après la
+  création (sinon l'historique deviendrait faux) ; les libellés, eux,
+  peuvent changer.
+- Une réponse = (question, jour, indice). « Pas répondu » n'est pas une
+  réponse : rien n'est enregistré.
+- Le jour d'une réponse est le jour de la notification qui l'a posée
+  (une nuit de lundi à mardi, demandée mardi matin, compte pour mardi).
+- Identifiant de l'appli prévu : `fr.ouinon.app`, nom affiché « Oui-Non ».

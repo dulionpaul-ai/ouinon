@@ -149,8 +149,9 @@ void main() {
     expect(find.text('3 / 2 / 1'), findsNothing);
   });
 
-  testWidgets('heure : roulettes et bouton Valider', (tester) async {
+  testWidgets('heure : cadran sans clavier, Enregistrer caché', (tester) async {
     await ouvre(tester, EditionQuestionScreen(base: base));
+    expect(find.text('Enregistrer'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.text('21 h'),
       200,
@@ -158,21 +159,17 @@ void main() {
     );
     await tester.tap(find.text('21 h'));
     await tester.pumpAndSettle();
-    expect(find.text('Valider l\'heure'), findsOneWidget);
-    // Deux crans vers le haut sur les heures, un sur les minutes.
-    await tester.drag(
-      find.byKey(const ValueKey('roulette-heures')),
-      const Offset(0, -96),
-    );
+    expect(find.byType(TimePickerDialog), findsOneWidget);
+    expect(find.text('Enregistrer'), findsNothing);
+    expect(find.byIcon(Icons.keyboard_outlined), findsNothing);
+    // La police des tests, très large, pousse « OK » hors de l'écran
+    // simulé : on ferme le cadran avec une heure, comme « OK ».
+    Navigator.of(tester.element(find.byType(TimePickerDialog)))
+        .pop(const TimeOfDay(hour: 22, minute: 30));
     await tester.pumpAndSettle();
-    await tester.drag(
-      find.byKey(const ValueKey('roulette-minutes')),
-      const Offset(0, -48),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Valider l\'heure'));
-    await tester.pumpAndSettle();
-    expect(find.text('23 h 05'), findsOneWidget);
+    expect(find.byType(TimePickerDialog), findsNothing);
+    expect(find.text('Enregistrer'), findsOneWidget);
+    expect(find.text('22 h 30'), findsOneWidget);
   });
 
   testWidgets('question sans texte refusée', (tester) async {

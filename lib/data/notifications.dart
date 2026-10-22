@@ -72,8 +72,10 @@ class Notifications {
               if (q.id != null)
                 DarwinNotificationCategory(
                   'q${q.id}',
+                  // La moins bonne à gauche, la meilleure à droite
+                  // (choix de Paul) ; « r0 » reste la meilleure.
                   actions: [
-                    for (var i = 0; i < q.nbReponses; i++)
+                    for (var i = q.nbReponses - 1; i >= 0; i--)
                       DarwinNotificationAction.plain('r$i', q.reponses[i]),
                   ],
                 ),
@@ -211,8 +213,10 @@ class Notifications {
       category: AndroidNotificationCategory.reminder,
       icon: '@drawable/ic_stat_ouinon',
       color: const Color(0xFFD4FF3A),
+      // La moins bonne à gauche, la meilleure à droite (choix de Paul) ;
+      // « r0 » reste la meilleure.
       actions: [
-        for (var i = 0; i < q.nbReponses; i++)
+        for (var i = q.nbReponses - 1; i >= 0; i--)
           AndroidNotificationAction('r$i', q.reponses[i]),
       ],
     ),

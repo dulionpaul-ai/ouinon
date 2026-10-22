@@ -17,7 +17,6 @@ import 'package:ouinon/screens/fiche_question_screen.dart';
 import 'package:ouinon/screens/questions_screen.dart';
 import 'package:ouinon/screens/stats_screen.dart';
 import 'package:ouinon/utils/jour.dart';
-import 'package:ouinon/widgets/choix_heure.dart';
 import 'package:ouinon/widgets/rond.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -150,19 +149,15 @@ void main() {
       await capture(
         tester,
         '5b-heure-$suffixe',
-        Builder(
-          builder: (context) => Scaffold(
-            body: Center(
-              child: FilledButton(
-                onPressed: () => choisirHeure(context, 21 * 60),
-                child: const Text('Heure'),
-              ),
-            ),
-          ),
-        ),
+        EditionQuestionScreen(base: base),
         mode,
         avant: (tester) async {
-          await tester.tap(find.text('Heure'));
+          await tester.scrollUntilVisible(
+            find.text('21 h'),
+            200,
+            scrollable: find.byType(Scrollable).first,
+          );
+          await tester.tap(find.text('21 h'));
           await tester.pumpAndSettle();
         },
       );

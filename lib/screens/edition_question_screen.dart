@@ -5,7 +5,6 @@ import '../data/suggestions.dart';
 import '../models/question.dart';
 import '../utils/date_fr.dart';
 import '../theme/app_theme.dart';
-import '../widgets/choix_heure.dart';
 import '../widgets/rond.dart';
 
 /// Ajout ou modification d'une question : texte, 2 ou 3 réponses (la
@@ -34,6 +33,9 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
   late int _jours;
   String? _erreur;
   List<List<String>> _suggestions = const [];
+
+  /// Cadran de l'heure ouvert : « Enregistrer » est caché.
+  bool _choixHeure = false;
 
   bool get _nouvelle => widget.question == null;
 
@@ -155,9 +157,24 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
     }
   }
 
+  /// Cadran de l'heure, sans le bouton clavier ; « Enregistrer » est caché
+  /// pendant le choix (on croyait qu'il validait l'heure).
   Future<void> _choisitHeure() async {
-    final choisie = await choisirHeure(context, _heure);
-    if (choisie != null) setState(() => _heure = choisie);
+    setState(() => _choixHeure = true);
+    final choisie = await showTimePicker(
+      context: context,
+      initialEntryMode: TimePickerEntryMode.dialOnly,
+      initialTime: TimeOfDay(hour: _heure ~/ 60, minute: _heure % 60),
+      builder: (context, enfant) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+        child: enfant!,
+      ),
+    );
+    if (!mounted) return;
+    setState(() {
+      _choixHeure = false;
+      if (choisie != null) _heure = choisie.hour * 60 + choisie.minute;
+    });
   }
 
   Future<void> _enregistre() async {
@@ -239,13 +256,15 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
     );
     return Scaffold(
       appBar: AppBar(title: Text(_nouvelle ? 'Nouvelle question' : 'Modifier')),
-      bottomNavigationBar: SafeArea(
-        minimum: const EdgeInsets.fromLTRB(14, 8, 14, 14),
-        child: FilledButton(
-          onPressed: _enregistre,
-          child: const Text('Enregistrer'),
-        ),
-      ),
+      bottomNavigationBar: _choixHeure
+          ? null
+          : SafeArea(
+              minimum: const EdgeInsets.fromLTRB(14, 8, 14, 14),
+              child: FilledButton(
+                onPressed: _enregistre,
+                child: const Text('Enregistrer'),
+              ),
+            ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(14, 0, 14, 24),
         children: [

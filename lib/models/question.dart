@@ -4,8 +4,9 @@ class Question {
   final int? id;
   final String texte;
 
-  /// 2 ou 3 libellés, la meilleure réponse d'abord (indice 0). Leur nombre
-  /// ne change plus après la création : l'historique en dépend.
+  /// 2 ou 3 libellés, la meilleure réponse d'abord (indice 0). Changer leur
+  /// nombre passe par `Base.enregistreAvecNombre`, qui convertit
+  /// l'historique.
   final List<String> reponses;
 
   /// Heure de la notification, en minutes depuis minuit (21 h = 1260).

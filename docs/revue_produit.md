@@ -12,7 +12,8 @@ Privée (rien ne quitte le téléphone), gratuite, sans pub, épurée.
 |---|---|
 | Nom affiché | Ouinon (tout attaché, choix du 22/10/2026 ; d’abord « Oui-Non ») |
 | Réponses | 2 ou 3 par question, au choix |
-| Classement | Toujours de la meilleure à la moins bonne (vert / orange / rouge) |
+| Classement | Toujours de la meilleure à la moins bonne (citron / abricot / corail) |
+| Ordre affiché | De gauche à droite : la moins bonne à gauche, la meilleure à droite, partout |
 | Notifications | Chaque question à son heure |
 | Relance | Aucune ; on rattrape dans l'appli |
 | Jours | Au choix par question (tous les jours par défaut) |
@@ -34,10 +35,12 @@ Privée (rien ne quitte le téléphone), gratuite, sans pub, épurée.
 2. **Mes questions** : ajouter, modifier (tout, y compris passer de 2 à
    3 réponses ou l'inverse), mettre en pause, supprimer.
    Pour chacune : le texte, 2 ou 3 réponses, l'heure, les jours.
-3. **Fiche d'une question** : bilan (7 jours, 30 jours, depuis le
-   début), évolution semaine par semaine, calendrier, jour de la semaine.
-4. **Liens** : les croisements les plus nets entre questions.
-5. **Réglages** : autorisation des notifications, à propos.
+3. **Stats** : les liens les plus nets entre questions (« ce qui va
+   avec quoi »), puis le bilan des 30 derniers jours de chaque question.
+4. **Fiche d'une question** : bilan (7 jours, 30 jours, depuis le
+   début), évolution semaine par semaine, jour de la semaine, calendrier.
+5. **Réglages** : autorisation des notifications, essai d'une
+   notification, à propos.
 
 Questions de départ (modifiables) : Sport ? (Oui / Non), En forme ?
 (Bien / Moyen / Pas bien), Sorti dehors ? (Oui / Non), Sommeil ?

@@ -15,16 +15,25 @@ Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
   réponses courtes, en français, sans jargon.
 - Tout en français, sans exception : réponses, messages intermédiaires
   pendant le travail, points d'avancement.
-- Lire `docs/plan_action.md` en début de session et le tenir à jour.
+- En début de session : lire `docs/reprendre_le_projet.md` (état,
+  outils à installer, comment fabriquer un APK) puis
+  `docs/plan_action.md`, et les tenir à jour, avec `docs/historique.md`.
 - Tenir `docs/fonctionnement.md` à jour à chaque changement d'architecture.
 - `docs/revue_produit.md` : choix de Paul du 22/10/2026, référence pour
   le périmètre V1.
+- Paul envoie ses retours en captures d'écran de son téléphone ; il peut
+  demander d'attendre avant le prochain APK : ne pas en fabriquer tant
+  qu'il ne le dit pas.
+- Travail sur la branche `ccr-a5a20ad5-u5tk4c` tant que Paul n'a pas
+  autorisé l'envoi direct sur `main` pour ce dépôt.
 - Rien ne part sur le Play Store ou l'App Store sans l'accord explicite
   de Paul.
 - Structure du code reprise de Trousse à Pharma (`dulionpaul-ai/trousse-a-pharma`) :
   `lib/models`, `lib/data`, `lib/screens`, `lib/utils`, `lib/theme`,
-  tests dans `test/`. Flutter 3.47.7 partout. APK de test fabriqués
-  dans la session ; Codemagic pour l'iPhone.
+  `lib/widgets`, tests dans `test/`. Flutter 3.47.7 partout
+  (`tool/installer_outils.sh`). APK de test fabriqués dans la session ;
+  Codemagic pour l'iPhone.
+- Avant chaque APK : regarder les captures (`tool/captures_test.dart`).
 
 ## Garde-fous (non négociables)
 
@@ -46,4 +55,8 @@ Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
   réponse : rien n'est enregistré.
 - Le jour d'une réponse est le jour de la notification qui l'a posée
   (une nuit de lundi à mardi, demandée mardi matin, compte pour mardi).
-- Identifiant de l'appli prévu : `fr.ouinon.app`, nom affiché « Ouinon ».
+- De gauche à droite, toujours la moins bonne réponse à gauche et la
+  meilleure à droite (notification, boutons, barres).
+- Toujours sombre ; style et couleurs dans `lib/theme/app_theme.dart`
+  (`Teintes`) et `lib/widgets/rond.dart`, pas de puces Material.
+- Identifiant de l'appli : `fr.ouinon.app`, nom affiché « Ouinon ».

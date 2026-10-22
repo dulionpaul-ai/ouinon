@@ -86,6 +86,10 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 
 ## Vérifications et compilation
 
+- Outils d'une session neuve : `bash tool/installer_outils.sh` (Flutter
+  3.47.7, SDK Android 36, miroir Maven). Étapes complètes dans
+  `docs/reprendre_le_projet.md`.
+
 - Captures d'écran avec les vraies polices : `flutter test
   tool/captures_test.dart --update-goldens` (images dans `tool/captures/`,
   non commitées), dont un petit téléphone (360 de large) avec texte

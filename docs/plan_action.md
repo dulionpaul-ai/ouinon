@@ -1,62 +1,35 @@
 # Plan d'action
 
 Ordre du risque : prouver d'abord que la réponse depuis la notification
-marche, appli fermée, sur le téléphone de Paul.
+marche, appli fermée, sur le téléphone de Paul. Détail de ce qui a été
+fait, version par version : `docs/historique.md`.
 
 1. [x] Cadrage : questions à Paul et choix enregistrés le 22/10/2026
    (`docs/revue_produit.md`).
-2. [x] Socle : fait le 22/10/2026. Projet Flutter 3.47.7
-   (`fr.ouinon.app`, « Ouinon »), structure Trousse à Pharma, base
-   SQLite (questions, réponses), vérifications GitHub Actions (format,
-   analyse, tests), clé de test Android stable, Codemagic préparé.
-3. [ ] Notifications avec boutons : codé le 22/10/2026 (chaque question
-   à son heure et ses jours, 2 ou 3 boutons, réponse enregistrée appli
-   fermée, programmation 14 jours d'avance, rappel « continuer »,
-   bienvenue + autorisation au premier lancement, bouton « Essayer une
-   notification » dans les Réglages). **Premier APK à tester par Paul**
-   (Android) : APK 1.0.0 (9 Mo) envoyé le 22/10/2026. Pas d'émulateur
-   dans la session : le vrai test des boutons appli fermée se fait sur
-   le téléphone de Paul.
-4. [ ] Écrans : codés le 22/10/2026 : Aujourd'hui (avec les jours
-   passés), Mes questions (ajout, modification, ordre, pause,
-   suppression), 4 questions de départ. À tester par Paul.
-5. [ ] Stats : codées le 22/10/2026 : fiche d'une question (bilan
-   7 j / 30 j / tout, semaine par semaine, selon le jour, calendrier
-   modifiable), liens entre questions (même jour et lendemain). À tester
-   par Paul avec de vraies réponses.
-6. [ ] Style : première série (A, B, C) jugée trop « appli d'IA » par
-   Paul le 22/10/2026. Nouvelle série ronde et moderne sur la même page
-   (https://claude.ai/artifact/8wYzPghoUihjK5CGqjZQSg : D Bulles,
-   E Galets, F Nuit ronde). Appliqué dans l'appli : D en clair, F en
-   sombre, polices Unbounded + Figtree (APK n° 2). Le nom devient
-   « Ouinon » (tout attaché). Logo : 4 pistes proposées le 22/10/2026
-   (https://claude.ai/artifact/8JC7nnJjfsTQoX79W3FXtW : Croisement,
-   Interrupteur, Oui | Non, Trois réponses). Reste : choix de Paul,
-   puis icône de l'appli (Android et iPhone).
-   Retours de Paul sur l'APK n° 2 (captures du 22/10/2026) corrigés dans
-   l'APK n° 3 : titre « Questions » coupé, jours illisibles en sombre,
-   intitulés des champs mal placés. En plus : bouton + rond, carte
-   « Ajouter une question » en bas de liste, modèles de réponses, jours
-   en ronds avec raccourcis (tous les jours, semaine, week-end), heure
-   en grosse pastille, « Enregistrer » toujours visible, vibration
-   légère à chaque réponse, avancement du jour sous le titre.
-   APK n° 4 (22/10/2026) : logo n° 3 choisi par Paul (« Ouinon » avec
-   O majuscule) devenu l'icône de l'appli et des notifications ; appli
-   toujours sombre ; suggestions de réponses modifiables (créer,
-   modifier, supprimer) ; raccourcis de jours sur une ligne ; « vert /
-   rouge » dans l'aide ; pilules de l'écran Jour moins hautes pour voir
-   les 4 questions sans faire défiler.
-   Retours de Paul sur l'APK n° 4 (en cours, pas d'APK avant la fin de
-   ses retours) : cadran de l'heure gardé, sans bouton clavier, et
-   « Enregistrer » caché pendant le choix ; boutons de la notification
-   inversés (moins bonne à gauche, meilleure à droite) ; nombre de
-   réponses modifiable sur une question existante (historique converti,
-   confirmation si des réponses du milieu sont effacées) ; « + Nouvelle »
-   devient « + Autre » ; page Jour : glisser vers la droite pour la
-   veille, jamais au-delà d'aujourd'hui.
-7. [ ] Test longue durée par Paul (2 à 3 semaines de vraies réponses),
+2. [x] Socle : projet Flutter 3.47.7 (`fr.ouinon.app`, « Ouinon »),
+   base SQLite, vérifications GitHub Actions, clé de test Android,
+   Codemagic préparé.
+3. [ ] Notifications avec boutons : codées (chaque question à son heure
+   et ses jours, 2 ou 3 boutons, la moins bonne à gauche, réponse
+   enregistrée appli fermée, 14 jours programmés, rappel « continuer »,
+   « Essayer une notification » dans les Réglages). **Reste : confirmer
+   avec Paul que les boutons marchent appli fermée sur son téléphone.**
+4. [x] Écrans : Jour (pages qui glissent), Questions, Nouvelle question
+   / Modifier (suggestions modifiables, cadran d'heure, jours en
+   ronds), Réglages, 4 questions de départ.
+5. [ ] Stats : codées (bilan 7 j / 30 j / tout, semaine par semaine,
+   selon le jour, calendrier modifiable, liens même jour et lendemain).
+   Reste : les juger avec de vraies réponses.
+6. [x] Style et logo : « Nuit ronde », toujours sombre, polices
+   Unbounded + Figtree ; logo n° 3, icônes Android et iPhone.
+7. [ ] **En cours : retours de Paul sur l'APK n° 4.** Déjà intégrés
+   (pas encore dans un APK) : cadran sans clavier, ordre des réponses
+   inversé partout, nombre de réponses modifiable, « + Autre », page
+   Jour qui glisse. **Faire l'APK n° 5 seulement quand Paul le dit**
+   (monter `version` à `1.0.0+5`).
+8. [ ] Test longue durée par Paul (2 à 3 semaines de vraies réponses),
    corrections.
-8. [ ] Plus tard, avec l'accord de Paul : iPhone (TestFlight), sauvegarde,
+9. [ ] Plus tard, avec l'accord de Paul : iPhone (TestFlight), sauvegarde,
    fiches Play Store et App Store.
 
 ## Relecture du plan (22/10/2026) : risques et corrections
@@ -74,7 +47,7 @@ marche, appli fermée, sur le téléphone de Paul.
   14 jours.
 - **iPhone : 64 notifications programmées au maximum.** Correction :
   sur iPhone, le nombre de jours programmés est réduit selon le nombre
-  de questions (à traiter avec l'étape iPhone).
+  de questions.
 - **Heure exacte.** Android demande une autorisation spéciale pour
   l'heure à la seconde près, que le Play Store réserve aux réveils.
   Correction : heure « à quelques minutes près », sans autorisation
@@ -83,18 +56,19 @@ marche, appli fermée, sur le téléphone de Paul.
   communs. Correction : on demande en plus au moins 3 jours de chaque
   côté de la comparaison et un écart d'au moins 20 points, et la phrase
   dit sur combien de jours elle s'appuie.
-- **Changer le nombre de réponses d'une question.** Rendrait
-  l'historique faux. Correction : nombre figé à la création ; pour en
-  changer, on crée une nouvelle question.
+- **Changer le nombre de réponses d'une question.** D'abord figé à la
+  création ; Paul a demandé de pouvoir le changer. Décision : on
+  convertit l'historique (de 2 à 3, la moins bonne reste la moins
+  bonne ; de 3 à 2, les réponses du milieu sont effacées, après
+  confirmation).
 - **Supprimer une question.** Proposer d'abord « Mettre en pause »
   (garde l'historique) ; la suppression efface aussi ses réponses,
   après confirmation.
-- **Accès GitHub.** Bloqué au début ; réglé par Paul le 22/10/2026
-  (appli Claude installée sur le dépôt). Code envoyé, vérifications
-  GitHub au vert.
+- **Accès GitHub.** Bloqué au début ; réglé par Paul le 22/10/2026.
 
 ## À faire par Paul
 
-- Choisir un des 3 styles proposés (étape 6).
-- Installer l'APK, autoriser les notifications, essayer une notification
-  depuis les Réglages, puis répondre quelques jours.
+- Finir ses retours sur l'APK n° 4, puis demander l'APK n° 5.
+- Sur l'APK n° 5 : Réglages → « Essayer une notification », répondre
+  avec un bouton sans ouvrir l'appli, vérifier la réponse dans « Jour ».
+- Dire s'il veut fusionner la branche de travail dans `main`.

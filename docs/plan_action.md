@@ -22,11 +22,10 @@ fait, version par version : `docs/historique.md`.
    Reste : les juger avec de vraies réponses.
 6. [x] Style et logo : « Nuit ronde », toujours sombre, polices
    Unbounded + Figtree ; logo n° 3, icônes Android et iPhone.
-7. [ ] **En cours : retours de Paul sur l'APK n° 4.** Déjà intégrés
-   (pas encore dans un APK) : cadran sans clavier, ordre des réponses
-   inversé partout, nombre de réponses modifiable, « + Autre », page
-   Jour qui glisse. **Faire l'APK n° 5 seulement quand Paul le dit**
-   (monter `version` à `1.0.0+5`).
+7. [x] Retours de Paul sur l'APK n° 4 intégrés dans l'APK n° 5
+   (22/10/2026) : cadran sans clavier, ordre des réponses inversé
+   partout, nombre de réponses modifiable, « + Autre », page Jour qui
+   glisse. Prochain APK : `version: 1.0.0+6`.
 8. [ ] Test longue durée par Paul (2 à 3 semaines de vraies réponses),
    corrections.
 9. [ ] Plus tard, avec l'accord de Paul : iPhone (TestFlight), sauvegarde,
@@ -68,7 +67,6 @@ fait, version par version : `docs/historique.md`.
 
 ## À faire par Paul
 
-- Finir ses retours sur l'APK n° 4, puis demander l'APK n° 5.
 - Sur l'APK n° 5 : Réglages → « Essayer une notification », répondre
   avec un bouton sans ouvrir l'appli, vérifier la réponse dans « Jour ».
 - Dire s'il veut fusionner la branche de travail dans `main`.

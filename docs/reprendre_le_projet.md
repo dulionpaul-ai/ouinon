@@ -13,9 +13,8 @@ Mis à jour le 22/10/2026.
 - **Où on en est** : V1 codée et testée en automatique (32 tests).
   Paul teste les APK sur son téléphone Android (Samsung, mode sombre,
   texte agrandi) et envoie des retours en captures d'écran. Dernier APK
-  envoyé : **n° 4** (version 1.0.0+4). Des retours de Paul sur le n° 4
-  sont déjà intégrés dans le code, **pas encore dans un APK** : Paul a
-  demandé d'attendre la fin de ses retours avant le n° 5.
+  envoyé : **n° 5** (version 1.0.0+5, 22/10/2026). Paul peut demander
+  d'attendre la fin de ses retours avant un nouvel APK.
 - **Le code est sur la branche `ccr-a5a20ad5-u5tk4c`** du dépôt
   `dulionpaul-ai/ouinon`, pas encore sur `main` (voir « Branche »).
 
@@ -84,7 +83,7 @@ font sur le téléphone de Paul.
   `tool/captures/` (non commitées). Elles couvrent aussi un petit
   téléphone avec texte agrandi : un débordement fait échouer la capture.
 - **APK de test** : monter le numéro après le `+` dans `pubspec.yaml`
-  (`version: 1.0.0+5` pour le prochain), puis
+  (`version: 1.0.0+6` pour le prochain), puis
   `flutter build apk --release --split-per-abi --target-platform android-arm64`
   → `build/app/outputs/flutter-apk/app-arm64-v8a-release.apk` (≈ 10 Mo),
   à envoyer à Paul. Clé de test stable (`android/app/cle-test.jks`) :
@@ -120,7 +119,7 @@ n'a pas encore autorisé d'envoi direct sur `main` pour ce dépôt).
 
 Voir `docs/plan_action.md`. En bref :
 
-1. Finir les retours de Paul sur l'APK n° 4, puis faire l'APK n° 5.
+1. Recueillir les retours de Paul sur l'APK n° 5.
 2. Vérifier avec lui que les boutons de notification marchent appli
    fermée (jamais confirmé sur un vrai téléphone à ce jour).
 3. Quelques semaines de vraies réponses, puis ajuster les stats.

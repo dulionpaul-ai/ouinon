@@ -54,9 +54,9 @@ Ce qui a été décidé et fait, dans l'ordre. Le plus récent en bas.
 - Raccourcis de jours sur une ligne ; aide « vert / rouge ».
 - Écran Jour plus compact (pilules de 44) pour voir les 4 questions.
 
-## Après l'APK n° 4 (dans le code, pas encore dans un APK)
+## APK n° 5 (1.0.0+5) : retours sur l'APK n° 4
 
-Paul a demandé d'attendre la fin de ses retours avant l'APK n° 5.
+Paul a demandé d'attendre la fin de ses retours, puis a validé l'APK.
 
 - Heure : un essai de roulettes a été refusé ; retour au cadran
   d'Android, sans bouton clavier, « Enregistrer » caché pendant le

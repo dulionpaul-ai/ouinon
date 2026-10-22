@@ -69,4 +69,3 @@ fait, version par version : `docs/historique.md`.
 
 - Sur l'APK n° 5 : Réglages → « Essayer une notification », répondre
   avec un bouton sans ouvrir l'appli, vérifier la réponse dans « Jour ».
-- Dire s'il veut fusionner la branche de travail dans `main`.

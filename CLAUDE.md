@@ -24,8 +24,9 @@ Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
 - Paul envoie ses retours en captures d'écran de son téléphone ; il peut
   demander d'attendre avant le prochain APK : ne pas en fabriquer tant
   qu'il ne le dit pas.
-- Travail sur la branche `ccr-a5a20ad5-u5tk4c` tant que Paul n'a pas
-  autorisé l'envoi direct sur `main` pour ce dépôt.
+- Claude peut travailler et pousser directement sur `main` (accord de
+  Paul du 22/10/2026). Le travail de la première session y a été versé
+  le 22/10/2026.
 - Rien ne part sur le Play Store ou l'App Store sans l'accord explicite
   de Paul.
 - Structure du code reprise de Trousse à Pharma (`dulionpaul-ai/trousse-a-pharma`) :

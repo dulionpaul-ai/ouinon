@@ -15,8 +15,8 @@ Mis à jour le 22/10/2026.
   texte agrandi) et envoie des retours en captures d'écran. Dernier APK
   envoyé : **n° 5** (version 1.0.0+5, 22/10/2026). Paul peut demander
   d'attendre la fin de ses retours avant un nouvel APK.
-- **Le code est sur la branche `ccr-a5a20ad5-u5tk4c`** du dépôt
-  `dulionpaul-ai/ouinon`, pas encore sur `main` (voir « Branche »).
+- **Le code est sur `main`** du dépôt `dulionpaul-ai/ouinon` (voir
+  « Branche »).
 
 ## Paul
 
@@ -110,10 +110,9 @@ Tout est dans `docs/fonctionnement.md`. L'essentiel :
 
 ## Branche
 
-Tout le travail est sur `ccr-a5a20ad5-u5tk4c`. `main` ne contient que le
-commit de départ. Pour une nouvelle session : partir de cette branche,
-ou la fusionner dans `main` (demande de fusion à valider par Paul ; il
-n'a pas encore autorisé d'envoi direct sur `main` pour ce dépôt).
+Tout est sur `main` depuis le 22/10/2026 (accord de Paul) : partir de
+`main` et y pousser directement. La première session travaillait sur
+`ccr-a5a20ad5-u5tk4c`, versée telle quelle dans `main`.
 
 ## Prochaines étapes
 

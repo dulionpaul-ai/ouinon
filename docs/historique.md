@@ -71,3 +71,5 @@ Paul a demandé d'attendre la fin de ses retours, puis a validé l'APK.
   aujourd'hui.
 - Documentation de reprise (`docs/reprendre_le_projet.md`, ce fichier,
   `tool/installer_outils.sh`).
+- Le travail est versé dans `main` avec l'accord de Paul ; les sessions
+  suivantes partent de `main` et y poussent directement.

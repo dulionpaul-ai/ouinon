@@ -131,6 +131,37 @@ class Base {
     return q;
   }());
 
+  /// Met à jour une question dont le nombre de réponses change, et
+  /// convertit ses réponses passées : de 2 à 3, la moins bonne (indice 1)
+  /// passe en 2 ; de 3 à 2, les réponses du milieu sont effacées et la
+  /// moins bonne passe en 1. La meilleure reste toujours 0.
+  Future<void> enregistreAvecNombre(Question q, int ancienNombre) => _ecrit(
+    db.transaction((t) async {
+      if (ancienNombre == 2 && q.nbReponses == 3) {
+        await t.rawUpdate(
+          'UPDATE reponses SET choix = 2 WHERE question_id = ? AND choix = 1',
+          [q.id],
+        );
+      } else if (ancienNombre == 3 && q.nbReponses == 2) {
+        await t.delete(
+          'reponses',
+          where: 'question_id = ? AND choix = 1',
+          whereArgs: [q.id],
+        );
+        await t.rawUpdate(
+          'UPDATE reponses SET choix = 1 WHERE question_id = ? AND choix = 2',
+          [q.id],
+        );
+      }
+      await t.update(
+        'questions',
+        q.versLigne(),
+        where: 'id = ?',
+        whereArgs: [q.id],
+      );
+    }),
+  );
+
   /// Supprime une question et toutes ses réponses.
   Future<void> supprime(int id) =>
       _ecrit(db.delete('questions', where: 'id = ?', whereArgs: [id]));

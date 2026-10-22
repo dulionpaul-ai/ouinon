@@ -30,8 +30,9 @@ Privée (rien ne quitte le téléphone), gratuite, sans pub, épurée.
 ## V1 : cinq écrans
 
 1. **Aujourd'hui** : les questions du jour, avec leurs boutons de
-   réponse ; on peut changer une réponse ou revenir sur un jour passé.
-2. **Mes questions** : ajouter, modifier, mettre en pause, supprimer.
+   réponse ; on peut changer une réponse ou glisser vers un jour passé.
+2. **Mes questions** : ajouter, modifier (tout, y compris passer de 2 à
+   3 réponses ou l'inverse), mettre en pause, supprimer.
    Pour chacune : le texte, 2 ou 3 réponses, l'heure, les jours.
 3. **Fiche d'une question** : bilan (7 jours, 30 jours, depuis le
    début), évolution semaine par semaine, calendrier, jour de la semaine.

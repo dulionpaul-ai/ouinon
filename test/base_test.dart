@@ -51,6 +51,28 @@ void main() {
     expect((await base.toutesLesReponses())[3], {'2026-10-22': 1});
   });
 
+  test('passer de 2 à 3 réponses, puis de 3 à 2', () async {
+    final base = await ouvreBase();
+    // Sport ? (id 3) : Oui / Non.
+    final sport = (await base.question(3))!;
+    final lundi = DateTime(2026, 10, 19);
+    await base.repond(3, lundi, 0);
+    await base.repond(3, DateTime(2026, 10, 20), 1);
+    await base.enregistreAvecNombre(
+      sport.copie(reponses: ['Beaucoup', 'Un peu', 'Pas du tout']),
+      2,
+    );
+    expect(await base.reponsesDe(3), {'2026-10-19': 0, '2026-10-20': 2});
+    expect((await base.question(3))!.nbReponses, 3);
+
+    await base.repond(3, DateTime(2026, 10, 21), 1);
+    final trois = (await base.question(3))!;
+    await base.enregistreAvecNombre(trois.copie(reponses: ['Oui', 'Non']), 3);
+    // Le « milieu » est effacé, la moins bonne passe en 1.
+    expect(await base.reponsesDe(3), {'2026-10-19': 0, '2026-10-20': 1});
+    expect((await base.question(3))!.reponses, ['Oui', 'Non']);
+  });
+
   test('supprimer une question efface ses réponses', () async {
     final base = await ouvreBase();
     await base.repond(1, DateTime(2026, 10, 22), 0);

@@ -61,11 +61,61 @@ void main() {
     await tester.runAsync(() => base.repond(3, DateTime(2026, 10, 21), 0));
     await ouvre(tester, AujourdhuiScreen(base: base, maintenant: midi));
     await tester.tap(find.byTooltip('Jour d\'avant'));
+    await tester.pumpAndSettle();
     await attends(tester);
     expect(find.text('Hier'), findsOneWidget);
     expect(find.text('Mer. 21 oct.'), findsOneWidget);
     expect(find.bySemanticsLabel('1 sur 4 répondue'), findsOneWidget);
     semantique.dispose();
+  });
+
+  testWidgets('Aujourd\'hui : glisser vers la droite montre la veille', (
+    tester,
+  ) async {
+    await ouvre(tester, AujourdhuiScreen(base: base, maintenant: midi));
+    // Vers la gauche : rien après aujourd'hui.
+    await tester.fling(find.byType(PageView), const Offset(-300, 0), 1000);
+    await tester.pumpAndSettle();
+    await attends(tester);
+    expect(find.text('Aujourd\'hui'), findsOneWidget);
+    // Vers la droite : hier, puis avant-hier.
+    await tester.fling(find.byType(PageView), const Offset(300, 0), 1000);
+    await tester.pumpAndSettle();
+    await attends(tester);
+    expect(find.text('Hier'), findsOneWidget);
+    await tester.fling(find.byType(PageView), const Offset(300, 0), 1000);
+    await tester.pumpAndSettle();
+    await attends(tester);
+    expect(find.text('Mardi'), findsOneWidget);
+    expect(find.text('Mar. 20 oct.'), findsOneWidget);
+  });
+
+  testWidgets('modifier : passer de 3 à 2 réponses avec confirmation', (
+    tester,
+  ) async {
+    final forme = (await tester.runAsync(() => base.question(2)))!;
+    await tester.runAsync(() async {
+      await base.repond(2, DateTime(2026, 10, 20), 1);
+      await base.repond(2, DateTime(2026, 10, 21), 2);
+    });
+    await ouvre(tester, EditionQuestionScreen(base: base, question: forme));
+    await tester.tap(find.text('2 réponses'));
+    await tester.pump();
+    await tester.ensureVisible(find.text('Enregistrer'));
+    await tester.tap(find.text('Enregistrer'));
+    await attends(tester);
+    await tester.pumpAndSettle();
+    expect(find.text('Passer à 2 réponses ?'), findsOneWidget);
+    expect(
+      find.textContaining('1 réponse « Moyen » sera effacée'),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Changer'));
+    await attends(tester);
+    await tester.pumpAndSettle();
+    final apres = (await tester.runAsync(() => base.question(2)))!;
+    expect(apres.nbReponses, 2);
+    expect(await tester.runAsync(() => base.reponsesDe(2)), {'2026-10-21': 1});
   });
 
   testWidgets('nouvelle question à 3 réponses, en semaine', (tester) async {
@@ -112,7 +162,7 @@ void main() {
     expect(find.text('Bien / Moyen / Pas bien'), findsOneWidget);
     expect(find.text('Oui / Non'), findsNothing);
 
-    await tester.tap(find.text('+ Nouvelle'));
+    await tester.tap(find.text('+ Autre'));
     await tester.pumpAndSettle();
     final champs = find.descendant(
       of: find.byType(AlertDialog),

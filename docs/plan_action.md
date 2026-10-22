@@ -49,7 +49,11 @@ marche, appli fermée, sur le téléphone de Paul.
    Retours de Paul sur l'APK n° 4 (en cours, pas d'APK avant la fin de
    ses retours) : cadran de l'heure gardé, sans bouton clavier, et
    « Enregistrer » caché pendant le choix ; boutons de la notification
-   inversés (moins bonne à gauche, meilleure à droite).
+   inversés (moins bonne à gauche, meilleure à droite) ; nombre de
+   réponses modifiable sur une question existante (historique converti,
+   confirmation si des réponses du milieu sont effacées) ; « + Nouvelle »
+   devient « + Autre » ; page Jour : glisser vers la droite pour la
+   veille, jamais au-delà d'aujourd'hui.
 7. [ ] Test longue durée par Paul (2 à 3 semaines de vraies réponses),
    corrections.
 8. [ ] Plus tard, avec l'accord de Paul : iPhone (TestFlight), sauvegarde,

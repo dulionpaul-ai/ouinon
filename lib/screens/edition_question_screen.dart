@@ -193,17 +193,64 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
       setState(() => _erreur = erreur);
       return;
     }
-    final base =
-        widget.question ?? Question(texte: '', reponses: reponses, heure: 0);
-    await widget.base.enregistre(
-      base.copie(
-        texte: texte,
-        reponses: reponses,
-        heure: _heure,
-        jours: _jours,
+    final ancienne = widget.question;
+    final modifiee =
+        (ancienne ?? Question(texte: '', reponses: reponses, heure: 0)).copie(
+          texte: texte,
+          reponses: reponses,
+          heure: _heure,
+          jours: _jours,
+        );
+    if (ancienne == null || ancienne.nbReponses == reponses.length) {
+      await widget.base.enregistre(modifiee);
+    } else {
+      if (!await _confirmeNombre(ancienne, reponses)) return;
+      await widget.base.enregistreAvecNombre(modifiee, ancienne.nbReponses);
+    }
+    if (mounted) Navigator.pop(context);
+  }
+
+  /// Changer le nombre de réponses d'une question qui a un historique :
+  /// on dit ce que deviennent les réponses passées.
+  Future<bool> _confirmeNombre(Question q, List<String> nouvelles) async {
+    final passees = await widget.base.reponsesDe(q.id!);
+    if (passees.isEmpty || !mounted) return true;
+    final String message;
+    if (q.nbReponses == 2) {
+      message =
+          'Tes ${passees.length} réponses passées sont gardées : '
+          '« ${q.reponses[0]} » devient « ${nouvelles[0]} » et '
+          '« ${q.reponses[1]} » devient « ${nouvelles[2]} ».';
+    } else {
+      final milieu = passees.values.where((c) => c == 1).length;
+      final effacees = switch (milieu) {
+        0 => 'Aucune réponse « ${q.reponses[1]} » à effacer.',
+        1 => '1 réponse « ${q.reponses[1]} » sera effacée.',
+        _ => '$milieu réponses « ${q.reponses[1]} » seront effacées.',
+      };
+      message =
+          '$effacees Les autres sont gardées : « ${q.reponses[0]} » devient '
+          '« ${nouvelles[0]} » et « ${q.reponses[2]} » devient '
+          '« ${nouvelles[1]} ».';
+    }
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Passer à ${nouvelles.length} réponses ?'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Changer'),
+          ),
+        ],
       ),
     );
-    if (mounted) Navigator.pop(context);
+    return ok ?? false;
   }
 
   Future<void> _pause() async {
@@ -288,29 +335,16 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
               style: doux,
             ),
           ),
-          if (_nouvelle) ...[
-            ChoixPilules<int>(
-              options: const [(2, '2 réponses'), (3, '3 réponses')],
-              valeur: nb,
-              onChoix: (n) {
-                if (n != nb) _nombre(n);
-              },
-            ),
-            const SizedBox(height: 10),
-            _blocSuggestions(doux),
-            const SizedBox(height: 12),
-          ] else ...[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(6, 0, 6, 12),
-              child: Text(
-                '$nb réponses : fixé à la création, pour garder '
-                'l\'historique juste.',
-                style: doux,
-              ),
-            ),
-            _blocSuggestions(doux),
-            const SizedBox(height: 12),
-          ],
+          ChoixPilules<int>(
+            options: const [(2, '2 réponses'), (3, '3 réponses')],
+            valeur: nb,
+            onChoix: (n) {
+              if (n != nb) _nombre(n);
+            },
+          ),
+          const SizedBox(height: 10),
+          _blocSuggestions(doux),
+          const SizedBox(height: 12),
           for (final (i, c) in _reponses.indexed)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
@@ -486,7 +520,7 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
                   onTap: () => _applique(m),
                   onLongPress: () => _optionsSuggestion(i),
                 ),
-            PiluleChoix('+ Nouvelle', onTap: () => _editeSuggestion()),
+            PiluleChoix('+ Autre', onTap: () => _editeSuggestion()),
           ],
         ),
         Padding(

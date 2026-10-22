@@ -10,9 +10,10 @@ import '../widgets/boutons_reponse.dart';
 import '../widgets/rond.dart';
 import 'reglages_screen.dart';
 
-/// Les questions d'un jour (aujourd'hui par défaut) avec leurs réponses :
-/// pour rattraper une notification manquée ou changer d'avis. Les flèches
-/// mènent aux jours passés.
+/// Les questions d'un jour (aujourd'hui au départ) avec leurs réponses :
+/// pour rattraper une notification manquée ou changer d'avis. On passe
+/// d'un jour à l'autre en glissant le doigt (vers la droite : la veille)
+/// ou avec les flèches, sans dépasser aujourd'hui.
 class AujourdhuiScreen extends StatefulWidget {
   final Base base;
 
@@ -30,8 +31,67 @@ class AujourdhuiScreen extends StatefulWidget {
 }
 
 class _AujourdhuiScreenState extends State<AujourdhuiScreen> {
+  /// Page 0 = aujourd'hui, page 1 = hier… (dix ans en arrière au plus).
+  static const _joursMax = 3650;
+
+  final _pages = PageController();
+
+  @override
+  void dispose() {
+    _pages.dispose();
+    super.dispose();
+  }
+
+  void _va(int page) => _pages.animateToPage(
+    page,
+    duration: const Duration(milliseconds: 280),
+    curve: Curves.easeOutCubic,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return PageView.builder(
+      controller: _pages,
+      // Inversé : glisser vers la droite montre la veille, et on ne peut
+      // pas aller après aujourd'hui (page 0).
+      reverse: true,
+      itemCount: _joursMax,
+      itemBuilder: (context, page) => _PageJour(
+        key: ValueKey(page),
+        base: widget.base,
+        maintenant: widget.maintenant,
+        decalage: -page,
+        onAvant: page < _joursMax - 1 ? () => _va(page + 1) : null,
+        onApres: page > 0 ? () => _va(page - 1) : null,
+      ),
+    );
+  }
+}
+
+class _PageJour extends StatefulWidget {
+  final Base base;
+  final DateTime Function() maintenant;
+
   /// Décalage par rapport à aujourd'hui (0 = aujourd'hui, −1 = hier…).
-  int _decalage = 0;
+  final int decalage;
+  final VoidCallback? onAvant;
+  final VoidCallback? onApres;
+
+  const _PageJour({
+    super.key,
+    required this.base,
+    required this.maintenant,
+    required this.decalage,
+    required this.onAvant,
+    required this.onApres,
+  });
+
+  @override
+  State<_PageJour> createState() => _PageJourState();
+}
+
+class _PageJourState extends State<_PageJour> {
+  int get _decalage => widget.decalage;
   List<Question> _questions = const [];
   Map<int, int> _reponses = const {};
   bool _charge = false;
@@ -64,11 +124,6 @@ class _AujourdhuiScreenState extends State<AujourdhuiScreen> {
       _reponses = reponses;
       _charge = true;
     });
-  }
-
-  void _va(int decalage) {
-    setState(() => _decalage = decalage);
-    _recharge();
   }
 
   Future<void> _choisit(Question q, int? choix) async {
@@ -118,13 +173,13 @@ class _AujourdhuiScreenState extends State<AujourdhuiScreen> {
                   BoutonRond(
                     icone: Icons.chevron_left_rounded,
                     infobulle: 'Jour d\'avant',
-                    onPressed: () => _va(_decalage - 1),
+                    onPressed: widget.onAvant,
                   ),
                   const SizedBox(width: 6),
                   BoutonRond(
                     icone: Icons.chevron_right_rounded,
                     infobulle: 'Jour d\'après',
-                    onPressed: _decalage < 0 ? () => _va(_decalage + 1) : null,
+                    onPressed: widget.onApres,
                   ),
                   const SizedBox(width: 6),
                   BoutonRond(

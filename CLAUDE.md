@@ -37,9 +37,11 @@ Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
 ## Conventions techniques
 
 - Une question a 2 ou 3 réponses, toujours rangées de la meilleure à la
-  moins bonne (indice 0 = meilleure). Ce nombre ne change plus après la
-  création (sinon l'historique deviendrait faux) ; les libellés, eux,
-  peuvent changer.
+  moins bonne (indice 0 = meilleure). Tout se modifie, y compris ce
+  nombre (demande de Paul du 22/10/2026), avec conversion de
+  l'historique : de 2 à 3, la moins bonne passe en indice 2 ; de 3 à 2,
+  les réponses du milieu sont effacées après confirmation et la moins
+  bonne passe en 1 (`Base.enregistreAvecNombre`).
 - Une réponse = (question, jour, indice). « Pas répondu » n'est pas une
   réponse : rien n'est enregistré.
 - Le jour d'une réponse est le jour de la notification qui l'a posée

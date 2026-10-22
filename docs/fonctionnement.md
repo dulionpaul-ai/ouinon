@@ -13,13 +13,13 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 | Dossier | Contenu |
 |---|---|
 | `models/question.dart` | Une question : texte, réponses (meilleure d'abord), heure, jours (masque lundi = bit 0), en pause ou non ; les 4 questions de départ. |
-| `data/base.dart` | Base `ouinon.sqlite` : tables `questions` et `reponses` (une réponse par question et par jour, effacée avec sa question). |
+| `data/base.dart` | Base `ouinon.sqlite` : tables `questions` et `reponses` (une réponse par question et par jour, effacée avec sa question). Changement du nombre de réponses avec conversion de l'historique (`enregistreAvecNombre`). |
 | `data/suggestions.dart` | Suggestions de réponses de l'écran Nouvelle question (« Oui / Non », « Bien / Moyen / Pas bien » au départ), créées, modifiées ou supprimées par la personne, gardées dans les préférences du téléphone. |
 | `data/notifications.dart` | Programmation des notifications, boutons, réponse depuis la notification (`reponseNotifArrierePlan`). |
 | `utils/planification.dart` | Calcul pur de ce qu'il faut programmer (testé). |
 | `utils/stats.dart` | Bilans, évolution, jour de la semaine, croisements et leurs phrases (testé). |
 | `utils/jour.dart`, `utils/date_fr.dart` | Jours de calendrier (« 2026-10-22 ») et dates en français. |
-| `screens/` | Accueil (onglets), Aujourd'hui, Stats, fiche d'une question, Mes questions, modification, Réglages. |
+| `screens/` | Accueil (onglets), Aujourd'hui (une page par jour, on glisse vers la droite pour la veille, jamais après aujourd'hui), Stats, fiche d'une question, Mes questions, modification, Réglages. |
 | `theme/app_theme.dart` | Style « Nuit ronde », toujours sombre (choix de Paul du 22/10/2026) : couleurs dans `Teintes`, polices Unbounded (titres) et Figtree (texte), embarquées dans `assets/fonts` (licence OFL). Réponses : citron, abricot, corail. |
 | `widgets/rond.dart` | Briques rondes : carte, pastille, bouton rond et bouton +, grand titre (réduit plutôt que coupé), barre d'onglets flottante, choix en pilules, pilule à toucher, jour de la semaine en rond. Pas de puces Material (police et couleurs mal reprises). |
 

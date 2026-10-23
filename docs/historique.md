@@ -134,3 +134,10 @@ Fabriqué avec l'accord de Paul le 23/10/2026.
   la question principale (choisie dans les stats), lignes grisées quand
   il manque des jours ; croiseur gardé dessous.
 - Bilan du dimanche à 20 h, interrupteur dans les Réglages.
+
+## Après l'APK n° 9 (dans le code)
+
+- Paul envoie une capture de l'ancienne page Stats : l'APK n° 9 n'était
+  pas installé. Le numéro de l'APK s'affiche désormais en bas des
+  Réglages (« Ouinon 1.0.0 · APK n° 10 »), tiré de
+  `lib/utils/version.dart`, aligné sur `pubspec.yaml` par un test.

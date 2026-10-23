@@ -92,7 +92,9 @@ font sur le téléphone de Paul.
   `tool/captures/` (non commitées). Elles couvrent aussi un petit
   téléphone avec texte agrandi : un débordement fait échouer la capture.
 - **APK de test** : monter le numéro après le `+` dans `pubspec.yaml`
-  (`version: 1.0.0+10` pour le prochain), puis
+  (`version: 1.0.0+10` pour le prochain, **et la même valeur dans
+  `lib/utils/version.dart`**, vérifiée par un test ; le numéro d'APK
+  s'affiche en bas des Réglages), puis
   `flutter build apk --release --split-per-abi --target-platform android-arm64`
   → `build/app/outputs/flutter-apk/app-arm64-v8a-release.apk` (≈ 10 Mo),
   à envoyer à Paul. Clé de test stable (`android/app/cle-test.jks`) :

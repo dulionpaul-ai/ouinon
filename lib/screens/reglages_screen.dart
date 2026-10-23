@@ -7,6 +7,7 @@ import '../theme/app_theme.dart';
 import '../utils/date_fr.dart';
 import '../utils/jour.dart';
 import '../utils/planification.dart';
+import '../utils/version.dart';
 import '../widgets/rond.dart';
 
 /// Réglages : autorisation des notifications, essai d'une notification,
@@ -258,7 +259,7 @@ class _ReglagesScreenState extends State<ReglagesScreen>
           Padding(
             padding: const EdgeInsets.all(8),
             child: Text(
-              'Ouinon 1.0.0',
+              versionLisible(),
               textAlign: TextAlign.center,
               style: doux,
             ),

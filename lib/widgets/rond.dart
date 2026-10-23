@@ -418,3 +418,46 @@ class PiluleChoix extends StatelessWidget {
         : texte;
   }
 }
+
+/// Série en cours : petite flamme citron et nombre de jours d'affilée.
+class PastilleSerie extends StatelessWidget {
+  final int jours;
+
+  const PastilleSerie(this.jours, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Teintes.de(context);
+    return Semantics(
+      label: '$jours jours d\'affilée',
+      excludeSemantics: true,
+      child: Container(
+        height: 26,
+        padding: const EdgeInsets.fromLTRB(6, 0, 10, 0),
+        decoration: ShapeDecoration(
+          color: t.puce,
+          shape: const StadiumBorder(),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.local_fire_department_rounded,
+              size: 16,
+              color: t.accent,
+            ),
+            const SizedBox(width: 3),
+            Text(
+              '$jours',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: t.texte,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/base.dart';
+import '../data/preferences.dart';
 import '../models/question.dart';
 import '../utils/jour.dart';
 import '../utils/stats.dart';
@@ -9,9 +10,9 @@ import '../widgets/barres.dart';
 import '../widgets/rond.dart';
 import 'fiche_question_screen.dart';
 
-/// Les stats, centrées sur les croisements (demande de Paul du
-/// 23/10/2026) : un croiseur libre de deux questions, les liens les plus
-/// nets trouvés tout seuls, puis une ligne par question.
+/// Les stats (refaites le 23/10/2026) : ce qui va avec la question
+/// principale (classement), un croiseur libre de deux questions, puis une
+/// ligne par question avec sa série.
 class StatsScreen extends StatefulWidget {
   final Base base;
 
@@ -29,12 +30,11 @@ class StatsScreen extends StatefulWidget {
 }
 
 class _StatsScreenState extends State<StatsScreen> {
-  static const _liensMontres = 5;
-
   List<Question> _questions = const [];
   Map<int, Reponses> _reponses = const {};
-  List<Lien> _liens = const [];
-  bool _tousLesLiens = false;
+
+  /// La question qui compte le plus (choisie par la personne).
+  int? _idPrincipale;
 
   /// Le croiseur : « si » A, « alors » B, le même jour ou le lendemain.
   int? _idA;
@@ -57,12 +57,15 @@ class _StatsScreenState extends State<StatsScreen> {
   Future<void> _recharge() async {
     final questions = await widget.base.questions();
     final reponses = await widget.base.toutesLesReponses();
+    final principale = await Preferences.questionPrincipale();
     if (!mounted) return;
     final trouves = liens(questions, reponses);
     setState(() {
       _questions = questions;
       _reponses = reponses;
-      _liens = trouves;
+      _idPrincipale = questions.any((q) => q.id == principale)
+          ? principale
+          : null;
       final ids = {for (final q in questions) q.id};
       // Au départ : le lien le plus net, sinon les deux premières.
       if (!ids.contains(_idA) || !ids.contains(_idB) || _idA == _idB) {
@@ -87,20 +90,54 @@ class _StatsScreenState extends State<StatsScreen> {
     return null;
   }
 
-  void _montre(Lien l) => setState(() {
-    _idA = l.a.id;
-    _idB = l.b.id;
-    _decalage = l.decalage;
-  });
+  Future<void> _choisitPrincipale(int id) async {
+    setState(() => _idPrincipale = id);
+    await Preferences.choisitPrincipale(id);
+  }
+
+  /// Panneau pour changer de question principale.
+  Future<void> _changePrincipale() async {
+    final choisie = await showModalBottomSheet<int>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Ce qui compte le plus pour toi',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  for (final q in _questions)
+                    PiluleChoix(
+                      q.texte,
+                      choisie: q.id == _idPrincipale,
+                      onTap: () => Navigator.pop(context, q.id),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (choisie != null) await _choisitPrincipale(choisie);
+  }
 
   @override
   Widget build(BuildContext context) {
     final t = Teintes.de(context);
     final doux = TextStyle(color: t.doux);
     final aujourdhui = jourDe(widget.maintenant());
-    final liensMontres = _tousLesLiens
-        ? _liens
-        : _liens.take(_liensMontres).toList();
+    final principale = _question(_idPrincipale);
     return Scaffold(
       body: SafeArea(
         bottom: false,
@@ -111,46 +148,22 @@ class _StatsScreenState extends State<StatsScreen> {
               padding: EdgeInsets.fromLTRB(6, 22, 6, 18),
               child: GrandTitre('Stats'),
             ),
-            const _Section('Croiser deux questions'),
+            const _Section('Ce qui va avec tes bonnes journées'),
             if (_questions.length < 2)
               CarteRonde(
                 child: Text(
-                  'Il faut au moins deux questions pour les croiser.',
+                  'Ajoute au moins deux questions pour voir ce qui va '
+                  'ensemble.',
                   style: doux,
                 ),
               )
+            else if (principale == null)
+              _choixPrincipale(context)
             else
-              _croiseur(context),
+              ..._classement(context, principale),
             const SizedBox(height: 22),
-            const _Section('Les liens les plus nets'),
-            if (_liens.isEmpty)
-              CarteRonde(
-                child: Text(
-                  'Ils apparaissent après $minJoursCommuns jours de réponses, '
-                  'quand un écart net se dessine.',
-                  style: doux,
-                ),
-              )
-            else ...[
-              for (final l in liensMontres)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: _CarteLien(lien: l, onTap: () => _montre(l)),
-                ),
-              if (_liens.length > _liensMontres)
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton(
-                    onPressed: () =>
-                        setState(() => _tousLesLiens = !_tousLesLiens),
-                    child: Text(
-                      _tousLesLiens
-                          ? 'Voir moins'
-                          : 'Voir les ${_liens.length} liens',
-                    ),
-                  ),
-                ),
-            ],
+            const _Section('Croiser deux questions'),
+            if (_questions.length >= 2) _croiseur(context),
             const SizedBox(height: 22),
             const _Section('Par question, 30 jours'),
             CarteRonde(
@@ -160,6 +173,7 @@ class _StatsScreenState extends State<StatsScreen> {
                   for (final q in _questions)
                     _LigneQuestion(
                       question: q,
+                      serie: serie(q, _reponses[q.id] ?? const {}, aujourdhui),
                       bilan: bilan(
                         q,
                         _reponses[q.id] ?? const {},
@@ -191,6 +205,78 @@ class _StatsScreenState extends State<StatsScreen> {
         ),
       ),
     );
+  }
+
+  /// Pas encore de question principale : on propose de la choisir.
+  Widget _choixPrincipale(BuildContext context) {
+    final t = Teintes.de(context);
+    return CarteRonde(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Quelle question compte le plus pour toi ?',
+            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Ouinon te montrera ce qui va avec ses bonnes réponses.',
+            style: TextStyle(color: t.doux),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              for (final q in _questions)
+                PiluleChoix(
+                  q.texte,
+                  key: ValueKey('principale-${q.id}'),
+                  onTap: () => _choisitPrincipale(q.id!),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// La question principale, puis les autres classées selon leur lien.
+  List<Widget> _classement(BuildContext context, Question p) {
+    final t = Teintes.de(context);
+    final liste = classement(p, _questions, _reponses);
+    return [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(6, 0, 0, 10),
+        child: Row(
+          children: [
+            Text(
+              'Ta question :',
+              style: TextStyle(color: t.doux, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Pastille(
+                '${p.texte} ${p.reponses[0]}',
+                fond: t.accent,
+                hauteur: 30,
+                taille: 13,
+              ),
+            ),
+            const SizedBox(width: 4),
+            TextButton(
+              onPressed: _changePrincipale,
+              child: const Text('Changer'),
+            ),
+          ],
+        ),
+      ),
+      for (final l in liste)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: _CarteClassement(lien: l),
+        ),
+    ];
   }
 
   /// Choix de A, de B et du décalage, puis une barre de B par réponse de A.
@@ -376,49 +462,74 @@ class _Legende extends StatelessWidget {
   }
 }
 
-/// Un lien trouvé : les deux réponses en pastilles, puis « avec » et
-/// « sans » en barres.
-class _CarteLien extends StatelessWidget {
+/// Une question du classement : ses deux barres (les jours avec sa
+/// meilleure réponse, les autres jours) si le lien est net ; sinon une
+/// ligne grisée (« pas de lien net », « encore N jours pour savoir »).
+class _CarteClassement extends StatelessWidget {
   final Lien lien;
-  final VoidCallback onTap;
 
-  const _CarteLien({required this.lien, required this.onTap});
+  const _CarteClassement({required this.lien});
 
   @override
   Widget build(BuildContext context) {
     final t = Teintes.de(context);
-    final a = lien.a;
-    final b = lien.b;
+    final q = lien.a;
+    final p = lien.b;
     final vert = AppTheme.couleurReponse(context, 0, 2);
+    final quand = lien.decalage == 0 ? 'le jour même' : 'la veille';
+    final entete = Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        Pastille('${q.texte} ${q.reponses[0]}', fond: lien.net ? vert : null),
+        if (lien.net) Pastille(quand),
+      ],
+    );
+    if (!lien.net) {
+      final manque = lien.joursManquants;
+      return Opacity(
+        opacity: 0.6,
+        child: CarteRonde(
+          padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
+          child: Row(
+            children: [
+              Expanded(child: entete),
+              const SizedBox(width: 8),
+              Text(
+                manque > 0
+                    ? 'Encore $manque jour${manque > 1 ? 's' : ''}'
+                    : 'Pas de lien net',
+                style: TextStyle(color: t.doux, fontWeight: FontWeight.w700),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     return CarteRonde(
-      onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Pastille('${a.texte} ${a.reponses[0]}', fond: vert),
-              Icon(Icons.arrow_forward_rounded, size: 18, color: t.doux),
-              Pastille('${b.texte} ${b.reponses[0]}', fond: vert),
-              Pastille(lien.decalage == 0 ? 'même jour' : 'lendemain'),
-            ],
-          ),
-          const SizedBox(height: 14),
+          entete,
+          const SizedBox(height: 12),
           _BarreComparaison(
-            libelle: 'Avec',
+            libelle: q.reponses[0],
             part: lien.avec,
             couleur: vert,
             jours: lien.joursAvec,
           ),
           const SizedBox(height: 8),
           _BarreComparaison(
-            libelle: 'Sans',
+            libelle: 'Sinon',
             part: lien.sans,
             couleur: t.doux,
             jours: lien.joursSans,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Part de « ${p.reponses[0]} » · sur ${lien.jours} jours',
+            style: TextStyle(color: t.doux, fontSize: 13),
           ),
         ],
       ),
@@ -448,9 +559,11 @@ class _BarreComparaison extends StatelessWidget {
       child: Row(
         children: [
           SizedBox(
-            width: 44,
+            width: 76,
             child: Text(
               libelle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(color: t.doux, fontWeight: FontWeight.w700),
             ),
           ),
@@ -489,11 +602,13 @@ class _BarreComparaison extends StatelessWidget {
 /// Une question : son nom et sa barre des 30 derniers jours.
 class _LigneQuestion extends StatelessWidget {
   final Question question;
+  final Serie serie;
   final Bilan bilan;
   final VoidCallback onTap;
 
   const _LigneQuestion({
     required this.question,
+    required this.serie,
     required this.bilan,
     required this.onTap,
   });
@@ -522,12 +637,17 @@ class _LigneQuestion extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             SizedBox(
-              width: 28,
-              child: Text(
-                '${bilan.total}',
-                textAlign: TextAlign.right,
-                style: TextStyle(color: t.doux, fontSize: 13),
-              ),
+              width: 52,
+              child: serie.actuelle >= 2
+                  ? Align(
+                      alignment: Alignment.centerRight,
+                      child: PastilleSerie(serie.actuelle),
+                    )
+                  : Text(
+                      '${bilan.total} j',
+                      textAlign: TextAlign.right,
+                      style: TextStyle(color: t.doux, fontSize: 13),
+                    ),
             ),
             Icon(Icons.chevron_right_rounded, color: t.doux),
           ],

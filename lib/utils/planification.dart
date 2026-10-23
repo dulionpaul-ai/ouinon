@@ -19,6 +19,27 @@ const horizonJours = 14;
 /// Identifiant de la notification « Ouvre Ouinon pour continuer ».
 const idRappelContinuer = 1;
 
+/// Identifiant du bilan du dimanche soir.
+const idBilanDimanche = 2;
+
+/// Heure du bilan du dimanche (en minutes) : 20 h.
+const heureBilan = 20 * 60;
+
+/// Le prochain dimanche à 20 h, strictement après `maintenant`.
+DateTime prochainBilan(DateTime maintenant) {
+  final aujourdhui = jourDe(maintenant);
+  var jour = ajouteJours(
+    aujourdhui,
+    (DateTime.sunday - aujourdhui.weekday) % 7,
+  );
+  var quand = DateTime(jour.year, jour.month, jour.day, heureBilan ~/ 60);
+  if (!quand.isAfter(maintenant)) {
+    jour = ajouteJours(jour, 7);
+    quand = DateTime(jour.year, jour.month, jour.day, heureBilan ~/ 60);
+  }
+  return quand;
+}
+
 /// Identifiant d'une notification : la question et le jour, pour la
 /// retrouver (et l'effacer) quand on répond dans l'appli.
 int idNotification(int questionId, DateTime jour) =>

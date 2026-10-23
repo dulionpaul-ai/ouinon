@@ -104,4 +104,18 @@ void main() {
     final apres = DateTime(2026, 10, 26, 7, 1);
     expect(instantProgramme(apres).isAtSameMomentAs(apres), isTrue);
   });
+
+  test('bilan : le prochain dimanche à 20 h', () {
+    // Jeudi 22 octobre → dimanche 25 à 20 h.
+    expect(prochainBilan(midi), DateTime(2026, 10, 25, 20));
+    // Dimanche 25 à 19 h → le soir même ; à 20 h → la semaine suivante.
+    expect(
+      prochainBilan(DateTime(2026, 10, 25, 19)),
+      DateTime(2026, 10, 25, 20),
+    );
+    expect(
+      prochainBilan(DateTime(2026, 10, 25, 20)),
+      DateTime(2026, 11, 1, 20),
+    );
+  });
 }

@@ -121,3 +121,14 @@ a validé celui-ci le 23/10/2026.
 - Notification revue : plus de date sous la question ; plus de couleur
   (le citron devenait vert olive chez Samsung) ; nouveau logo blanc,
   moitié pleine (oui), moitié en contour (non).
+- Critique franche demandée par Paul (sa copine « ne voit pas
+  l'intérêt ») : la valeur arrive trop tard. Retenu pour l'instant :
+  question principale + stats en classement, bilan du dimanche soir,
+  séries (idée de Paul). Gardés pour plus tard : sauvegarde, mode
+  « expérience », objectifs tout prêts au démarrage.
+- Séries : flamme sur la page Jour, série et record sur la fiche, dans
+  la ligne de chaque question des stats.
+- Stats : « Ce qui va avec tes bonnes journées », classement autour de
+  la question principale (choisie dans les stats), lignes grisées quand
+  il manque des jours ; croiseur gardé dessous.
+- Bilan du dimanche à 20 h, interrupteur dans les Réglages.

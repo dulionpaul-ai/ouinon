@@ -5,7 +5,9 @@ import 'package:timezone/timezone.dart' as tz;
 import '../models/question.dart';
 import '../utils/jour.dart';
 import '../utils/planification.dart';
+import '../utils/stats.dart';
 import 'base.dart';
+import 'preferences.dart';
 
 /// Le moment où une notification doit partir, en temps universel.
 ///
@@ -168,9 +170,9 @@ class Notifications {
       questions: questions,
       repondues: await base.reponduesDepuis(jourDe(now)),
       maintenant: now,
-      // iPhone : 64 notifications programmées au plus (une gardée pour le
-      // rappel « continuer »). Android : 500 alarmes par appli.
-      maxNotifs: defaultTargetPlatform == TargetPlatform.iOS ? 63 : 400,
+      // iPhone : 64 notifications programmées au plus (deux gardées pour
+      // le rappel « continuer » et le bilan). Android : 500 alarmes.
+      maxNotifs: defaultTargetPlatform == TargetPlatform.iOS ? 62 : 400,
     );
     if (defaultTargetPlatform == TargetPlatform.iOS) {
       await _initialise(questions);
@@ -204,6 +206,51 @@ class Notifications {
         androidScheduleMode: mode,
       );
     }
+    await _programmeBilan(base, questions, now, mode);
+  }
+
+  /// Bilan du dimanche soir (si activé) : la semaine en quelques lignes.
+  /// Son texte est recalculé à chaque reprogrammation, donc après chaque
+  /// réponse : il est à jour de la dernière réponse donnée.
+  Future<void> _programmeBilan(
+    Base base,
+    List<Question> questions,
+    DateTime maintenant,
+    AndroidScheduleMode mode,
+  ) async {
+    if (!await Preferences.bilanDimanche()) return;
+    final quand = prochainBilan(maintenant);
+    final idPrincipale = await Preferences.questionPrincipale();
+    Question? principale;
+    for (final q in questions) {
+      if (q.id == idPrincipale) principale = q;
+    }
+    final lignes = bilanSemaine(
+      questions,
+      await base.toutesLesReponses(),
+      quand,
+      principale: principale,
+    );
+    if (lignes == null) return;
+    final texte = lignes.join('\n');
+    await _plugin.zonedSchedule(
+      id: idBilanDimanche,
+      title: 'Ta semaine',
+      body: texte,
+      scheduledDate: _tz(quand),
+      notificationDetails: NotificationDetails(
+        android: AndroidNotificationDetails(
+          'bilan',
+          'Bilan de la semaine',
+          channelDescription:
+              'Le dimanche soir, ta semaine en quelques lignes.',
+          icon: '@drawable/ic_stat_ouinon',
+          styleInformation: BigTextStyleInformation(texte),
+        ),
+        iOS: const DarwinNotificationDetails(),
+      ),
+      androidScheduleMode: mode,
+    );
   }
 
   /// Retire la notification affichée d'une question pour un jour (réponse

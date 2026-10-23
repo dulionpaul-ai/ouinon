@@ -135,4 +135,65 @@ void main() {
     expect(l[0].comptes, [0, 1, 1]);
     expect(l[1].comptes, [1, 0, 0]);
   });
+
+  group('séries', () {
+    test('jours d\'affilée avec la meilleure réponse, et record', () {
+      // lundi 5 → dimanche 11 : Oui Oui Non Oui Oui Oui (samedi) ; dimanche
+      // (aujourd'hui) pas encore répondu.
+      final r = {j(0): 0, j(1): 0, j(2): 1, j(3): 0, j(4): 0, j(5): 0};
+      final s = serie(sport, r, ajouteJours(lundi, 6));
+      expect(s.actuelle, 3);
+      expect(s.record, 3);
+    });
+
+    test('un jour passé sans réponse casse la série', () {
+      final r = {j(0): 0, j(1): 0, j(3): 0};
+      expect(serie(sport, r, ajouteJours(lundi, 3)).actuelle, 1);
+      expect(serie(sport, r, ajouteJours(lundi, 3)).record, 2);
+    });
+
+    test('les jours où la question ne revient pas ne comptent pas', () {
+      final semaine = sport.copie(jours: 0x1F); // du lundi au vendredi
+      // vendredi 9, puis lundi 12 : la série tient malgré le week-end.
+      final r = {j(4): 0, j(7): 0};
+      expect(serie(semaine, r, ajouteJours(lundi, 7)).actuelle, 2);
+    });
+
+    test('sans réponse : zéro', () {
+      expect(serie(sport, {}, lundi).actuelle, 0);
+    });
+  });
+
+  test('classement : ce qui va avec la question principale', () {
+    final rs = <String, int>{};
+    final rf = <String, int>{};
+    final rz = <String, int>{};
+    for (var n = 0; n < 10; n++) {
+      rs[j(n)] = n.isEven ? 0 : 1; // sport un jour sur deux
+      rf[j(n)] = n.isEven ? 0 : 2; // en forme les jours de sport
+      rz[j(n)] = n < 2 ? 0 : 1; // sommeil sans rapport
+    }
+    final c = classement(forme, [sommeil, forme, sport], {1: rs, 2: rf, 3: rz});
+    expect(c.map((l) => l.a), [sport, sommeil]);
+    expect(c.first.net, isTrue);
+    expect(c.first.avec, 1.0);
+    expect(c.first.decalage, 0);
+    // Sommeil : 2 jours « avec » seulement, il en manque 1 de ce côté.
+    expect(c.last.net, isFalse);
+    expect(c.last.joursManquants, 1);
+  });
+
+  test('bilan de la semaine', () {
+    final rs = {j(0): 0, j(1): 1, j(2): 0, j(3): 0, j(4): 0, j(5): 0};
+    final rf = {j(0): 0, j(6): 1};
+    final lignes = bilanSemaine(
+      [sport, forme],
+      {1: rs, 2: rf},
+      ajouteJours(lundi, 6),
+    )!;
+    expect(lignes[0], 'Sport ? Oui : 5 jours sur 6');
+    expect(lignes[1], 'En forme ? Bien : 1 jour sur 2');
+    expect(lignes[2], 'Série : Sport ? Oui, 4 jours d\'affilée');
+    expect(bilanSemaine([sport], {}, ajouteJours(lundi, 6)), isNull);
+  });
 }

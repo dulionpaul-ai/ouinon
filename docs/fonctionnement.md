@@ -14,10 +14,11 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 |---|---|
 | `models/question.dart` | Une question : texte, réponses (meilleure d'abord), heure, jours (masque lundi = bit 0), en pause ou non ; les 4 questions de départ. |
 | `data/base.dart` | Base `ouinon.sqlite` : tables `questions` (rendues dans l'ordre de la journée : heure, puis création) et `reponses` (une réponse par question et par jour, effacée avec sa question). Changement du nombre de réponses avec conversion de l'historique (`enregistreAvecNombre`). |
+| `data/preferences.dart` | Choix gardés sur le téléphone : question principale, bilan du dimanche (activé par défaut). |
 | `data/suggestions.dart` | Suggestions de réponses de l'écran Nouvelle question (« Oui / Non », « Bien / Moyen / Pas bien » au départ), créées, modifiées ou supprimées par la personne, gardées dans les préférences du téléphone. |
 | `data/notifications.dart` | Programmation des notifications, boutons, réponse depuis la notification (`reponseNotifArrierePlan`). |
 | `utils/planification.dart` | Calcul pur de ce qu'il faut programmer (testé). |
-| `utils/stats.dart` | Bilans, évolution, jour de la semaine, liens automatiques, croisement libre de deux questions (`croisement`) (testé). |
+| `utils/stats.dart` | Bilans, évolution, jour de la semaine, liens (`relation` sans seuil, `liens` nets), classement autour de la question principale (`classement`), croisement libre (`croisement`), séries (`serie`), bilan de la semaine (`bilanSemaine`) (testé). |
 | `utils/jour.dart`, `utils/date_fr.dart` | Jours de calendrier (« 2026-10-22 ») et dates en français. |
 | `screens/` | Accueil (onglets), Aujourd'hui (une page par jour, on glisse vers la droite pour la veille, jamais après aujourd'hui), Stats (croiseur libre de deux questions, liens les plus nets en barres « avec / sans », une ligne par question), fiche d'une question, Questions (par heure, sans rangement à la main), modification, Réglages. |
 | `theme/app_theme.dart` | Style « Nuit ronde », toujours sombre (choix de Paul du 22/10/2026) : couleurs dans `Teintes`, polices Unbounded (titres) et Figtree (texte), embarquées dans `assets/fonts` (licence OFL). Réponses : citron, abricot, corail. |
@@ -87,14 +88,25 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 
 ## Stats
 
-- **Page Stats** (refaite le 23/10/2026, Paul s'intéresse surtout aux
-  croisements) : en haut, croiser deux questions au choix (« Quand »,
-  « Regarder », même jour ou lendemain) : une barre des réponses de la
-  seconde pour chaque réponse de la première ; puis les liens les plus
-  nets en cartes (pastilles, barres « avec » et « sans ») ; toucher un
-  lien l'ouvre dans le croiseur ; enfin une ligne par question (barre
-  des 30 jours). Peu de texte.
+- **Séries** : jours d'affilée avec la meilleure réponse, seulement les
+  jours où la question revient ; aujourd'hui sans réponse ne casse pas
+  la série. Flamme et nombre sur la page Jour dès 2 jours ; série en
+  cours et record sur la fiche d'une question.
+- **Bilan du dimanche** : notification à 20 h (`idBilanDimanche` = 2,
+  canal « Bilan de la semaine ») : chaque question (« Sport ? Oui : 4
+  jours sur 6 »), la meilleure série (dès 3 jours), le lien le plus net
+  avec la question principale. Son texte est recalculé à chaque
+  reprogrammation (donc après chaque réponse). Désactivable dans les
+  Réglages.
 
+- **Page Stats** (refaite le 23/10/2026, Paul s'intéresse surtout aux
+  croisements) : « Ce qui va avec tes bonnes journées » : la personne
+  choisit sa question principale, les autres sont classées selon leur
+  lien avec elle (le jour même ou la veille, le plus net des deux) ;
+  liens nets en barres (« Oui » / « Sinon ») ; sans lien net ou sans
+  assez de jours : ligne grisée (« Pas de lien net », « Encore N
+  jours »). Puis le croiseur libre de deux questions, puis une ligne par
+  question (barre des 30 jours, flamme de la série).
 - **Bilan** : nombre de chaque réponse sur 7 jours, 30 jours ou depuis
   le début.
 - **Évolution** : part de la meilleure réponse, semaine par semaine

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../data/base.dart';
 import '../data/notifications.dart';
+import '../data/preferences.dart';
 import '../theme/app_theme.dart';
 import '../utils/date_fr.dart';
 import '../utils/jour.dart';
@@ -23,6 +24,7 @@ class _ReglagesScreenState extends State<ReglagesScreen>
     with WidgetsBindingObserver {
   bool? _autorisees;
   bool? _precise;
+  bool _bilan = true;
   NotifPrevue? _prochaine;
   int? _enAttente;
 
@@ -57,6 +59,7 @@ class _ReglagesScreenState extends State<ReglagesScreen>
       }
       enAttente = await Notifications.instance.enAttente();
     } catch (_) {}
+    final bilan = await Preferences.bilanDimanche();
     final maintenant = DateTime.now();
     final plan = planifie(
       questions: await widget.base.questions(),
@@ -69,7 +72,16 @@ class _ReglagesScreenState extends State<ReglagesScreen>
       _precise = precise;
       _enAttente = enAttente;
       _prochaine = plan.notifs.isEmpty ? null : plan.notifs.first;
+      _bilan = bilan;
     });
+  }
+
+  Future<void> _changeBilan(bool oui) async {
+    setState(() => _bilan = oui);
+    await Preferences.activeBilan(oui);
+    try {
+      await Notifications.instance.replanifie(widget.base);
+    } catch (_) {}
   }
 
   Future<void> _autoriseHeurePrecise() async {
@@ -204,6 +216,27 @@ class _ReglagesScreenState extends State<ReglagesScreen>
                 foregroundColor: Teintes.de(context).surAccent,
               ),
               child: const Text('Essayer une notification'),
+            ),
+          ]),
+          bloc('Bilan du dimanche', [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Le dimanche à 20 h, ta semaine en quelques lignes : '
+                    'tes réponses, ta meilleure série, et ce qui va avec ta '
+                    'question principale.',
+                    style: doux,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Switch(
+                  value: _bilan,
+                  activeThumbColor: Teintes.de(context).surAccent,
+                  activeTrackColor: Teintes.de(context).accent,
+                  onChanged: _changeBilan,
+                ),
+              ],
             ),
           ]),
           bloc('Tes réponses', [

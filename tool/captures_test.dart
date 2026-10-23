@@ -104,6 +104,10 @@ void main() {
     });
 
     testWidgets('stats $suffixe', (tester) async {
+      SharedPreferences.setMockInitialValues({
+        'bienvenue_vue': true,
+        'question_principale': 2,
+      });
       await remplit(tester);
       await capture(
         tester,

@@ -5,6 +5,7 @@ import '../data/notifications.dart';
 import '../models/question.dart';
 import '../utils/date_fr.dart';
 import '../utils/jour.dart';
+import '../utils/stats.dart';
 import '../theme/app_theme.dart';
 import '../widgets/boutons_reponse.dart';
 import '../widgets/rond.dart';
@@ -111,10 +112,14 @@ class _PageJourState extends State<_PageJour> {
     super.dispose();
   }
 
+  /// Séries en cours au jour affiché : id de la question → jours.
+  Map<int, int> _series = const {};
+
   Future<void> _recharge() async {
     final jour = _jour;
     final questions = await widget.base.questions();
     final reponses = await widget.base.reponsesDuJour(jour);
+    final toutes = await widget.base.toutesLesReponses();
     if (!mounted || jour != _jour) return;
     setState(() {
       _questions = [
@@ -122,6 +127,10 @@ class _PageJourState extends State<_PageJour> {
           if (q.active && q.revientLe(jour.weekday)) q,
       ];
       _reponses = reponses;
+      _series = {
+        for (final q in _questions)
+          q.id!: serie(q, toutes[q.id] ?? const {}, jour).actuelle,
+      };
       _charge = true;
     });
   }
@@ -264,6 +273,10 @@ class _PageJourState extends State<_PageJour> {
                               ),
                             ),
                           ),
+                          if ((_series[q.id] ?? 0) >= 2) ...[
+                            PastilleSerie(_series[q.id]!),
+                            const SizedBox(width: 6),
+                          ],
                           Pastille(heureFr(q.heure)),
                         ],
                       ),

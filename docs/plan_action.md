@@ -30,13 +30,17 @@ fait, version par version : `docs/historique.md`.
    (notifications du soir pas reçues chez Paul), prochaine question dans
    les Réglages. APK n° 8 (23/10/2026) : moment envoyé à Android en
    temps universel (une question de 7 h 01 arrivait à 8 h 01) ;
-   questions rangées par heure. Dans le code depuis : page Stats
-   centrée sur les croisements, notification revue (sans date, sans
-   couleur, nouveau logo blanc). Prochain APK : `version: 1.0.0+9`,
-   **toujours demander à Paul avant de le fabriquer.**
-8. [ ] Test longue durée par Paul (2 à 3 semaines de vraies réponses),
+   questions rangées par heure. Dans le code depuis (pour l'APK n° 9,
+   `version: 1.0.0+9`, **à fabriquer seulement avec l'accord de
+   Paul**) : notification revue (sans date, sans couleur, nouveau logo
+   blanc), séries, question principale et stats en classement, bilan du
+   dimanche.
+8. [ ] Plus tard (critique du 23/10/2026) : sauvegarde dans un
+   fichier, mode « expérience » (tester une habitude 14 jours), objectifs
+   tout prêts au démarrage (« Mieux dormir »…).
+9. [ ] Test longue durée par Paul (2 à 3 semaines de vraies réponses),
    corrections.
-9. [ ] Plus tard, avec l'accord de Paul : iPhone (TestFlight), sauvegarde,
+10. [ ] Plus tard, avec l'accord de Paul : iPhone (TestFlight), sauvegarde,
    fiches Play Store et App Store.
 
 ## Relecture du plan (22/10/2026) : risques et corrections

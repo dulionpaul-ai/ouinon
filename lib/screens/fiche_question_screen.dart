@@ -149,6 +149,8 @@ class _FicheQuestionScreenState extends State<FicheQuestionScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(14, 8, 14, 32),
         children: [
+          _series(context, serie(_q, _reponses, auj)),
+          const SizedBox(height: 10),
           ChoixPilules<_Periode>(
             options: const [
               (_Periode.semaine, '7 jours'),
@@ -347,6 +349,58 @@ class _FicheQuestionScreenState extends State<FicheQuestionScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  /// Série en cours et record, en deux grands chiffres.
+  Widget _series(BuildContext context, Serie s) {
+    final t = Teintes.de(context);
+    Widget chiffre(String titre, int jours, {bool flamme = false}) => Expanded(
+      child: CarteRonde(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              titre,
+              style: TextStyle(color: t.doux, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                if (flamme) ...[
+                  Icon(
+                    Icons.local_fire_department_rounded,
+                    color: t.accent,
+                    size: 26,
+                  ),
+                  const SizedBox(width: 4),
+                ],
+                Text(
+                  '$jours',
+                  style: TextStyle(
+                    fontFamily: AppTheme.policeTitre,
+                    fontSize: 28,
+                    fontWeight: FontWeight.w700,
+                    color: t.texte,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  jours > 1 ? 'jours' : 'jour',
+                  style: TextStyle(color: t.doux),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+    return Row(
+      children: [
+        chiffre('Série en cours', s.actuelle, flamme: true),
+        const SizedBox(width: 10),
+        chiffre('Record', s.record),
+      ],
     );
   }
 }

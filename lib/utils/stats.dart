@@ -102,6 +102,19 @@ class Lien {
 
   double get ecart => (avec - sans).abs();
   int get jours => joursAvec + joursSans;
+
+  /// Jours de réponses communes qui manquent encore pour juger.
+  int get joursManquants => [
+    minJoursCommuns - jours,
+    minJoursParCote - joursAvec,
+    minJoursParCote - joursSans,
+    0,
+  ].reduce((a, b) => a > b ? a : b);
+
+  bool get assezDeJours => joursManquants == 0;
+
+  /// Assez de jours et un écart net : un lien qu'on peut montrer.
+  bool get net => assezDeJours && ecart >= ecartMin;
 }
 
 /// Les croisements nets entre questions, du plus net au moins net. Même
@@ -139,6 +152,14 @@ List<Lien> liens(List<Question> questions, Map<int, Reponses> reponses) {
 }
 
 Lien? _lien(Question a, Question b, int decalage, Reponses ra, Reponses rb) {
+  final lien = relation(a, b, decalage, ra, rb);
+  return lien.net ? lien : null;
+}
+
+/// Le lien de A vers B, sans seuil : quand A a sa meilleure réponse, part
+/// de la meilleure réponse de B (le même jour, ou le lendemain avec
+/// `decalage` = 1), contre les autres jours.
+Lien relation(Question a, Question b, int decalage, Reponses ra, Reponses rb) {
   var joursAvec = 0, meilleurAvec = 0, joursSans = 0, meilleurSans = 0;
   ra.forEach((cle, choixA) {
     final cleB = decalage == 0
@@ -154,18 +175,128 @@ Lien? _lien(Question a, Question b, int decalage, Reponses ra, Reponses rb) {
       if (choixB == 0) meilleurSans++;
     }
   });
-  if (joursAvec + joursSans < minJoursCommuns) return null;
-  if (joursAvec < minJoursParCote || joursSans < minJoursParCote) return null;
-  final lien = Lien(
+  return Lien(
     a: a,
     b: b,
     decalage: decalage,
-    avec: meilleurAvec / joursAvec,
+    avec: joursAvec == 0 ? 0 : meilleurAvec / joursAvec,
     joursAvec: joursAvec,
-    sans: meilleurSans / joursSans,
+    sans: joursSans == 0 ? 0 : meilleurSans / joursSans,
     joursSans: joursSans,
   );
-  return lien.ecart >= ecartMin ? lien : null;
+}
+
+/// Ce qui va avec la question principale `p` : chaque autre question, le
+/// même jour ou la veille (le plus net des deux), du lien le plus net au
+/// moins net ; puis celles sans lien net ; puis celles qui manquent de
+/// jours (les plus avancées d'abord).
+List<Lien> classement(
+  Question p,
+  List<Question> questions,
+  Map<int, Reponses> reponses,
+) {
+  final rp = reponses[p.id] ?? const {};
+  final liste = <Lien>[];
+  for (final q in questions) {
+    if (q.id == null || q.id == p.id) continue;
+    final rq = reponses[q.id] ?? const {};
+    final memeJour = relation(q, p, 0, rq, rp);
+    final veille = relation(q, p, 1, rq, rp);
+    final prendVeille =
+        veille.net && (!memeJour.net || veille.ecart > memeJour.ecart);
+    liste.add(prendVeille ? veille : memeJour);
+  }
+  int rang(Lien l) => l.net ? 0 : (l.assezDeJours ? 1 : 2);
+  liste.sort((x, y) {
+    final r = rang(x).compareTo(rang(y));
+    if (r != 0) return r;
+    if (rang(x) == 2) return x.joursManquants.compareTo(y.joursManquants);
+    return y.ecart.compareTo(x.ecart);
+  });
+  return liste;
+}
+
+/// Une série : jours d'affilée avec la meilleure réponse.
+class Serie {
+  final int actuelle;
+  final int record;
+
+  const Serie(this.actuelle, this.record);
+}
+
+/// Série en cours et record d'une question. Seuls comptent les jours où
+/// la question revient ; aujourd'hui sans réponse ne casse pas la série
+/// (la journée n'est pas finie).
+Serie serie(Question q, Reponses reponses, DateTime aujourdhui) {
+  if (reponses.isEmpty) return const Serie(0, 0);
+  final premier = reponses.keys.reduce((a, b) => a.compareTo(b) < 0 ? a : b);
+  final debut = jourDepuisCle(premier);
+  final auj = jourDe(aujourdhui);
+  var enCours = 0, record = 0;
+  for (var j = debut; !j.isAfter(auj); j = ajouteJours(j, 1)) {
+    if (!q.revientLe(j.weekday)) continue;
+    final choix = reponses[cleJour(j)];
+    if (choix == 0) {
+      enCours++;
+      if (enCours > record) record = enCours;
+    } else if (!(choix == null && j == auj)) {
+      enCours = 0;
+    }
+  }
+  return Serie(enCours, record);
+}
+
+/// Les lignes du bilan de la semaine (du lundi au dimanche `dimanche`),
+/// pour la notification du dimanche soir ; nul sans aucune réponse.
+List<String>? bilanSemaine(
+  List<Question> questions,
+  Map<int, Reponses> reponses,
+  DateTime dimanche, {
+  Question? principale,
+}) {
+  final fin = jourDe(dimanche);
+  final lundi = lundiDe(fin);
+  final lignes = <String>[];
+  Question? meilleureSerie;
+  var longueur = 0;
+  for (final q in questions) {
+    if (!q.active || q.id == null) continue;
+    final r = reponses[q.id] ?? const {};
+    final b = bilan(q, r, debut: lundi, fin: fin);
+    if (b.total == 0) continue;
+    lignes.add(
+      '${q.texte} ${q.reponses[0]} : ${b.comptes[0]} '
+      'jour${b.comptes[0] > 1 ? 's' : ''} sur ${b.total}',
+    );
+    final s = serie(q, r, fin).actuelle;
+    if (s > longueur) {
+      longueur = s;
+      meilleureSerie = q;
+    }
+  }
+  if (lignes.isEmpty) return null;
+  if (meilleureSerie != null && longueur >= 3) {
+    lignes.add(
+      'Série : ${meilleureSerie.texte} ${meilleureSerie.reponses[0]}, '
+      '$longueur jours d\'affilée',
+    );
+  }
+  if (principale != null) {
+    final nets = classement(
+      principale,
+      questions,
+      reponses,
+    ).where((l) => l.net);
+    if (nets.isNotEmpty) {
+      final l = nets.first;
+      lignes.add(
+        '${l.a.texte} ${l.a.reponses[0]} va avec '
+        '${l.b.texte} ${l.b.reponses[0]} : '
+        '${(l.avec * 100).round()} % contre ${(l.sans * 100).round()} %',
+      );
+    }
+  }
+  return lignes;
 }
 
 /// « 7 fois sur 10 ».

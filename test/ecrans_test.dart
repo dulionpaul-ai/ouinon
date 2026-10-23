@@ -237,7 +237,7 @@ void main() {
     expect(await tester.runAsync(base.questions), hasLength(4));
   });
 
-  testWidgets('Stats : lien affiché après assez de jours', (tester) async {
+  testWidgets('Stats : ce qui va avec la question principale', (tester) async {
     await tester.runAsync(() async {
       final debut = DateTime(2026, 10, 10);
       for (var n = 0; n < 10; n++) {
@@ -247,23 +247,21 @@ void main() {
       }
     });
     await ouvre(tester, StatsScreen(base: base, maintenant: midi));
-    // Croiseur : quand Sport, regarder En forme, le même jour.
-    await tester.tap(find.byKey(const ValueKey('a-3')));
-    await tester.tap(find.byKey(const ValueKey('b-2')));
-    await tester.tap(find.text('Le même jour'));
-    await tester.pump();
-    expect(find.text('Sur 10 jours.'), findsOneWidget);
-    expect(find.text('100 % « Bien »'), findsOneWidget);
-    expect(find.text('0 % « Bien »'), findsOneWidget);
-    // Le lien, en pastilles et en barres « avec » / « sans ».
-    await tester.scrollUntilVisible(
-      find.text('Sport ? Oui'),
-      200,
-      scrollable: find.byType(Scrollable).first,
+    expect(
+      find.text('Quelle question compte le plus pour toi ?'),
+      findsOneWidget,
     );
-    expect(find.text('Sport ? Oui'), findsWidgets);
-    expect(find.text('100 %'), findsWidgets);
-    expect(find.text('0 %'), findsWidgets);
+    await tester.tap(find.byKey(const ValueKey('principale-2'))); // En forme
+    await attends(tester);
+    expect(find.text('En forme ? Bien'), findsOneWidget);
+    // Sport : lien net, le jour même, 100 % contre 0 %.
+    expect(find.text('Sport ? Oui'), findsOneWidget);
+    expect(find.text('le jour même'), findsOneWidget);
+    expect(find.text('Part de « Bien » · sur 10 jours'), findsOneWidget);
+    // Sommeil et Sorti dehors : pas encore de réponses.
+    expect(find.text('Encore 7 jours'), findsNWidgets(2));
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getInt('question_principale'), 2);
   });
 
   testWidgets('Stats : croiser deux questions au choix', (tester) async {
@@ -289,7 +287,7 @@ void main() {
   testWidgets('Stats : sans réponse, explication', (tester) async {
     await ouvre(tester, StatsScreen(base: base, maintenant: midi));
     expect(
-      find.textContaining('apparaissent après 7 jours de réponses'),
+      find.text('Quelle question compte le plus pour toi ?'),
       findsOneWidget,
     );
     expect(
@@ -341,5 +339,19 @@ void main() {
     await tester.tap(find.text('Autoriser l\'heure précise'));
     await attends(tester);
     expect(notifs.demandesHeurePrecise, 1);
+  });
+
+  testWidgets('Réglages : couper le bilan du dimanche', (tester) async {
+    await ouvre(tester, ReglagesScreen(base: base));
+    await tester.scrollUntilVisible(
+      find.byType(Switch),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(tester.widget<Switch>(find.byType(Switch)).value, isTrue);
+    await tester.tap(find.byType(Switch));
+    await attends(tester);
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getBool('bilan_dimanche'), isFalse);
   });
 }

@@ -13,11 +13,11 @@ Mis à jour le 22/10/2026.
 - **Où on en est** : V1 codée et testée en automatique (46 tests).
   Paul teste les APK sur son téléphone Android (Samsung, mode sombre,
   texte agrandi) et envoie des retours en captures d'écran. Dernier APK
-  envoyé : **n° 9** (version 1.0.0+9, 23/10/2026) : notification revue,
-  séries, question principale, stats en classement, bilan du dimanche
-  (voir `docs/historique.md`). Depuis, dans le code (APK n° 10 pas
-  encore fabriqué) : stats refaites en graphiques animés et bouton
-  « Ajouter 6 mois de test » dans les Réglages.
+  envoyé : **n° 10** (version 1.0.0+10, 23/10/2026) : stats refaites
+  en graphiques animés, liens trouvés seuls, bouton « Ajouter 6 mois de
+  test » dans les Réglages (voir `docs/historique.md`). Pour le
+  prochain, passer `version` à 1.0.0+11 dans `pubspec.yaml` et
+  `lib/utils/version.dart`.
   Toujours demander à Paul avant de fabriquer un APK. Les boutons de
   notification marchent appli fermée (confirmé par Paul).
 - **Le code est sur `main`** du dépôt `dulionpaul-ai/ouinon` (voir

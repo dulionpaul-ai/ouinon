@@ -37,9 +37,9 @@ fait, version par version : `docs/historique.md`.
    questions rangées par heure. APK n° 9 (23/10/2026) : notification
    revue (sans date, sans couleur, nouveau logo blanc), séries, question
    principale et stats en classement, bilan du dimanche. APK n° 10
-   (prêt dans le code, `version: 1.0.0+10`) : stats en graphiques,
-   données de test, numéro d'APK dans les Réglages. **À fabriquer
-   seulement avec l'accord de Paul**.
+   (23/10/2026) : stats en graphiques, données de test, numéro d'APK
+   dans les Réglages. Prochain APK : `version: 1.0.0+11`, **seulement
+   avec l'accord de Paul**.
 8. [ ] Plus tard (critique du 23/10/2026) : sauvegarde dans un
    fichier, mode « expérience » (tester une habitude 14 jours), objectifs
    tout prêts au démarrage (« Mieux dormir »…).

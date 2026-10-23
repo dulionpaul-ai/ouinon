@@ -135,7 +135,9 @@ Fabriqué avec l'accord de Paul le 23/10/2026.
   il manque des jours ; croiseur gardé dessous.
 - Bilan du dimanche à 20 h, interrupteur dans les Réglages.
 
-## Après l'APK n° 9 (dans le code)
+## APK n° 10 (1.0.0+10) : stats en graphiques
+
+Fabriqué avec l'accord de Paul le 23/10/2026.
 
 - Paul envoie une capture de l'ancienne page Stats : l'APK n° 9 n'était
   pas installé. Le numéro de l'APK s'affiche désormais en bas des

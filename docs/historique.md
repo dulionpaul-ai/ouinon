@@ -95,9 +95,10 @@ Paul a demandé d'attendre la fin de ses retours, puis a validé l'APK.
   de notifications programmées, rappel qu'une question déjà répondue
   n'envoie pas de notification.
 
-## Après l'APK n° 7 (dans le code, APK n° 8 pas encore fabriqué)
+## APK n° 8 (1.0.0+8) : heure en temps universel, questions par heure
 
-Paul demande désormais qu'on lui pose la question avant chaque APK.
+Paul demande désormais qu'on lui pose la question avant chaque APK ; il
+a validé celui-ci le 23/10/2026.
 
 - Le 23/10/2026, une question réglée à 7 h 01 arrive à 8 h 01 chez Paul.
   Cause probable : l'heure passait par un fuseau horaire détecté par

@@ -28,10 +28,10 @@ fait, version par version : `docs/historique.md`.
    partout, nombre de réponses modifiable, « + Autre », page Jour qui
    glisse. APK n° 6 : logo réduit de 5 %. APK n° 7 : heure précise
    (notifications du soir pas reçues chez Paul), prochaine question dans
-   les Réglages. Dans le code, pour l'APK n° 8 (pas encore fabriqué,
-   `version: 1.0.0+8` déjà en place) : moment envoyé à Android en temps
-   universel (une question de 7 h 01 arrivait à 8 h 01) ; questions
-   rangées par heure. **Demander à Paul avant de fabriquer l'APK.**
+   les Réglages. APK n° 8 (23/10/2026) : moment envoyé à Android en
+   temps universel (une question de 7 h 01 arrivait à 8 h 01) ;
+   questions rangées par heure. Prochain APK : `version: 1.0.0+9`,
+   **toujours demander à Paul avant de le fabriquer.**
 8. [ ] Test longue durée par Paul (2 à 3 semaines de vraies réponses),
    corrections.
 9. [ ] Plus tard, avec l'accord de Paul : iPhone (TestFlight), sauvegarde,

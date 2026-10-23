@@ -13,9 +13,8 @@ Mis à jour le 22/10/2026.
 - **Où on en est** : V1 codée et testée en automatique (35 tests).
   Paul teste les APK sur son téléphone Android (Samsung, mode sombre,
   texte agrandi) et envoie des retours en captures d'écran. Dernier APK
-  envoyé : **n° 7** (version 1.0.0+7, 22/10/2026) ; le code contient
-  déjà la suite (version 1.0.0+8), APK pas encore fabriqué : toujours
-  demander à Paul avant d'en fabriquer un. Les boutons de
+  envoyé : **n° 8** (version 1.0.0+8, 23/10/2026). Toujours demander à
+  Paul avant d'en fabriquer un autre. Les boutons de
   notification marchent appli fermée (confirmé par Paul).
 - **Le code est sur `main`** du dépôt `dulionpaul-ai/ouinon` (voir
   « Branche »).
@@ -88,7 +87,7 @@ font sur le téléphone de Paul.
   `tool/captures/` (non commitées). Elles couvrent aussi un petit
   téléphone avec texte agrandi : un débordement fait échouer la capture.
 - **APK de test** : monter le numéro après le `+` dans `pubspec.yaml`
-  (`1.0.0+8` est déjà en place pour le prochain ; ensuite `+9`), puis
+  (`version: 1.0.0+9` pour le prochain), puis
   `flutter build apk --release --split-per-abi --target-platform android-arm64`
   → `build/app/outputs/flutter-apk/app-arm64-v8a-release.apk` (≈ 10 Mo),
   à envoyer à Paul. Clé de test stable (`android/app/cle-test.jks`) :
@@ -123,8 +122,7 @@ Tout est sur `main` depuis le 22/10/2026 (accord de Paul) : partir de
 
 Voir `docs/plan_action.md`. En bref :
 
-1. Demander à Paul s'il veut l'APK n° 8 (toujours demander avant un
-   APK). Puis vérifier avec lui que les questions arrivent à l'heure avec
+1. Vérifier avec Paul que les questions arrivent à l'heure avec
    l'APK n° 8 (heure précise autorisée dans les Réglages ; plus de décalage
    d'une heure), puis recueillir ses retours. Si elles restent en
    retard : piste suivante, l'économie de batterie de Samsung.

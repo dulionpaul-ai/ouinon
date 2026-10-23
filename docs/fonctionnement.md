@@ -14,13 +14,16 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 |---|---|
 | `models/question.dart` | Une question : texte, réponses (meilleure d'abord), heure, jours (masque lundi = bit 0), en pause ou non ; les 4 questions de départ. |
 | `data/base.dart` | Base `ouinon.sqlite` : tables `questions` (rendues dans l'ordre de la journée : heure, puis création) et `reponses` (une réponse par question et par jour, effacée avec sa question). Changement du nombre de réponses avec conversion de l'historique (`enregistreAvecNombre`). |
-| `data/preferences.dart` | Choix gardés sur le téléphone : question principale, bilan du dimanche (activé par défaut). |
+| `data/preferences.dart` | Choix gardés sur le téléphone : bilan du dimanche (activé par défaut). |
 | `data/suggestions.dart` | Suggestions de réponses de l'écran Nouvelle question (« Oui / Non », « Bien / Moyen / Pas bien » au départ), créées, modifiées ou supprimées par la personne, gardées dans les préférences du téléphone. |
 | `data/notifications.dart` | Programmation des notifications, boutons, réponse depuis la notification (`reponseNotifArrierePlan`). |
 | `utils/planification.dart` | Calcul pur de ce qu'il faut programmer (testé). |
-| `utils/stats.dart` | Bilans, évolution, jour de la semaine, liens (`relation` sans seuil, `liens` nets), classement autour de la question principale (`classement`), croisement libre (`croisement`), séries (`serie`), bilan de la semaine (`bilanSemaine`) (testé). |
+| `utils/stats.dart` | Bilans, jour de la semaine, séries (`serie`), bilan de la semaine (`bilanSemaine`) (testé). |
+| `utils/courbes.dart` | Notes de 0 à 1, moyenne glissante sur 7 jours, ressemblance de deux courbes avec décalage, découvertes, points par semaine, droite de tendance (testé). |
+| `data/donnees_test.dart` | 6 mois de réponses de test (marquées « test » dans la base, effaçables d'un coup). |
+| `widgets/graphiques.dart` | Graphiques (module `fl_chart` 1.2.0) : courbes, anneau, barres, nuage de points, grille de 6 mois, carte des liens ; animation quand on s'arrête dessus (`AnimeQuandVisible`). |
 | `utils/jour.dart`, `utils/date_fr.dart` | Jours de calendrier (« 2026-10-22 ») et dates en français. |
-| `screens/` | Accueil (onglets), Aujourd'hui (une page par jour, on glisse vers la droite pour la veille, jamais après aujourd'hui), Stats (croiseur libre de deux questions, liens les plus nets en barres « avec / sans », une ligne par question), fiche d'une question, Questions (par heure, sans rangement à la main), modification, Réglages. |
+| `screens/` | Accueil (onglets), Aujourd'hui (une page par jour, on glisse vers la droite pour la veille, jamais après aujourd'hui), Stats (découvertes, comparateur de deux courbes, carte des liens, une carte par question), fiche d'une question, Questions (par heure, sans rangement à la main), modification, Réglages. |
 | `theme/app_theme.dart` | Style « Nuit ronde », toujours sombre (choix de Paul du 22/10/2026) : couleurs dans `Teintes`, polices Unbounded (titres) et Figtree (texte), embarquées dans `assets/fonts` (licence OFL). Réponses : citron, abricot, corail. |
 | `widgets/rond.dart` | Briques rondes : carte, pastille, bouton rond et bouton +, grand titre (réduit plutôt que coupé), barre d'onglets flottante, choix en pilules, pilule à toucher, jour de la semaine en rond. Pas de puces Material (police et couleurs mal reprises). |
 
@@ -94,32 +97,47 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
   cours et record sur la fiche d'une question.
 - **Bilan du dimanche** : notification à 20 h (`idBilanDimanche` = 2,
   canal « Bilan de la semaine ») : chaque question (« Sport ? Oui : 4
-  jours sur 6 »), la meilleure série (dès 3 jours), le lien le plus net
-  avec la question principale. Son texte est recalculé à chaque
+  jours sur 6 »), la meilleure série (dès 3 jours), la découverte la
+  plus forte. Son texte est recalculé à chaque
   reprogrammation (donc après chaque réponse). Désactivable dans les
   Réglages.
 
-- **Page Stats** (refaite le 23/10/2026, Paul s'intéresse surtout aux
-  croisements) : « Ce qui va avec tes bonnes journées » : la personne
-  choisit sa question principale, les autres sont classées selon leur
-  lien avec elle (le jour même ou la veille, le plus net des deux) ;
-  liens nets en barres (« Oui » / « Sinon ») ; sans lien net ou sans
-  assez de jours : ligne grisée (« Pas de lien net », « Encore N
-  jours »). Puis le croiseur libre de deux questions, puis une ligne par
-  question (barre des 30 jours, flamme de la série).
-- **Bilan** : nombre de chaque réponse sur 7 jours, 30 jours ou depuis
-  le début.
-- **Évolution** : part de la meilleure réponse, semaine par semaine
-  (12 semaines, lundi → dimanche).
-- **Selon le jour** : part de la meilleure réponse par jour de la
-  semaine.
-- **Croisements** : pour deux questions A et B, part de la meilleure
-  réponse de B les jours où A a sa meilleure réponse, contre les autres
-  jours. Même jour (un seul sens par paire, le plus net) et lendemain
-  (A un jour, B le jour suivant). Affiché seulement avec au moins 7 jours
-  communs, 3 jours de chaque côté et 20 points d'écart. Phrase : « Les
-  jours avec « Sport ? Oui » : « En forme ? Bien » 8 fois sur 10, contre
-  2 fois sur 10 les autres jours. » Jamais de mot de cause.
+- **Notes et courbes** : chaque réponse devient une note (meilleure =
+  1, moins bonne = 0, milieu = 0,5) ; la courbe est la moyenne sur 7
+  jours (le jour et les 6 d'avant).
+- **Ressemblance** de deux questions : corrélation des notes jour par
+  jour (de −100 % à 100 %), la seconde regardée 0 à 3 jours après la
+  première. Il faut 14 jours communs. Pour chaque paire, on garde le
+  décalage le plus net (à égalité, le plus petit, et un plus grand
+  doit faire au moins 2 points de mieux). **Découverte** dès 30 %,
+  « lien fort » dès 50 % ; négative = « à l'inverse » (la courbe est
+  alors retournée pour la comparaison). Jamais de mot de cause.
+- **Page Stats** (refaite en graphiques le 23/10/2026, Paul : « je veux
+  que l'outil trouve les liens tout seul ») :
+  - Découvertes : les 4 plus fortes, deux courbes superposées sur 3
+    mois (la seconde décalée), touche pour ouvrir le comparateur.
+  - Comparer deux courbes : deux questions au choix, décalage de 0 à 3
+    jours, 1 / 3 / 6 mois, grand pourcentage de ressemblance, courbes,
+    puis « Semaine par semaine » (nuage : un point par semaine, droite
+    de tendance).
+  - Tous les liens : tableau de toutes les paires (citron = même
+    courbe, corail = à l'inverse, plus vif = plus net) ; une case ouvre
+    le comparateur.
+  - Tes questions : anneau (part de la meilleure réponse sur 30 jours),
+    petite courbe, flamme de la série.
+  - Sans assez de réponses : explication (« après 14 jours »).
+- **Fiche d'une question** : séries, anneau et nombres (7 jours, 30
+  jours, tout), la courbe (1 / 3 / 6 mois), selon le jour (barres),
+  6 mois en un coup d'œil (une case par jour), calendrier modifiable.
+- **Animations** : chaque graphique se dessine (courbe de gauche à
+  droite, anneau qui tourne, barres qui montent, points qui
+  apparaissent) quand le défilement s'arrête et qu'il est visible aux
+  trois cinquièmes ; il se rejoue quand on revient dessus.
+- **Données de test** : Réglages → « Ajouter 6 mois de test » (une
+  « énergie » cachée, certaines questions avec un jour de retard, une à
+  l'inverse ; toujours le même tirage). Elles ne remplacent jamais une
+  vraie réponse et s'effacent d'un coup (« Effacer les réponses de
+  test »).
 
 ## Vérifications et compilation
 

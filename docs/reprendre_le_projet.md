@@ -10,12 +10,14 @@ Mis à jour le 22/10/2026.
   heure ; on répond avec 2 ou 3 boutons, sans ouvrir l'appli. L'appli
   garde les réponses sur le téléphone et en tire des stats, dont des
   croisements entre questions.
-- **Où on en est** : V1 codée et testée en automatique (45 tests).
+- **Où on en est** : V1 codée et testée en automatique (46 tests).
   Paul teste les APK sur son téléphone Android (Samsung, mode sombre,
   texte agrandi) et envoie des retours en captures d'écran. Dernier APK
   envoyé : **n° 9** (version 1.0.0+9, 23/10/2026) : notification revue,
   séries, question principale, stats en classement, bilan du dimanche
-  (voir `docs/historique.md`).
+  (voir `docs/historique.md`). Depuis, dans le code (APK n° 10 pas
+  encore fabriqué) : stats refaites en graphiques animés et bouton
+  « Ajouter 6 mois de test » dans les Réglages.
   Toujours demander à Paul avant de fabriquer un APK. Les boutons de
   notification marchent appli fermée (confirmé par Paul).
 - **Le code est sur `main`** du dépôt `dulionpaul-ai/ouinon` (voir
@@ -49,12 +51,13 @@ Détail dans `docs/revue_produit.md`. Les plus importants :
 - Logo n° 3 : rond coupé en deux, moitié citron, moitié corail.
 - Pas de relance de notification ; pas d'objectifs ni de note écrite
   pour l'instant ; sauvegarde plus tard. Séries oui (23/10/2026).
-- Stats centrées sur une **question principale** (« ce qui va avec tes
-  bonnes journées ») ; peu de texte, des barres. Bilan du dimanche à
-  20 h.
-- Croisements affichés dès 7 jours communs (avec garde-fous : 3 jours de
-  chaque côté, 20 points d'écart), présentés comme des coïncidences,
-  jamais des causes.
+- Stats en **graphiques** (23/10/2026) : l'appli trouve les liens toute
+  seule (« je veux que l'outil les trouve tout seul »), courbes à
+  comparer, décalées d'un jour au besoin, nuage de points, anneaux,
+  barres, grille ; modernes et animés. La « question principale » est
+  abandonnée. Bilan du dimanche à 20 h.
+- Liens dès 14 jours communs et 30 % de ressemblance, présentés comme
+  des coïncidences, jamais des causes.
 - Heure précise des notifications : autorisation « Alarmes et rappels »
   (sans elle, retards de plusieurs heures).
 - Cadran d'heure d'Android gardé (il l'aime), sans bouton clavier, et
@@ -113,8 +116,10 @@ Tout est dans `docs/fonctionnement.md`. L'essentiel :
 - `lib/data/notifications.dart` : notifications programmées une par une
   sur 14 jours, boutons de réponse, réponse enregistrée appli fermée
   (moteur d'arrière-plan), rappel « continuer ».
-- `lib/utils/planification.dart`, `lib/utils/stats.dart` : calculs purs
-  et testés.
+- `lib/utils/planification.dart`, `lib/utils/stats.dart`,
+  `lib/utils/courbes.dart` : calculs purs et testés.
+- `lib/widgets/graphiques.dart` : graphiques animés (module fl_chart).
+- `lib/data/donnees_test.dart` : 6 mois de réponses de test.
 - `lib/screens/` : Jour (pages qui glissent), Stats, fiche d'une
   question, Questions, Nouvelle question / Modifier, Réglages.
 - `lib/theme/app_theme.dart` + `lib/widgets/rond.dart` : le style.
@@ -131,8 +136,10 @@ Voir `docs/plan_action.md`. En bref :
 
 1. Vérifier avec Paul que les questions arrivent à l'heure (APK n° 8
    et suivants), que le premier bilan du dimanche arrive bien, et
-   recueillir son avis sur les stats en classement. Heure : (heure précise autorisée dans les Réglages ; plus de décalage
-   d'une heure), puis recueillir ses retours. Si elles restent en
+   recueillir son avis sur les stats en graphiques (essayer avec
+   « Ajouter 6 mois de test », puis « Effacer les réponses de test »).
+   Heure : heure précise autorisée dans les Réglages, plus de décalage
+   d'une heure. Si elles restent en
    retard : piste suivante, l'économie de batterie de Samsung.
 2. Quelques semaines de vraies réponses, puis ajuster les stats.
 3. Plus tard, avec son accord : iPhone, sauvegarde, stores.

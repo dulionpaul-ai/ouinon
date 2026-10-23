@@ -185,6 +185,45 @@ class Base {
     }, conflictAlgorithm: ConflictAlgorithm.replace),
   );
 
+  /// Marque des réponses de test (dans `repondu_le`) : on peut les effacer
+  /// toutes sans toucher aux vraies.
+  static const marqueTest = 'test';
+
+  /// Ajoute des réponses de test, sans remplacer une réponse existante.
+  /// Rend le nombre de réponses ajoutées.
+  Future<int> ajouteReponsesTest(
+    List<({int questionId, DateTime jour, int choix})> reponses,
+  ) => _ecrit(
+    db.transaction((t) async {
+      var ajoutees = 0;
+      for (final r in reponses) {
+        final id = await t.insert('reponses', {
+          'question_id': r.questionId,
+          'jour': cleJour(r.jour),
+          'choix': r.choix,
+          'repondu_le': marqueTest,
+        }, conflictAlgorithm: ConflictAlgorithm.ignore);
+        if (id != 0) ajoutees++;
+      }
+      return ajoutees;
+    }),
+  );
+
+  /// Nombre de réponses de test.
+  Future<int> nombreReponsesTest() async =>
+      Sqflite.firstIntValue(
+        await db.rawQuery(
+          'SELECT COUNT(*) FROM reponses WHERE repondu_le = ?',
+          [marqueTest],
+        ),
+      ) ??
+      0;
+
+  /// Efface toutes les réponses de test (les vraies restent).
+  Future<int> effaceReponsesTest() => _ecrit(
+    db.delete('reponses', where: 'repondu_le = ?', whereArgs: [marqueTest]),
+  );
+
   /// Efface la réponse d'une question pour un jour.
   Future<void> efface(int questionId, DateTime jour) => _ecrit(
     db.delete(

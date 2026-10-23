@@ -18,9 +18,13 @@ fait, version par version : `docs/historique.md`.
 4. [x] Écrans : Jour (pages qui glissent), Questions, Nouvelle question
    / Modifier (suggestions modifiables, cadran d'heure, jours en
    ronds), Réglages, 4 questions de départ.
-5. [ ] Stats : codées (bilan 7 j / 30 j / tout, semaine par semaine,
-   selon le jour, calendrier modifiable, liens même jour et lendemain).
-   Reste : les juger avec de vraies réponses.
+5. [ ] Stats : refaites en graphiques (23/10/2026, après l'APK n° 9) :
+   découvertes trouvées seules (courbes qui se ressemblent, décalées de
+   0 à 3 jours, ou à l'inverse), comparateur de deux courbes avec
+   décalage, nuage de points, carte de tous les liens, anneaux, barres,
+   grille de 6 mois ; animés quand on s'arrête dessus. Bouton « Ajouter
+   6 mois de test » dans les Réglages pour les essayer. Reste : avis de
+   Paul, puis vraies réponses.
 6. [x] Style et logo : « Nuit ronde », toujours sombre, polices
    Unbounded + Figtree ; logo n° 3, icônes Android et iPhone.
 7. [x] Retours de Paul sur l'APK n° 4 intégrés dans l'APK n° 5
@@ -32,8 +36,10 @@ fait, version par version : `docs/historique.md`.
    temps universel (une question de 7 h 01 arrivait à 8 h 01) ;
    questions rangées par heure. APK n° 9 (23/10/2026) : notification
    revue (sans date, sans couleur, nouveau logo blanc), séries, question
-   principale et stats en classement, bilan du dimanche. Prochain APK :
-   `version: 1.0.0+10`, **seulement avec l'accord de Paul**.
+   principale et stats en classement, bilan du dimanche. APK n° 10
+   (prêt dans le code, `version: 1.0.0+10`) : stats en graphiques,
+   données de test, numéro d'APK dans les Réglages. **À fabriquer
+   seulement avec l'accord de Paul**.
 8. [ ] Plus tard (critique du 23/10/2026) : sauvegarde dans un
    fichier, mode « expérience » (tester une habitude 14 jours), objectifs
    tout prêts au démarrage (« Mieux dormir »…).
@@ -67,7 +73,9 @@ fait, version par version : `docs/historique.md`.
 - **Faux liens avec 7 jours.** Choix de Paul : croisements dès 7 jours
   communs. Correction : on demande en plus au moins 3 jours de chaque
   côté de la comparaison et un écart d'au moins 20 points, et la phrase
-  dit sur combien de jours elle s'appuie.
+  dit sur combien de jours elle s'appuie. Depuis les graphiques
+  (23/10/2026) : ressemblance des courbes dès 14 jours communs et 30 %,
+  le nombre de jours toujours affiché.
 - **Changer le nombre de réponses d'une question.** D'abord figé à la
   création ; Paul a demandé de pouvoir le changer. Décision : on
   convertit l'historique (de 2 à 3, la moins bonne reste la moins

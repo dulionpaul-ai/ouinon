@@ -18,12 +18,11 @@ Privée (rien ne quitte le téléphone), gratuite, sans pub, épurée.
 | Relance | Aucune ; on rattrape dans l'appli |
 | Jours | Au choix par question (tous les jours par défaut) |
 | Séries | Oui (demande du 23/10/2026) : jours d'affilée avec la meilleure réponse, et record |
-| Question principale | Celle qui compte le plus ; les stats classent ce qui va avec elle |
 | Bilan du dimanche | À 20 h, la semaine en quelques lignes (désactivable) |
 | Objectifs | Pas pour l'instant |
 | Note écrite | Non, que les réponses |
-| Stats | Bilan par question, calendrier, jour de la semaine, croisements |
-| Croisements | Même jour et lendemain, affichés dès 7 jours communs |
+| Stats | En graphiques modernes et animés (23/10/2026) : courbes, nuage de points, anneaux, barres, grille |
+| Liens | Trouvés seuls par l'appli : courbes qui se ressemblent, décalées de 0 à 3 jours, ou à l'inverse ; dès 14 jours communs (d'abord « dès 7 jours », puis « question principale », abandonnés) |
 | Nuit | Compte pour le jour qui suit |
 | Téléphones | Android d'abord, iPhone ensuite |
 | Publication | Pour Paul d'abord, stores ensuite (avec son accord) |
@@ -38,11 +37,12 @@ Privée (rien ne quitte le téléphone), gratuite, sans pub, épurée.
 2. **Mes questions** : ajouter, modifier (tout, y compris passer de 2 à
    3 réponses ou l'inverse), mettre en pause, supprimer.
    Pour chacune : le texte, 2 ou 3 réponses, l'heure, les jours.
-3. **Stats** : « Ce qui va avec tes bonnes journées » (classement des
-   questions selon leur lien avec la question principale), un croiseur
-   libre de deux questions, puis une ligne par question avec sa série.
+3. **Stats** : découvertes trouvées par l'appli, comparateur de deux
+   courbes (avec décalage), carte de tous les liens, une carte par
+   question (anneau, courbe, série).
 4. **Fiche d'une question** : bilan (7 jours, 30 jours, depuis le
-   début), évolution semaine par semaine, jour de la semaine, calendrier.
+   début) en anneau, courbe, jour de la semaine, 6 mois en cases,
+   calendrier.
 5. **Réglages** : autorisation des notifications, essai d'une
    notification, à propos.
 

@@ -3,6 +3,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import '../models/question.dart';
+import '../utils/courbes.dart';
 import '../utils/jour.dart';
 import '../utils/planification.dart';
 import '../utils/stats.dart';
@@ -220,16 +221,13 @@ class Notifications {
   ) async {
     if (!await Preferences.bilanDimanche()) return;
     final quand = prochainBilan(maintenant);
-    final idPrincipale = await Preferences.questionPrincipale();
-    Question? principale;
-    for (final q in questions) {
-      if (q.id == idPrincipale) principale = q;
-    }
+    final reponses = await base.toutesLesReponses();
+    final trouvees = decouvertes(questions, reponses);
     final lignes = bilanSemaine(
       questions,
-      await base.toutesLesReponses(),
+      reponses,
       quand,
-      principale: principale,
+      enPlus: trouvees.isEmpty ? null : ligneBilan(trouvees.first),
     );
     if (lignes == null) return;
     final texte = lignes.join('\n');

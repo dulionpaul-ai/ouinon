@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ouinon/data/base.dart';
+import 'package:ouinon/data/donnees_test.dart';
 import 'package:ouinon/data/notifications.dart';
 import 'package:ouinon/main.dart';
 import 'package:ouinon/screens/accueil_screen.dart';
@@ -17,7 +18,6 @@ import 'package:ouinon/screens/fiche_question_screen.dart';
 import 'package:ouinon/screens/questions_screen.dart';
 import 'package:ouinon/screens/reglages_screen.dart';
 import 'package:ouinon/screens/stats_screen.dart';
-import 'package:ouinon/utils/jour.dart';
 import 'package:ouinon/widgets/rond.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -58,15 +58,8 @@ void main() {
   });
 
   Future<void> remplit(WidgetTester tester) => tester.runAsync(() async {
-    // 30 jours de réponses inventées, avec un lien sport → forme.
-    for (var n = 1; n <= 30; n++) {
-      final jour = ajouteJours(DateTime(2026, 10, 22), -n);
-      final sport = n % 3 == 0 ? 1 : 0;
-      await base.repond(3, jour, sport);
-      await base.repond(2, jour, sport == 0 ? (n % 5 == 0 ? 1 : 0) : 2);
-      await base.repond(1, jour, n % 4 == 0 ? 2 : (n % 3 == 0 ? 1 : 0));
-      await base.repond(4, jour, n % 2);
-    }
+    // Six mois de réponses de test (comme le bouton des Réglages).
+    await ajouteDonneesTest(base, maintenant: maintenant);
     await base.repond(1, DateTime(2026, 10, 22), 0);
     await base.repond(2, DateTime(2026, 10, 22), 1);
   });
@@ -88,6 +81,9 @@ void main() {
     addTearDown(tester.view.reset);
     await tester.pumpWidget(OuinonApp(accueil: ecran));
     await attends(tester, 15);
+    // Laisse les animations des graphiques aller au bout.
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pumpAndSettle();
     if (avant != null) await avant(tester);
     await expectLater(
       find.byType(MaterialApp),
@@ -122,7 +118,7 @@ void main() {
           ),
         ),
         mode,
-        hauteur: 1700,
+        hauteur: 3800,
       );
     });
 
@@ -138,6 +134,7 @@ void main() {
           maintenant: () => maintenant,
         ),
         mode,
+        hauteur: 1700,
       );
     });
 

@@ -141,3 +141,14 @@ Fabriqué avec l'accord de Paul le 23/10/2026.
   pas installé. Le numéro de l'APK s'affiche désormais en bas des
   Réglages (« Ouinon 1.0.0 · APK n° 10 »), tiré de
   `lib/utils/version.dart`, aligné sur `pubspec.yaml` par un test.
+- Paul n'est pas convaincu par la question principale : « c'est à moi
+  de trouver les liens… je veux que l'outil les trouve tout seul », avec
+  « plein de graphiques » modernes et animés. Stats refaites :
+  - l'appli compare toutes les paires de questions, décalées de 0 à 3
+    jours, et montre les courbes qui se ressemblent (ou s'opposent) ;
+  - comparateur de deux courbes avec décalage, nuage de points semaine
+    par semaine, carte de tous les liens, anneaux, barres, grille de
+    6 mois ; chaque graphique s'anime quand on s'arrête dessus ;
+  - question principale, classement et croiseur retirés.
+- Bouton « Ajouter 6 mois de test » dans les Réglages (et « Effacer les
+  réponses de test ») pour essayer les graphiques sans attendre.

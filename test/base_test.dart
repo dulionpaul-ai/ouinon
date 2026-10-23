@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ouinon/data/base.dart';
+import 'package:ouinon/data/donnees_test.dart';
+import 'package:ouinon/utils/courbes.dart';
 import 'package:ouinon/data/notifications.dart';
 import 'package:ouinon/models/question.dart';
 
@@ -81,6 +83,32 @@ void main() {
     expect(await base.reponsesDe(3), {'2026-10-19': 0, '2026-10-20': 1});
     expect((await base.question(3))!.reponses, ['Oui', 'Non']);
   });
+
+  test(
+    'réponses de test : ajoutées sans toucher aux vraies, effaçables',
+    () async {
+      final base = await ouvreBase();
+      final aujourdhui = DateTime(2026, 10, 22);
+      await base.repond(3, DateTime(2026, 10, 20), 1); // vraie réponse
+      final ajoutees = await ajouteDonneesTest(base, maintenant: aujourdhui);
+      // 4 questions × 182 jours, moins ~7 % d'oublis, moins la vraie.
+      expect(ajoutees, greaterThan(600));
+      expect(await base.nombreReponsesTest(), ajoutees);
+      expect((await base.reponsesDe(3))['2026-10-20'], 1);
+      // Deuxième fois : rien de nouveau (pas de doublons).
+      expect(await ajouteDonneesTest(base, maintenant: aujourdhui), 0);
+      // Les découvertes trouvent quelque chose.
+      final d = decouvertes(
+        await base.questions(),
+        await base.toutesLesReponses(),
+      );
+      expect(d, isNotEmpty);
+      expect(await base.effaceReponsesTest(), ajoutees);
+      expect(await base.toutesLesReponses(), {
+        3: {'2026-10-20': 1},
+      });
+    },
+  );
 
   test('supprimer une question efface ses réponses', () async {
     final base = await ouvreBase();

@@ -4,9 +4,9 @@ Appli mobile Flutter (Android d'abord, iPhone ensuite) de suivi de vie
 minimaliste : chaque question à suivre (« Sport ? », « En forme ? »,
 « Sommeil ? ») arrive en notification à son heure, on répond
 directement depuis la notification avec 2 ou 3 boutons, sans ouvrir
-l'appli. L'appli garde les réponses et en tire des stats : bilan par
-question, calendrier, jour de la semaine, et croisements entre questions
-(même jour et lendemain).
+l'appli. L'appli garde les réponses et en tire des stats en graphiques animés :
+courbes, anneaux, barres, calendrier, et liens trouvés seuls entre
+questions (courbes qui se ressemblent, décalées de 0 à 3 jours).
 Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
 
 ## Consignes de Paul

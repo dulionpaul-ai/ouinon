@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 
 import '../data/base.dart';
-import '../data/preferences.dart';
 import '../models/question.dart';
+import '../theme/app_theme.dart';
+import '../utils/courbes.dart';
 import '../utils/jour.dart';
 import '../utils/stats.dart';
-import '../theme/app_theme.dart';
-import '../widgets/barres.dart';
+import '../widgets/graphiques.dart';
 import '../widgets/rond.dart';
 import 'fiche_question_screen.dart';
 
-/// Les stats (refaites le 23/10/2026) : ce qui va avec la question
-/// principale (classement), un croiseur libre de deux questions, puis une
-/// ligne par question avec sa série.
+/// Les stats en graphiques (demande de Paul du 23/10/2026 : l'outil
+/// trouve les liens tout seul, des courbes à comparer, des graphiques
+/// modernes et animés) : découvertes automatiques, comparateur de
+/// courbes avec décalage, nuage de points, carte de chaleur de tous les
+/// liens, puis chaque question en mini-courbe et anneau.
 class StatsScreen extends StatefulWidget {
   final Base base;
 
@@ -30,16 +32,20 @@ class StatsScreen extends StatefulWidget {
 }
 
 class _StatsScreenState extends State<StatsScreen> {
+  static const _decouvertesMontrees = 4;
+
   List<Question> _questions = const [];
   Map<int, Reponses> _reponses = const {};
+  List<Decouverte> _ressemblances = const [];
+  List<Decouverte> _decouvertes = const [];
 
-  /// La question qui compte le plus (choisie par la personne).
-  int? _idPrincipale;
-
-  /// Le croiseur : « si » A, « alors » B, le même jour ou le lendemain.
+  /// Comparateur : la courbe A, la courbe B décalée de `_decalage` jours.
   int? _idA;
   int? _idB;
   int _decalage = 0;
+  int _periode = 91;
+
+  final _cleComparateur = GlobalKey();
 
   @override
   void initState() {
@@ -57,30 +63,33 @@ class _StatsScreenState extends State<StatsScreen> {
   Future<void> _recharge() async {
     final questions = await widget.base.questions();
     final reponses = await widget.base.toutesLesReponses();
-    final principale = await Preferences.questionPrincipale();
     if (!mounted) return;
-    final trouves = liens(questions, reponses);
+    final ressemblances = toutesLesRessemblances(questions, reponses);
     setState(() {
       _questions = questions;
       _reponses = reponses;
-      _idPrincipale = questions.any((q) => q.id == principale)
-          ? principale
-          : null;
+      _ressemblances = ressemblances;
+      _decouvertes = [
+        for (final d in ressemblances)
+          if (d.r.abs() >= seuilDecouverte) d,
+      ];
       final ids = {for (final q in questions) q.id};
-      // Au départ : le lien le plus net, sinon les deux premières.
       if (!ids.contains(_idA) || !ids.contains(_idB) || _idA == _idB) {
-        if (trouves.isNotEmpty) {
-          _idA = trouves.first.a.id;
-          _idB = trouves.first.b.id;
-          _decalage = trouves.first.decalage;
+        if (_decouvertes.isNotEmpty) {
+          _choisit(_decouvertes.first);
         } else if (questions.length >= 2) {
           _idA = questions[0].id;
           _idB = questions[1].id;
-        } else {
-          _idA = _idB = null;
+          _decalage = 0;
         }
       }
     });
+  }
+
+  void _choisit(Decouverte d) {
+    _idA = d.a.id;
+    _idB = d.b.id;
+    _decalage = d.decalage;
   }
 
   Question? _question(int? id) {
@@ -90,54 +99,32 @@ class _StatsScreenState extends State<StatsScreen> {
     return null;
   }
 
-  Future<void> _choisitPrincipale(int id) async {
-    setState(() => _idPrincipale = id);
-    await Preferences.choisitPrincipale(id);
-  }
+  DateTime get _aujourdhui => jourDe(widget.maintenant());
 
-  /// Panneau pour changer de question principale.
-  Future<void> _changePrincipale() async {
-    final choisie = await showModalBottomSheet<int>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'Ce qui compte le plus pour toi',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: [
-                  for (final q in _questions)
-                    PiluleChoix(
-                      q.texte,
-                      choisie: q.id == _idPrincipale,
-                      onTap: () => Navigator.pop(context, q.id),
-                    ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
+  /// Courbe lissée d'une question sur `jours` jours, décalée de
+  /// `decalage` (la valeur montrée un jour est celle de `decalage` jours
+  /// plus tard), éventuellement inversée.
+  List<double?> _courbe(
+    Question q,
+    int jours, {
+    int decalage = 0,
+    bool inverse = false,
+  }) {
+    final debut = ajouteJours(_aujourdhui, -(jours - 1));
+    final notes = notesParJour(
+      q,
+      _reponses[q.id] ?? const {},
+      ajouteJours(debut, decalage - 6),
+      ajouteJours(_aujourdhui, decalage),
     );
-    if (choisie != null) await _choisitPrincipale(choisie);
+    final lisse = moyenneGlissante(notes).sublist(6);
+    return [for (final v in lisse) v == null ? null : (inverse ? 1 - v : v)];
   }
 
   @override
   Widget build(BuildContext context) {
     final t = Teintes.de(context);
-    final doux = TextStyle(color: t.doux);
-    final aujourdhui = jourDe(widget.maintenant());
-    final principale = _question(_idPrincipale);
+    final doux = TextStyle(color: t.doux, height: 1.35);
     return Scaffold(
       body: SafeArea(
         bottom: false,
@@ -148,56 +135,105 @@ class _StatsScreenState extends State<StatsScreen> {
               padding: EdgeInsets.fromLTRB(6, 22, 6, 18),
               child: GrandTitre('Stats'),
             ),
-            const _Section('Ce qui va avec tes bonnes journées'),
-            if (_questions.length < 2)
+            const _Section('Découvertes'),
+            if (_decouvertes.isEmpty)
               CarteRonde(
                 child: Text(
-                  'Ajoute au moins deux questions pour voir ce qui va '
-                  'ensemble.',
+                  'Ouinon compare toutes tes questions entre elles, le même '
+                  'jour et avec 1 à 3 jours de décalage. Les premières '
+                  'découvertes arrivent après $minJoursCourbes jours de '
+                  'réponses.',
                   style: doux,
                 ),
               )
-            else if (principale == null)
-              _choixPrincipale(context)
             else
-              ..._classement(context, principale),
-            const SizedBox(height: 22),
-            const _Section('Croiser deux questions'),
-            if (_questions.length >= 2) _croiseur(context),
-            const SizedBox(height: 22),
-            const _Section('Par question, 30 jours'),
-            CarteRonde(
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              child: Column(
-                children: [
-                  for (final q in _questions)
-                    _LigneQuestion(
-                      question: q,
-                      serie: serie(q, _reponses[q.id] ?? const {}, aujourdhui),
-                      bilan: bilan(
-                        q,
-                        _reponses[q.id] ?? const {},
-                        debut: ajouteJours(aujourdhui, -29),
-                        fin: aujourdhui,
+              for (final d in _decouvertes.take(_decouvertesMontrees))
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _CarteDecouverte(
+                    decouverte: d,
+                    debut: ajouteJours(_aujourdhui, -90),
+                    a: _courbe(d.a, 91),
+                    b: _courbe(
+                      d.b,
+                      91,
+                      decalage: d.decalage,
+                      inverse: d.inverse,
+                    ),
+                    onTap: () => _ouvreComparateur(d),
+                  ),
+                ),
+            const SizedBox(height: 18),
+            _Section('Comparer deux courbes', cle: _cleComparateur),
+            if (_questions.length < 2)
+              CarteRonde(
+                child: Text(
+                  'Il faut au moins deux questions pour comparer.',
+                  style: doux,
+                ),
+              )
+            else
+              _comparateur(context),
+            const SizedBox(height: 18),
+            if (_questions.length >= 2) ...[
+              const _Section('Tous les liens'),
+              CarteRonde(
+                child: AnimeQuandVisible(
+                  builder: (context, avance) => Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      CarteChaleur(
+                        questions: _questions,
+                        ressemblances: _ressemblances,
+                        t: avance,
+                        choisie: _paireChoisie(),
+                        onChoix: _ouvreComparateur,
                       ),
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => FicheQuestionScreen(
-                            base: widget.base,
-                            question: q,
-                            maintenant: widget.maintenant,
-                          ),
-                        ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Citron : même courbe. Corail : à l\'inverse. Plus '
+                        'c\'est vif, plus c\'est net. Touche une case pour '
+                        'comparer.',
+                        style: doux.copyWith(fontSize: 13),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+            ],
+            const _Section('Tes questions'),
+            for (final q in _questions)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: _CarteQuestion(
+                  question: q,
+                  courbe: _courbe(q, 91),
+                  debut: ajouteJours(_aujourdhui, -90),
+                  bilan: bilan(
+                    q,
+                    _reponses[q.id] ?? const {},
+                    debut: ajouteJours(_aujourdhui, -90),
+                    fin: _aujourdhui,
+                  ),
+                  serie: serie(q, _reponses[q.id] ?? const {}, _aujourdhui),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => FicheQuestionScreen(
+                        base: widget.base,
+                        question: q,
+                        maintenant: widget.maintenant,
                       ),
                     ),
-                ],
+                  ),
+                ),
               ),
-            ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(6, 14, 6, 0),
+              padding: const EdgeInsets.fromLTRB(6, 8, 6, 0),
               child: Text(
-                'Des coïncidences observées, pas des causes.',
+                'Des coïncidences observées dans tes réponses, pas des '
+                'causes.',
                 style: doux.copyWith(fontSize: 13),
               ),
             ),
@@ -207,134 +243,107 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
-  /// Pas encore de question principale : on propose de la choisir.
-  Widget _choixPrincipale(BuildContext context) {
-    final t = Teintes.de(context);
-    return CarteRonde(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Text(
-            'Quelle question compte le plus pour toi ?',
-            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Ouinon te montrera ce qui va avec ses bonnes réponses.',
-            style: TextStyle(color: t.doux),
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              for (final q in _questions)
-                PiluleChoix(
-                  q.texte,
-                  key: ValueKey('principale-${q.id}'),
-                  onTap: () => _choisitPrincipale(q.id!),
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
+  Decouverte? _paireChoisie() {
+    for (final d in _ressemblances) {
+      if ((d.a.id == _idA && d.b.id == _idB) ||
+          (d.a.id == _idB && d.b.id == _idA)) {
+        return d;
+      }
+    }
+    return null;
   }
 
-  /// La question principale, puis les autres classées selon leur lien.
-  List<Widget> _classement(BuildContext context, Question p) {
-    final t = Teintes.de(context);
-    final liste = classement(p, _questions, _reponses);
-    return [
-      Padding(
-        padding: const EdgeInsets.fromLTRB(6, 0, 0, 10),
-        child: Row(
-          children: [
-            Text(
-              'Ta question :',
-              style: TextStyle(color: t.doux, fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(width: 8),
-            Flexible(
-              child: Pastille(
-                '${p.texte} ${p.reponses[0]}',
-                fond: t.accent,
-                hauteur: 30,
-                taille: 13,
-              ),
-            ),
-            const SizedBox(width: 4),
-            TextButton(
-              onPressed: _changePrincipale,
-              child: const Text('Changer'),
-            ),
-          ],
-        ),
-      ),
-      for (final l in liste)
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: _CarteClassement(lien: l),
-        ),
-    ];
+  void _ouvreComparateur(Decouverte d) {
+    setState(() => _choisit(d));
+    final contexte = _cleComparateur.currentContext;
+    if (contexte != null) {
+      Scrollable.ensureVisible(
+        contexte,
+        duration: const Duration(milliseconds: 450),
+        curve: Curves.easeOutCubic,
+      );
+    }
   }
 
-  /// Choix de A, de B et du décalage, puis une barre de B par réponse de A.
-  Widget _croiseur(BuildContext context) {
+  Widget _comparateur(BuildContext context) {
     final t = Teintes.de(context);
     final a = _question(_idA);
     final b = _question(_idB);
-    Widget choix(
-      String titre,
-      String cle,
-      int? valeur,
-      ValueChanged<int> onChoix,
-    ) => Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          titre,
-          style: TextStyle(color: t.doux, fontWeight: FontWeight.w700),
-        ),
-        const SizedBox(height: 6),
-        // Toutes les questions visibles, sur plusieurs lignes au besoin.
-        Wrap(
-          spacing: 6,
-          runSpacing: 6,
+    Widget choix(String titre, String cle, int? valeur, ValueChanged<int> f) =>
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            for (final q in _questions)
-              PiluleChoix(
-                q.texte,
-                key: ValueKey('$cle-${q.id}'),
-                choisie: q.id == valeur,
-                onTap: () => onChoix(q.id!),
-              ),
+            Text(
+              titre,
+              style: TextStyle(color: t.doux, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                for (final q in _questions)
+                  PiluleChoix(
+                    q.texte,
+                    key: ValueKey('$cle-${q.id}'),
+                    choisie: q.id == valeur,
+                    onTap: () => f(q.id!),
+                  ),
+              ],
+            ),
           ],
-        ),
-      ],
-    );
-    final lignes = a == null || b == null
-        ? const <Bilan>[]
-        : croisement(
+        );
+    final res = a == null || b == null || a.id == b.id
+        ? null
+        : ressemblance(
+            _reponses[a.id] ?? const {},
             a,
+            _reponses[b.id] ?? const {},
             b,
             _decalage,
-            _reponses[a.id] ?? const {},
-            _reponses[b.id] ?? const {},
           );
-    final total = lignes.fold(0, (n, l) => n + l.total);
+    final debut = ajouteJours(_aujourdhui, -(_periode - 1));
     return CarteRonde(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          choix('Quand', 'a', _idA, (id) => setState(() => _idA = id)),
+          choix('Courbe 1', 'a', _idA, (id) => setState(() => _idA = id)),
           const SizedBox(height: 12),
-          choix('Regarder', 'b', _idB, (id) => setState(() => _idB = id)),
-          const SizedBox(height: 12),
+          choix('Courbe 2', 'b', _idB, (id) => setState(() => _idB = id)),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  _decalage == 0
+                      ? 'Le même jour'
+                      : 'Courbe 2 décalée de $_decalage '
+                            'jour${_decalage > 1 ? 's' : ''}',
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
+              ),
+            ],
+          ),
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              activeTrackColor: t.accent,
+              inactiveTrackColor: t.puce,
+              thumbColor: t.accent,
+              overlayColor: t.accent.withValues(alpha: 0.15),
+              trackHeight: 6,
+            ),
+            child: Slider(
+              value: _decalage.toDouble(),
+              min: 0,
+              max: decalageMax.toDouble(),
+              divisions: decalageMax,
+              onChanged: (v) => setState(() => _decalage = v.round()),
+            ),
+          ),
           ChoixPilules<int>(
-            options: const [(0, 'Le même jour'), (1, 'Le lendemain')],
-            valeur: _decalage,
-            onChoix: (d) => setState(() => _decalage = d),
+            options: const [(30, '1 mois'), (91, '3 mois'), (182, '6 mois')],
+            valeur: _periode,
+            onChoix: (p) => setState(() => _periode = p),
           ),
           const SizedBox(height: 16),
           if (a == null || b == null || a.id == b.id)
@@ -342,27 +351,59 @@ class _StatsScreenState extends State<StatsScreen> {
               'Choisis deux questions différentes.',
               style: TextStyle(color: t.doux),
             )
-          else if (total == 0)
-            Text(
-              'Pas encore de jours où les deux ont une réponse.',
-              style: TextStyle(color: t.doux),
-            )
           else ...[
-            for (var i = 0; i < a.nbReponses; i++)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _LigneCroisement(
-                  libelle: a.reponses[i],
-                  couleur: AppTheme.couleurReponse(context, i, a.nbReponses),
-                  question: b,
-                  bilan: lignes[i],
-                ),
+            _Ressemblance(res: res),
+            const SizedBox(height: 12),
+            AnimeQuandVisible(
+              key: ValueKey('comparer-${a.id}-${b.id}-$_decalage-$_periode'),
+              builder: (context, avance) => Courbes(
+                debut: debut,
+                a: _courbe(a, _periode),
+                couleurA: t.meilleure,
+                nomA: a.texte,
+                b: _courbe(b, _periode, decalage: _decalage),
+                couleurB: AppTheme.courbeB,
+                nomB: b.texte,
+                t: avance,
+                hauteur: 210,
               ),
-            _Legende(question: b),
-            const SizedBox(height: 6),
+            ),
+            const SizedBox(height: 10),
+            LegendeCourbes([
+              (a.texte, t.meilleure),
+              (
+                _decalage == 0 ? b.texte : '${b.texte} (+$_decalage j)',
+                AppTheme.courbeB,
+              ),
+            ]),
+            const SizedBox(height: 22),
+            const Text(
+              'Semaine par semaine',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 4),
             Text(
-              'Sur $total jour${total > 1 ? 's' : ''}.',
+              'Un point par semaine : plus il est haut et à droite, plus les '
+              'deux ont été bonnes.',
               style: TextStyle(color: t.doux, fontSize: 13),
+            ),
+            const SizedBox(height: 10),
+            AnimeQuandVisible(
+              key: ValueKey('nuage-${a.id}-${b.id}-$_decalage-$_periode'),
+              builder: (context, avance) => Nuage(
+                points: pointsParSemaine(
+                  a,
+                  _reponses[a.id] ?? const {},
+                  b,
+                  _reponses[b.id] ?? const {},
+                  debut,
+                  _aujourdhui,
+                  decalage: _decalage,
+                ),
+                nomX: a.texte,
+                nomY: b.texte,
+                t: avance,
+              ),
             ),
           ],
         ],
@@ -371,164 +412,121 @@ class _StatsScreenState extends State<StatsScreen> {
   }
 }
 
-/// « Si A = telle réponse » : la barre des réponses de B ces jours-là.
-class _LigneCroisement extends StatelessWidget {
-  final String libelle;
-  final Color couleur;
-  final Question question;
-  final Bilan bilan;
+/// La ressemblance des deux courbes, en grand chiffre et en jauge.
+class _Ressemblance extends StatelessWidget {
+  final ({double r, int jours})? res;
 
-  const _LigneCroisement({
-    required this.libelle,
-    required this.couleur,
-    required this.question,
-    required this.bilan,
+  const _Ressemblance({required this.res});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Teintes.de(context);
+    final r = res;
+    if (r == null) {
+      return Text(
+        'Pas encore assez de jours en commun ($minJoursCourbes au moins).',
+        style: TextStyle(color: t.doux),
+      );
+    }
+    final inverse = r.r < 0;
+    final force = r.r.abs();
+    return Row(
+      children: [
+        Text(
+          '${(force * 100).round()} %',
+          style: TextStyle(
+            fontFamily: AppTheme.policeTitre,
+            fontSize: 30,
+            fontWeight: FontWeight.w700,
+            color: inverse ? t.moinsBonne : t.meilleure,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                inverse ? 'de ressemblance, à l\'inverse' : 'de ressemblance',
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
+              Text(
+                'sur ${r.jours} jours',
+                style: TextStyle(color: t.doux, fontSize: 13),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Une découverte : les deux questions, la phrase, et les deux courbes
+/// superposées (la seconde déjà décalée, et retournée si elle va à
+/// l'inverse) qui se dessinent quand on s'arrête dessus.
+class _CarteDecouverte extends StatelessWidget {
+  final Decouverte decouverte;
+  final DateTime debut;
+  final List<double?> a;
+  final List<double?> b;
+  final VoidCallback onTap;
+
+  const _CarteDecouverte({
+    required this.decouverte,
+    required this.debut,
+    required this.a,
+    required this.b,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final t = Teintes.de(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
-          children: [
-            Container(
-              width: 12,
-              height: 12,
-              decoration: BoxDecoration(color: couleur, shape: BoxShape.circle),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                libelle,
-                style: const TextStyle(fontWeight: FontWeight.w800),
-              ),
-            ),
-            Text(
-              bilan.total == 0
-                  ? '—'
-                  : '${(100 * bilan.partMeilleure!).round()} % '
-                        '« ${question.reponses[0]} »',
-              style: TextStyle(color: t.doux, fontWeight: FontWeight.w700),
-            ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        BarreBilan(question: question, bilan: bilan, hauteur: 16),
-      ],
-    );
-  }
-}
-
-/// Les couleurs des réponses d'une question, dans l'ordre des barres.
-class _Legende extends StatelessWidget {
-  final Question question;
-
-  const _Legende({required this.question});
-
-  @override
-  Widget build(BuildContext context) {
-    final t = Teintes.de(context);
-    return Wrap(
-      spacing: 12,
-      runSpacing: 4,
-      children: [
-        for (var i = question.nbReponses - 1; i >= 0; i--)
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: AppTheme.couleurReponse(
-                    context,
-                    i,
-                    question.nbReponses,
-                  ),
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 5),
-              Text(
-                question.reponses[i],
-                style: TextStyle(color: t.doux, fontSize: 13),
-              ),
-            ],
-          ),
-      ],
-    );
-  }
-}
-
-/// Une question du classement : ses deux barres (les jours avec sa
-/// meilleure réponse, les autres jours) si le lien est net ; sinon une
-/// ligne grisée (« pas de lien net », « encore N jours pour savoir »).
-class _CarteClassement extends StatelessWidget {
-  final Lien lien;
-
-  const _CarteClassement({required this.lien});
-
-  @override
-  Widget build(BuildContext context) {
-    final t = Teintes.de(context);
-    final q = lien.a;
-    final p = lien.b;
-    final vert = AppTheme.couleurReponse(context, 0, 2);
-    final quand = lien.decalage == 0 ? 'le jour même' : 'la veille';
-    final entete = Wrap(
-      spacing: 6,
-      runSpacing: 6,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        Pastille('${q.texte} ${q.reponses[0]}', fond: lien.net ? vert : null),
-        if (lien.net) Pastille(quand),
-      ],
-    );
-    if (!lien.net) {
-      final manque = lien.joursManquants;
-      return Opacity(
-        opacity: 0.6,
-        child: CarteRonde(
-          padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
-          child: Row(
-            children: [
-              Expanded(child: entete),
-              const SizedBox(width: 8),
-              Text(
-                manque > 0
-                    ? 'Encore $manque jour${manque > 1 ? 's' : ''}'
-                    : 'Pas de lien net',
-                style: TextStyle(color: t.doux, fontWeight: FontWeight.w700),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
+    final d = decouverte;
+    final nomB = d.inverse ? '${d.b.texte} (inversé)' : d.b.texte;
     return CarteRonde(
+      onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          entete,
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  phraseDecouverte(d),
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              Pastille(
+                d.fort ? 'Lien fort' : 'Lien net',
+                fond: d.fort ? t.accent : null,
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          LegendeCourbes([(d.a.texte, t.meilleure), (nomB, AppTheme.courbeB)]),
           const SizedBox(height: 12),
-          _BarreComparaison(
-            libelle: q.reponses[0],
-            part: lien.avec,
-            couleur: vert,
-            jours: lien.joursAvec,
+          AnimeQuandVisible(
+            builder: (context, avance) => Courbes(
+              debut: debut,
+              a: a,
+              couleurA: t.meilleure,
+              nomA: d.a.texte,
+              b: b,
+              couleurB: AppTheme.courbeB,
+              nomB: nomB,
+              t: avance,
+              hauteur: 170,
+            ),
           ),
-          const SizedBox(height: 8),
-          _BarreComparaison(
-            libelle: 'Sinon',
-            part: lien.sans,
-            couleur: t.doux,
-            jours: lien.joursSans,
-          ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
-            'Part de « ${p.reponses[0]} » · sur ${lien.jours} jours',
+            '${(d.r.abs() * 100).round()} % de ressemblance, sur ${d.jours} '
+            'jours. Touche pour comparer.',
             style: TextStyle(color: t.doux, fontSize: 13),
           ),
         ],
@@ -537,119 +535,68 @@ class _CarteClassement extends StatelessWidget {
   }
 }
 
-class _BarreComparaison extends StatelessWidget {
-  final String libelle;
-  final double part;
-  final Color couleur;
-  final int jours;
-
-  const _BarreComparaison({
-    required this.libelle,
-    required this.part,
-    required this.couleur,
-    required this.jours,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final t = Teintes.de(context);
-    return Semantics(
-      label: '$libelle : ${(part * 100).round()} %, sur $jours jours',
-      excludeSemantics: true,
-      child: Row(
-        children: [
-          SizedBox(
-            width: 76,
-            child: Text(
-              libelle,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: t.doux, fontWeight: FontWeight.w700),
-            ),
-          ),
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: SizedBox(
-                height: 16,
-                child: Stack(
-                  children: [
-                    Positioned.fill(child: ColoredBox(color: t.puce)),
-                    FractionallySizedBox(
-                      widthFactor: part.clamp(0.0, 1.0),
-                      heightFactor: 1,
-                      child: ColoredBox(color: couleur),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          SizedBox(
-            width: 52,
-            child: Text(
-              '${(part * 100).round()} %',
-              textAlign: TextAlign.right,
-              style: const TextStyle(fontWeight: FontWeight.w800),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Une question : son nom et sa barre des 30 derniers jours.
-class _LigneQuestion extends StatelessWidget {
+/// Une question : mini-courbe des 3 derniers mois et anneau des réponses.
+class _CarteQuestion extends StatelessWidget {
   final Question question;
-  final Serie serie;
+  final List<double?> courbe;
+  final DateTime debut;
   final Bilan bilan;
+  final Serie serie;
   final VoidCallback onTap;
 
-  const _LigneQuestion({
+  const _CarteQuestion({
     required this.question,
-    required this.serie,
+    required this.courbe,
+    required this.debut,
     required this.bilan,
+    required this.serie,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final t = Teintes.de(context);
-    return InkWell(
+    return CarteRonde(
       onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(18, 10, 10, 10),
-        child: Row(
+      child: AnimeQuandVisible(
+        builder: (context, avance) => Row(
           children: [
-            SizedBox(
-              width: 110,
-              child: Text(
-                question.texte,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.w800),
+            Anneau(question: question, bilan: bilan, t: avance, taille: 74),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          question.texte,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                      if (serie.actuelle >= 2) PastilleSerie(serie.actuelle),
+                      Icon(Icons.chevron_right_rounded, color: t.doux),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Courbes(
+                    debut: debut,
+                    a: courbe,
+                    couleurA: t.meilleure,
+                    nomA: question.texte,
+                    t: avance,
+                    hauteur: 48,
+                    mini: true,
+                  ),
+                ],
               ),
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: BarreBilan(question: question, bilan: bilan, hauteur: 12),
-            ),
-            const SizedBox(width: 8),
-            SizedBox(
-              width: 52,
-              child: serie.actuelle >= 2
-                  ? Align(
-                      alignment: Alignment.centerRight,
-                      child: PastilleSerie(serie.actuelle),
-                    )
-                  : Text(
-                      '${bilan.total} j',
-                      textAlign: TextAlign.right,
-                      style: TextStyle(color: t.doux, fontSize: 13),
-                    ),
-            ),
-            Icon(Icons.chevron_right_rounded, color: t.doux),
           ],
         ),
       ),
@@ -660,11 +607,13 @@ class _LigneQuestion extends StatelessWidget {
 /// Intertitre de section.
 class _Section extends StatelessWidget {
   final String texte;
+  final Key? cle;
 
-  const _Section(this.texte);
+  const _Section(this.texte, {this.cle});
 
   @override
   Widget build(BuildContext context) => Padding(
+    key: cle,
     padding: const EdgeInsets.fromLTRB(6, 0, 6, 10),
     child: Text(texte, style: Theme.of(context).textTheme.titleLarge),
   );

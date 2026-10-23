@@ -7,7 +7,8 @@ import '../theme/app_theme.dart';
 import '../utils/date_fr.dart';
 import '../utils/jour.dart';
 import '../utils/stats.dart';
-import '../widgets/barres.dart';
+import '../utils/courbes.dart';
+import '../widgets/graphiques.dart';
 import '../widgets/boutons_reponse.dart';
 import '../widgets/rond.dart';
 import 'edition_question_screen.dart';
@@ -37,6 +38,9 @@ class _FicheQuestionScreenState extends State<FicheQuestionScreen> {
   late Question _q = widget.question;
   Reponses _reponses = const {};
   _Periode _periode = _Periode.mois;
+
+  /// Jours montrés par la courbe.
+  int _joursCourbe = 91;
 
   /// Premier jour du mois affiché dans le calendrier.
   late DateTime _mois;
@@ -124,11 +128,11 @@ class _FicheQuestionScreenState extends State<FicheQuestionScreen> {
       },
       fin: auj,
     );
-    final semaines = evolution(_q, _reponses, aujourdhui: auj);
-    final lundis = [
-      for (var s = semaines.length - 1; s >= 0; s--)
-        ajouteJours(lundiDe(auj), -7 * s),
-    ];
+    final t = Teintes.de(context);
+    final debutCourbe = ajouteJours(auj, -(_joursCourbe - 1));
+    final courbe = moyenneGlissante(
+      notesParJour(_q, _reponses, ajouteJours(debutCourbe, -6), auj),
+    ).sublist(6);
     return Scaffold(
       appBar: AppBar(
         title: Text(_q.texte),
@@ -161,71 +165,101 @@ class _FicheQuestionScreenState extends State<FicheQuestionScreen> {
             onChoix: (p) => setState(() => _periode = p),
           ),
           const SizedBox(height: 10),
+          // Anneau des réponses et leur détail.
           CarteRonde(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                BarreBilan(question: _q, bilan: b, hauteur: 18),
-                const SizedBox(height: 14),
-                for (var i = 0; i < _q.nbReponses; i++)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 5),
-                    child: Row(
+            child: AnimeQuandVisible(
+              key: ValueKey('anneau-$_periode'),
+              builder: (context, avance) => Row(
+                children: [
+                  Anneau(question: _q, bilan: b, t: avance, taille: 124),
+                  const SizedBox(width: 18),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Container(
-                          width: 14,
-                          height: 14,
-                          decoration: BoxDecoration(
-                            color: AppTheme.couleurReponse(
-                              context,
-                              i,
-                              _q.nbReponses,
+                        for (var i = 0; i < _q.nbReponses; i++)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 5),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 12,
+                                  height: 12,
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.couleurReponse(
+                                      context,
+                                      i,
+                                      _q.nbReponses,
+                                    ),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    _q.reponses[i],
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                                Text('${b.comptes[i]}', style: doux),
+                              ],
                             ),
-                            shape: BoxShape.circle,
                           ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            _q.reponses[i],
-                            style: const TextStyle(fontWeight: FontWeight.w700),
+                        if (b.total == 0)
+                          Text(
+                            'Pas de réponse sur cette période.',
+                            style: doux,
                           ),
-                        ),
-                        Text(
-                          b.total == 0
-                              ? '0'
-                              : '${b.comptes[i]} · '
-                                    '${(100 * b.comptes[i] / b.total).round()} %',
-                          style: doux,
-                        ),
                       ],
                     ),
                   ),
-                if (b.total == 0)
-                  Text('Pas de réponse sur cette période.', style: doux),
-              ],
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 10),
+          // La courbe lissée, qui se dessine.
           CarteRonde(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text('Semaine par semaine', style: theme.textTheme.titleMedium),
+                Text('La courbe', style: theme.textTheme.titleMedium),
                 const SizedBox(height: 2),
                 Text(
-                  'Part de « ${_q.reponses[0]} », semaines du lundi',
+                  'Part de « ${_q.reponses[0]} », moyenne sur 7 jours',
                   style: doux,
                 ),
-                const SizedBox(height: 14),
-                Colonnes(
-                  bilans: semaines,
-                  etiquettes: [for (final l in lundis) '${l.day}'],
+                const SizedBox(height: 12),
+                ChoixPilules<int>(
+                  options: const [
+                    (30, '1 mois'),
+                    (91, '3 mois'),
+                    (182, '6 mois'),
+                  ],
+                  valeur: _joursCourbe,
+                  onChoix: (j) => setState(() => _joursCourbe = j),
+                ),
+                const SizedBox(height: 12),
+                AnimeQuandVisible(
+                  key: ValueKey('courbe-$_joursCourbe'),
+                  builder: (context, avance) => Courbes(
+                    debut: debutCourbe,
+                    a: courbe,
+                    couleurA: t.meilleure,
+                    nomA: _q.texte,
+                    t: avance,
+                    hauteur: 200,
+                  ),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 10),
+          // Selon le jour de la semaine : barres qui montent.
           CarteRonde(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -236,10 +270,38 @@ class _FicheQuestionScreenState extends State<FicheQuestionScreen> {
                   'Part de « ${_q.reponses[0]} », depuis le début',
                   style: doux,
                 ),
-                const SizedBox(height: 14),
-                Colonnes(
-                  bilans: parJourSemaine(_q, _reponses),
-                  etiquettes: initialesJours,
+                const SizedBox(height: 12),
+                AnimeQuandVisible(
+                  builder: (context, avance) => Barres(
+                    valeurs: [
+                      for (final j in parJourSemaine(_q, _reponses))
+                        j.partMeilleure,
+                    ],
+                    etiquettes: initialesJours,
+                    t: avance,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          // Les six derniers mois, un carré par jour.
+          CarteRonde(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  '6 mois en un coup d\'œil',
+                  style: theme.textTheme.titleMedium,
+                ),
+                const SizedBox(height: 12),
+                AnimeQuandVisible(
+                  builder: (context, avance) => GrilleJours(
+                    question: _q,
+                    reponses: _reponses,
+                    aujourdhui: auj,
+                    t: avance,
+                  ),
                 ),
               ],
             ),

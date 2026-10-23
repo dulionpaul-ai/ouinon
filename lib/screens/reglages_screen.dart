@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/base.dart';
+import '../data/donnees_test.dart';
 import '../data/notifications.dart';
 import '../data/preferences.dart';
 import '../theme/app_theme.dart';
@@ -26,6 +27,7 @@ class _ReglagesScreenState extends State<ReglagesScreen>
   bool? _autorisees;
   bool? _precise;
   bool _bilan = true;
+  int _reponsesTest = 0;
   NotifPrevue? _prochaine;
   int? _enAttente;
 
@@ -61,6 +63,7 @@ class _ReglagesScreenState extends State<ReglagesScreen>
       enAttente = await Notifications.instance.enAttente();
     } catch (_) {}
     final bilan = await Preferences.bilanDimanche();
+    final reponsesTest = await widget.base.nombreReponsesTest();
     final maintenant = DateTime.now();
     final plan = planifie(
       questions: await widget.base.questions(),
@@ -74,7 +77,48 @@ class _ReglagesScreenState extends State<ReglagesScreen>
       _enAttente = enAttente;
       _prochaine = plan.notifs.isEmpty ? null : plan.notifs.first;
       _bilan = bilan;
+      _reponsesTest = reponsesTest;
     });
+  }
+
+  Future<void> _ajouteTest() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Ajouter 6 mois de test ?'),
+        content: const Text(
+          'Des réponses inventées pour tes questions, sur les 6 derniers '
+          'mois, pour essayer les graphiques. Tes vraies réponses ne sont '
+          'pas touchées, et tu pourras effacer les réponses de test.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Ajouter'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    final ajoutees = await ajouteDonneesTest(widget.base);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('$ajoutees réponses de test ajoutées.')),
+    );
+    await _verifie(replanifier: true);
+  }
+
+  Future<void> _effaceTest() async {
+    final effacees = await widget.base.effaceReponsesTest();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('$effacees réponses de test effacées.')),
+    );
+    await _verifie(replanifier: true);
   }
 
   Future<void> _changeBilan(bool oui) async {
@@ -225,8 +269,8 @@ class _ReglagesScreenState extends State<ReglagesScreen>
                 Expanded(
                   child: Text(
                     'Le dimanche à 20 h, ta semaine en quelques lignes : '
-                    'tes réponses, ta meilleure série, et ce qui va avec ta '
-                    'question principale.',
+                    'tes réponses, ta meilleure série, et ta découverte la '
+                    'plus forte.',
                     style: doux,
                   ),
                 ),
@@ -239,6 +283,32 @@ class _ReglagesScreenState extends State<ReglagesScreen>
                 ),
               ],
             ),
+          ]),
+          bloc('Données de test', [
+            Text(
+              _reponsesTest == 0
+                  ? 'Pour essayer les graphiques : 6 mois de réponses '
+                        'inventées, effaçables d\'un coup.'
+                  : '$_reponsesTest réponses de test en ce moment. Tes '
+                        'vraies réponses sont à part.',
+              style: doux,
+            ),
+            const SizedBox(height: 12),
+            FilledButton(
+              onPressed: _ajouteTest,
+              style: FilledButton.styleFrom(
+                backgroundColor: Teintes.de(context).accent,
+                foregroundColor: Teintes.de(context).surAccent,
+              ),
+              child: const Text('Ajouter 6 mois de test'),
+            ),
+            if (_reponsesTest > 0) ...[
+              const SizedBox(height: 8),
+              OutlinedButton(
+                onPressed: _effaceTest,
+                child: const Text('Effacer les réponses de test'),
+              ),
+            ],
           ]),
           bloc('Tes réponses', [
             Text(

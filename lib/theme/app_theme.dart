@@ -6,6 +6,10 @@ import 'package:flutter/material.dart';
 /// Figtree. Polices embarquées, licence OFL (`assets/fonts/OFL-*.txt`).
 class AppTheme {
   static const policeTitre = 'Unbounded';
+
+  /// Couleur de la seconde courbe quand on en compare deux (lilas, bien
+  /// distinct du citron et du corail).
+  static const courbeB = Color(0xFFA594FF);
   static const policeTexte = 'Figtree';
 
   static ThemeData sombre() => _theme(Teintes.sombre, Brightness.dark);

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ouinon/data/base.dart';
+import 'package:ouinon/data/donnees_test.dart';
 import 'package:ouinon/data/notifications.dart';
 import 'package:ouinon/main.dart';
 import 'package:ouinon/screens/accueil_screen.dart';
@@ -8,7 +9,7 @@ import 'package:ouinon/screens/aujourdhui_screen.dart';
 import 'package:ouinon/screens/edition_question_screen.dart';
 import 'package:ouinon/screens/reglages_screen.dart';
 import 'package:ouinon/screens/stats_screen.dart';
-import 'package:ouinon/utils/jour.dart';
+import 'package:ouinon/widgets/graphiques.dart';
 import 'package:ouinon/widgets/rond.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -237,63 +238,51 @@ void main() {
     expect(await tester.runAsync(base.questions), hasLength(4));
   });
 
-  testWidgets('Stats : ce qui va avec la question principale', (tester) async {
-    await tester.runAsync(() async {
-      final debut = DateTime(2026, 10, 10);
-      for (var n = 0; n < 10; n++) {
-        final jour = ajouteJours(debut, n);
-        await base.repond(3, jour, n.isEven ? 0 : 1); // Sport
-        await base.repond(2, jour, n.isEven ? 0 : 2); // En forme
-      }
-    });
-    await ouvre(tester, StatsScreen(base: base, maintenant: midi));
-    expect(
-      find.text('Quelle question compte le plus pour toi ?'),
-      findsOneWidget,
-    );
-    await tester.tap(find.byKey(const ValueKey('principale-2'))); // En forme
-    await attends(tester);
-    expect(find.text('En forme ? Bien'), findsOneWidget);
-    // Sport : lien net, le jour même, 100 % contre 0 %.
-    expect(find.text('Sport ? Oui'), findsOneWidget);
-    expect(find.text('le jour même'), findsOneWidget);
-    expect(find.text('Part de « Bien » · sur 10 jours'), findsOneWidget);
-    // Sommeil et Sorti dehors : pas encore de réponses.
-    expect(find.text('Encore 7 jours'), findsNWidgets(2));
-    final prefs = await SharedPreferences.getInstance();
-    expect(prefs.getInt('question_principale'), 2);
-  });
-
-  testWidgets('Stats : croiser deux questions au choix', (tester) async {
-    await tester.runAsync(() async {
-      await base.repond(1, DateTime(2026, 10, 20), 0); // Sommeil 8 h et +
-      await base.repond(3, DateTime(2026, 10, 20), 0); // Sport Oui
-      await base.repond(1, DateTime(2026, 10, 21), 2);
-      await base.repond(3, DateTime(2026, 10, 21), 1);
-    });
-    await ouvre(tester, StatsScreen(base: base, maintenant: midi));
-    // Par défaut : Sommeil et En forme (pas de jour commun).
-    expect(
-      find.text('Pas encore de jours où les deux ont une réponse.'),
-      findsOneWidget,
-    );
-    await tester.tap(find.byKey(const ValueKey('b-3'))); // Regarder : Sport
-    await tester.pump();
-    expect(find.text('Sur 2 jours.'), findsOneWidget);
-    expect(find.text('100 % « Oui »'), findsOneWidget);
-    expect(find.text('0 % « Oui »'), findsOneWidget);
-  });
-
   testWidgets('Stats : sans réponse, explication', (tester) async {
     await ouvre(tester, StatsScreen(base: base, maintenant: midi));
     expect(
-      find.text('Quelle question compte le plus pour toi ?'),
+      find.textContaining('Les premières découvertes arrivent'),
       findsOneWidget,
     );
     expect(
-      find.text('Pas encore de jours où les deux ont une réponse.'),
+      find.text('Pas encore assez de jours en commun (14 au moins).'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('Stats : découvertes et comparateur avec 6 mois de test', (
+    tester,
+  ) async {
+    await tester.runAsync(
+      () => ajouteDonneesTest(base, maintenant: DateTime(2026, 10, 22)),
+    );
+    await ouvre(tester, StatsScreen(base: base, maintenant: midi));
+    await tester.pumpAndSettle();
+    // Des découvertes trouvées toutes seules, avec leurs courbes.
+    expect(find.textContaining('Même courbe'), findsWidgets);
+    expect(find.byType(Courbes), findsWidgets);
+    // Comparateur : ressemblance chiffrée, curseur de décalage.
+    await tester.scrollUntilVisible(
+      find.byType(Slider),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('de ressemblance'), findsWidgets);
+    await tester.tap(find.byKey(const ValueKey('a-1')));
+    await tester.tap(find.byKey(const ValueKey('b-2')));
+    await tester.pumpAndSettle();
+    final curseur = tester.widget<Slider>(find.byType(Slider));
+    curseur.onChanged!(1);
+    await tester.pumpAndSettle();
+    expect(find.text('Courbe 2 décalée de 1 jour'), findsOneWidget);
+    // Le nuage de points et la carte de chaleur sont là.
+    expect(find.byType(Nuage), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.byType(CarteChaleur),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.byType(CarteChaleur), findsOneWidget);
   });
 
   testWidgets('premier lancement : bienvenue puis notifications', (

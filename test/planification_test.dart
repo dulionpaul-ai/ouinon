@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ouinon/data/notifications.dart';
 import 'package:ouinon/models/question.dart';
 import 'package:ouinon/utils/planification.dart';
 
@@ -91,5 +92,16 @@ void main() {
       isNot(idNotification(4, DateTime(2026, 10, 22))),
     );
     expect(idNotification(1, DateTime(2026, 10, 22)), isNot(idRappelContinuer));
+  });
+
+  test('moment envoyé à Android : même instant, en temps universel', () {
+    final local = DateTime(2026, 10, 24, 7, 1);
+    final envoye = instantProgramme(local);
+    // « Etc/UTC » : nom reconnu tel quel par Android (ZoneId).
+    expect(envoye.location.name, 'Etc/UTC');
+    expect(envoye.isAtSameMomentAs(local), isTrue);
+    // Changement d'heure (25/10/2026) : toujours le même instant.
+    final apres = DateTime(2026, 10, 26, 7, 1);
+    expect(instantProgramme(apres).isAtSameMomentAs(apres), isTrue);
   });
 }

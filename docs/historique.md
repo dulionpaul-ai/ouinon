@@ -94,3 +94,20 @@ Paul a demandé d'attendre la fin de ses retours, puis a validé l'APK.
 - Réglages : état de l'heure précise, prochaine question prévue, nombre
   de notifications programmées, rappel qu'une question déjà répondue
   n'envoie pas de notification.
+
+## Après l'APK n° 7 (dans le code, APK n° 8 pas encore fabriqué)
+
+Paul demande désormais qu'on lui pose la question avant chaque APK.
+
+- Le 23/10/2026, une question réglée à 7 h 01 arrive à 8 h 01 chez Paul.
+  Cause probable : l'heure passait par un fuseau horaire détecté par
+  l'appli avant d'être retraduite par Android ; un fuseau faux d'une
+  heure donne exactement ce décalage.
+- Correction : le moment est calculé avec l'horloge du téléphone et
+  envoyé à Android en temps universel (UTC), sans fuseau intermédiaire.
+  Module `flutter_timezone` retiré.
+- À vérifier avec Paul : Réglages → « Heure précise autorisée » (sinon,
+  Android peut aussi retarder les questions).
+- Questions rangées dans l'ordre de la journée (heure), dans « Jour »
+  comme dans « Questions » ; le rangement à la main (appui long) est
+  retiré.

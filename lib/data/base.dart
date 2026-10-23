@@ -98,8 +98,10 @@ class Base {
 
   // Questions
 
+  /// Les questions dans l'ordre de la journée (demande de Paul du
+  /// 23/10/2026) ; à heure égale, dans l'ordre de création.
   Future<List<Question>> questions() async {
-    final lignes = await db.query('questions', orderBy: 'ordre, id');
+    final lignes = await db.query('questions', orderBy: 'heure, ordre, id');
     return [for (final l in lignes) Question.depuisLigne(l)];
   }
 
@@ -165,20 +167,6 @@ class Base {
   /// Supprime une question et toutes ses réponses.
   Future<void> supprime(int id) =>
       _ecrit(db.delete('questions', where: 'id = ?', whereArgs: [id]));
-
-  /// Nouvel ordre de la liste (ids dans l'ordre voulu).
-  Future<void> reordonne(List<int> ids) => _ecrit(
-    db.transaction((t) async {
-      for (var i = 0; i < ids.length; i++) {
-        await t.update(
-          'questions',
-          {'ordre': i},
-          where: 'id = ?',
-          whereArgs: [ids[i]],
-        );
-      }
-    }),
-  );
 
   // Réponses
 

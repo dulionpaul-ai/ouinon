@@ -13,13 +13,13 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 | Dossier | Contenu |
 |---|---|
 | `models/question.dart` | Une question : texte, réponses (meilleure d'abord), heure, jours (masque lundi = bit 0), en pause ou non ; les 4 questions de départ. |
-| `data/base.dart` | Base `ouinon.sqlite` : tables `questions` et `reponses` (une réponse par question et par jour, effacée avec sa question). Changement du nombre de réponses avec conversion de l'historique (`enregistreAvecNombre`). |
+| `data/base.dart` | Base `ouinon.sqlite` : tables `questions` (rendues dans l'ordre de la journée : heure, puis création) et `reponses` (une réponse par question et par jour, effacée avec sa question). Changement du nombre de réponses avec conversion de l'historique (`enregistreAvecNombre`). |
 | `data/suggestions.dart` | Suggestions de réponses de l'écran Nouvelle question (« Oui / Non », « Bien / Moyen / Pas bien » au départ), créées, modifiées ou supprimées par la personne, gardées dans les préférences du téléphone. |
 | `data/notifications.dart` | Programmation des notifications, boutons, réponse depuis la notification (`reponseNotifArrierePlan`). |
 | `utils/planification.dart` | Calcul pur de ce qu'il faut programmer (testé). |
 | `utils/stats.dart` | Bilans, évolution, jour de la semaine, croisements et leurs phrases (testé). |
 | `utils/jour.dart`, `utils/date_fr.dart` | Jours de calendrier (« 2026-10-22 ») et dates en français. |
-| `screens/` | Accueil (onglets), Aujourd'hui (une page par jour, on glisse vers la droite pour la veille, jamais après aujourd'hui), Stats, fiche d'une question, Mes questions, modification, Réglages. |
+| `screens/` | Accueil (onglets), Aujourd'hui (une page par jour, on glisse vers la droite pour la veille, jamais après aujourd'hui), Stats, fiche d'une question, Questions (par heure, sans rangement à la main), modification, Réglages. |
 | `theme/app_theme.dart` | Style « Nuit ronde », toujours sombre (choix de Paul du 22/10/2026) : couleurs dans `Teintes`, polices Unbounded (titres) et Figtree (texte), embarquées dans `assets/fonts` (licence OFL). Réponses : citron, abricot, corail. |
 | `widgets/rond.dart` | Briques rondes : carte, pastille, bouton rond et bouton +, grand titre (réduit plutôt que coupé), barre d'onglets flottante, choix en pilules, pilule à toucher, jour de la semaine en rond. Pas de puces Material (police et couleurs mal reprises). |
 
@@ -48,6 +48,10 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 - **Limites** : Android 500 alarmes par appli (on en garde 400) ;
   iPhone 64 notifications en attente (63 + le rappel). Avec beaucoup de
   questions, moins de jours sont programmés d'avance.
+- **Moment envoyé à Android en temps universel** (`instantProgramme`) :
+  l'heure locale est calculée avec l'horloge du téléphone, puis passée
+  en UTC. Plus de fuseau détecté par l'appli (une question de 7 h 01
+  est arrivée à 8 h 01 chez Paul le 23/10/2026).
 - **Heure précise** (`exactAllowWhileIdle`) quand la personne a accordé
   « Alarmes et rappels » (`SCHEDULE_EXACT_ALARM`, demandée une fois au
   démarrage et dans les Réglages). Sinon heure approximative

@@ -1,8 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_timezone/flutter_timezone.dart';
-import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../models/question.dart';
@@ -10,6 +8,16 @@ import '../utils/date_fr.dart';
 import '../utils/jour.dart';
 import '../utils/planification.dart';
 import 'base.dart';
+
+/// Le moment où une notification doit partir, en temps universel.
+///
+/// L'heure locale est d'abord calculée avec l'horloge du téléphone
+/// (`DateTime` local : fuseau et heure d'été du téléphone), puis envoyée à
+/// Android en temps universel, qui ne dépend d'aucun fuseau. Avant, on
+/// passait par un fuseau détecté par l'appli : le 23/10/2026, une question
+/// de 7 h 01 est arrivée à 8 h 01 chez Paul.
+tz.TZDateTime instantProgramme(DateTime local) =>
+    tz.TZDateTime.from(local, tz.UTC);
 
 /// Réponse donnée avec un bouton de notification, appli fermée : Android
 /// (ou iOS) lance un petit moteur d'arrière-plan qui appelle cette
@@ -34,16 +42,9 @@ class Notifications {
   final _plugin = FlutterLocalNotificationsPlugin();
   Future<void>? _pret;
 
-  /// Au démarrage (appli ou moteur d'arrière-plan) : fuseau horaire et
-  /// module de notifications.
+  /// Au démarrage (appli ou moteur d'arrière-plan) : module de
+  /// notifications.
   Future<void> prepare() => _pret ??= () async {
-    tzdata.initializeTimeZones();
-    try {
-      final fuseau = await FlutterTimezone.getLocalTimezone();
-      tz.setLocalLocation(tz.getLocation(fuseau.identifier));
-    } catch (_) {
-      tz.setLocalLocation(tz.getLocation('Europe/Paris'));
-    }
     await _initialise(await _questionsSansErreur());
   }();
 
@@ -227,14 +228,7 @@ class Notifications {
     );
   }
 
-  tz.TZDateTime _tz(DateTime local) => tz.TZDateTime(
-    tz.local,
-    local.year,
-    local.month,
-    local.day,
-    local.hour,
-    local.minute,
-  );
+  tz.TZDateTime _tz(DateTime local) => instantProgramme(local);
 
   NotificationDetails _details(Question q) => NotificationDetails(
     android: AndroidNotificationDetails(

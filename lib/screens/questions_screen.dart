@@ -7,8 +7,8 @@ import '../theme/app_theme.dart';
 import '../widgets/rond.dart';
 import 'edition_question_screen.dart';
 
-/// La liste des choses suivies : ajouter, ouvrir pour modifier, changer
-/// l'ordre (appui long puis glisser).
+/// La liste des choses suivies, dans l'ordre de la journée : ajouter,
+/// ouvrir pour modifier.
 class QuestionsScreen extends StatefulWidget {
   final Base base;
 
@@ -46,63 +46,40 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
     ),
   );
 
-  Future<void> _deplace(int de, int vers) async {
-    final liste = [..._questions];
-    liste.insert(vers, liste.removeAt(de));
-    setState(() => _questions = liste);
-    await widget.base.reordonne([for (final q in liste) q.id!]);
-  }
-
   @override
   Widget build(BuildContext context) {
     final t = Teintes.de(context);
     return Scaffold(
       body: SafeArea(
         bottom: false,
-        child: ReorderableListView(
+        child: ListView(
           padding: const EdgeInsets.fromLTRB(14, 12, 14, 120),
-          header: Padding(
-            padding: const EdgeInsets.fromLTRB(6, 22, 6, 18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Expanded(child: GrandTitre('Questions')),
-                    const SizedBox(width: 12),
-                    BoutonPlus(
-                      infobulle: 'Ajouter une question',
-                      onPressed: _ouvre,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  _questions.isEmpty
-                      ? 'Aucune question pour l\'instant.'
-                      : 'Touche pour modifier, appui long pour déplacer.',
-                  style: TextStyle(color: t.doux),
-                ),
-              ],
-            ),
-          ),
-          footer: CarteRonde(
-            onTap: _ouvre,
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.add_rounded, color: t.texte),
-                const SizedBox(width: 8),
-                const Text(
-                  'Ajouter une question',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                ),
-              ],
-            ),
-          ),
-          onReorderItem: _deplace,
           children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(6, 22, 6, 18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Expanded(child: GrandTitre('Questions')),
+                      const SizedBox(width: 12),
+                      BoutonPlus(
+                        infobulle: 'Ajouter une question',
+                        onPressed: _ouvre,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    _questions.isEmpty
+                        ? 'Aucune question pour l\'instant.'
+                        : 'Dans l\'ordre de la journée. Touche pour modifier.',
+                    style: TextStyle(color: t.doux),
+                  ),
+                ],
+              ),
+            ),
             for (final q in _questions)
               Padding(
                 key: ValueKey(q.id),
@@ -159,6 +136,21 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                   ),
                 ),
               ),
+            CarteRonde(
+              onTap: _ouvre,
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.add_rounded, color: t.texte),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Ajouter une question',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

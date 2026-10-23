@@ -20,7 +20,7 @@ void main() {
     expect(qs.every((q) => q.active && q.jours == 0x7F), isTrue);
   });
 
-  test('ajout en fin de liste, modification, ordre', () async {
+  test('ajout, modification, et ordre de la journée', () async {
     final base = await ouvreBase(depart: false);
     final a = await base.enregistre(
       const Question(texte: 'Eau ?', reponses: ['Oui', 'Non'], heure: 600),
@@ -30,11 +30,20 @@ void main() {
     );
     expect(a.ordre, 0);
     expect(b.ordre, 1);
-    await base.enregistre(a.copie(texte: 'Bu de l\'eau ?', jours: 0x1F));
-    await base.reordonne([b.id!, a.id!]);
-    final qs = await base.questions();
+    expect((await base.questions()).map((q) => q.texte), ['Eau ?', 'Lu ?']);
+    // Passée à 21 h, « Eau ? » vient après « Lu ? » (20 h).
+    await base.enregistre(
+      a.copie(texte: 'Bu de l\'eau ?', jours: 0x1F, heure: 21 * 60),
+    );
+    var qs = await base.questions();
     expect(qs.map((q) => q.texte), ['Lu ?', 'Bu de l\'eau ?']);
     expect(qs.last.jours, 0x1F);
+    // Une question du matin, créée en dernier, passe en tête.
+    await base.enregistre(
+      const Question(texte: 'Réveil ?', reponses: ['Oui', 'Non'], heure: 421),
+    );
+    qs = await base.questions();
+    expect(qs.first.texte, 'Réveil ?');
   });
 
   test('une réponse par question et par jour, effaçable', () async {

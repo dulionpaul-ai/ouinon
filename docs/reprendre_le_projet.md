@@ -10,11 +10,12 @@ Mis à jour le 22/10/2026.
   heure ; on répond avec 2 ou 3 boutons, sans ouvrir l'appli. L'appli
   garde les réponses sur le téléphone et en tire des stats, dont des
   croisements entre questions.
-- **Où on en est** : V1 codée et testée en automatique (32 tests).
+- **Où on en est** : V1 codée et testée en automatique (35 tests).
   Paul teste les APK sur son téléphone Android (Samsung, mode sombre,
   texte agrandi) et envoie des retours en captures d'écran. Dernier APK
-  envoyé : **n° 7** (version 1.0.0+7, 22/10/2026). Paul peut demander
-  d'attendre la fin de ses retours avant un nouvel APK. Les boutons de
+  envoyé : **n° 7** (version 1.0.0+7, 22/10/2026) ; le code contient
+  déjà la suite (version 1.0.0+8), APK pas encore fabriqué : toujours
+  demander à Paul avant d'en fabriquer un. Les boutons de
   notification marchent appli fermée (confirmé par Paul).
 - **Le code est sur `main`** du dépôt `dulionpaul-ai/ouinon` (voir
   « Branche »).
@@ -28,6 +29,7 @@ Mis à jour le 22/10/2026.
 - Envoie des captures de son téléphone : ce qu'il voit en vrai (gros
   texte, mode sombre) fait foi.
 - Rien sur les stores sans son accord explicite.
+- **Toujours lui demander avant de fabriquer un APK.**
 
 ## Les choix de Paul à respecter
 
@@ -86,7 +88,7 @@ font sur le téléphone de Paul.
   `tool/captures/` (non commitées). Elles couvrent aussi un petit
   téléphone avec texte agrandi : un débordement fait échouer la capture.
 - **APK de test** : monter le numéro après le `+` dans `pubspec.yaml`
-  (`version: 1.0.0+8` pour le prochain), puis
+  (`1.0.0+8` est déjà en place pour le prochain ; ensuite `+9`), puis
   `flutter build apk --release --split-per-abi --target-platform android-arm64`
   → `build/app/outputs/flutter-apk/app-arm64-v8a-release.apk` (≈ 10 Mo),
   à envoyer à Paul. Clé de test stable (`android/app/cle-test.jks`) :
@@ -121,7 +123,10 @@ Tout est sur `main` depuis le 22/10/2026 (accord de Paul) : partir de
 
 Voir `docs/plan_action.md`. En bref :
 
-1. Vérifier avec Paul que les questions arrivent à l'heure avec l'APK
-   n° 7 (heure précise autorisée), puis recueillir ses retours.
+1. Demander à Paul s'il veut l'APK n° 8 (toujours demander avant un
+   APK). Puis vérifier avec lui que les questions arrivent à l'heure avec
+   l'APK n° 8 (heure précise autorisée dans les Réglages ; plus de décalage
+   d'une heure), puis recueillir ses retours. Si elles restent en
+   retard : piste suivante, l'économie de batterie de Samsung.
 2. Quelques semaines de vraies réponses, puis ajuster les stats.
 3. Plus tard, avec son accord : iPhone, sauvegarde, stores.

@@ -113,7 +113,9 @@ a validé celui-ci le 23/10/2026.
   comme dans « Questions » ; le rangement à la main (appui long) est
   retiré.
 
-## Après l'APK n° 8 (dans le code, APK n° 9 pas encore fabriqué)
+## APK n° 9 (1.0.0+9) : stats en classement, séries, bilan, notification revue
+
+Fabriqué avec l'accord de Paul le 23/10/2026.
 
 - Page Stats refaite autour des croisements (Paul : « une série de
   textes qui ne sert pas à grand-chose ») : croiseur libre de deux

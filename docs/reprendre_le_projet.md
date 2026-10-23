@@ -13,9 +13,9 @@ Mis à jour le 22/10/2026.
 - **Où on en est** : V1 codée et testée en automatique (45 tests).
   Paul teste les APK sur son téléphone Android (Samsung, mode sombre,
   texte agrandi) et envoie des retours en captures d'écran. Dernier APK
-  envoyé : **n° 8** (version 1.0.0+8, 23/10/2026). Depuis, dans le code :
-  notification revue, séries, question principale, stats en classement,
-  bilan du dimanche (voir `docs/historique.md`).
+  envoyé : **n° 9** (version 1.0.0+9, 23/10/2026) : notification revue,
+  séries, question principale, stats en classement, bilan du dimanche
+  (voir `docs/historique.md`).
   Toujours demander à Paul avant de fabriquer un APK. Les boutons de
   notification marchent appli fermée (confirmé par Paul).
 - **Le code est sur `main`** du dépôt `dulionpaul-ai/ouinon` (voir
@@ -92,7 +92,7 @@ font sur le téléphone de Paul.
   `tool/captures/` (non commitées). Elles couvrent aussi un petit
   téléphone avec texte agrandi : un débordement fait échouer la capture.
 - **APK de test** : monter le numéro après le `+` dans `pubspec.yaml`
-  (`version: 1.0.0+9` pour le prochain), puis
+  (`version: 1.0.0+10` pour le prochain), puis
   `flutter build apk --release --split-per-abi --target-platform android-arm64`
   → `build/app/outputs/flutter-apk/app-arm64-v8a-release.apk` (≈ 10 Mo),
   à envoyer à Paul. Clé de test stable (`android/app/cle-test.jks`) :
@@ -127,8 +127,9 @@ Tout est sur `main` depuis le 22/10/2026 (accord de Paul) : partir de
 
 Voir `docs/plan_action.md`. En bref :
 
-1. Vérifier avec Paul que les questions arrivent à l'heure avec
-   l'APK n° 8 (heure précise autorisée dans les Réglages ; plus de décalage
+1. Vérifier avec Paul que les questions arrivent à l'heure (APK n° 8
+   et suivants), que le premier bilan du dimanche arrive bien, et
+   recueillir son avis sur les stats en classement. Heure : (heure précise autorisée dans les Réglages ; plus de décalage
    d'une heure), puis recueillir ses retours. Si elles restent en
    retard : piste suivante, l'économie de batterie de Samsung.
 2. Quelques semaines de vraies réponses, puis ajuster les stats.

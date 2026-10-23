@@ -30,11 +30,10 @@ fait, version par version : `docs/historique.md`.
    (notifications du soir pas reçues chez Paul), prochaine question dans
    les Réglages. APK n° 8 (23/10/2026) : moment envoyé à Android en
    temps universel (une question de 7 h 01 arrivait à 8 h 01) ;
-   questions rangées par heure. Dans le code depuis (pour l'APK n° 9,
-   `version: 1.0.0+9`, **à fabriquer seulement avec l'accord de
-   Paul**) : notification revue (sans date, sans couleur, nouveau logo
-   blanc), séries, question principale et stats en classement, bilan du
-   dimanche.
+   questions rangées par heure. APK n° 9 (23/10/2026) : notification
+   revue (sans date, sans couleur, nouveau logo blanc), séries, question
+   principale et stats en classement, bilan du dimanche. Prochain APK :
+   `version: 1.0.0+10`, **seulement avec l'accord de Paul**.
 8. [ ] Plus tard (critique du 23/10/2026) : sauvegarde dans un
    fichier, mode « expérience » (tester une habitude 14 jours), objectifs
    tout prêts au démarrage (« Mieux dormir »…).

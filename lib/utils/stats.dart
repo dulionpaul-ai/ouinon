@@ -180,3 +180,30 @@ String phraseLien(Lien l) {
   return '$quand : $b ${foisSurDix(l.avec)}, '
       'contre ${foisSurDix(l.sans)} $autres.';
 }
+
+/// Croisement libre de deux questions : pour chaque réponse de A, combien
+/// de fois chaque réponse de B (le même jour, ou le lendemain avec
+/// `decalage` = 1). Une ligne par réponse de A (la meilleure d'abord),
+/// des bilans de B.
+List<Bilan> croisement(
+  Question a,
+  Question b,
+  int decalage,
+  Reponses ra,
+  Reponses rb,
+) {
+  final comptes = List.generate(
+    a.nbReponses,
+    (_) => List.filled(b.nbReponses, 0),
+  );
+  ra.forEach((cle, choixA) {
+    if (choixA < 0 || choixA >= a.nbReponses) return;
+    final cleB = decalage == 0
+        ? cle
+        : cleJour(ajouteJours(jourDepuisCle(cle), decalage));
+    final choixB = rb[cleB];
+    if (choixB == null || choixB < 0 || choixB >= b.nbReponses) return;
+    comptes[choixA][choixB]++;
+  });
+  return [for (final c in comptes) Bilan(c)];
+}

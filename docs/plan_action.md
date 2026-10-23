@@ -30,7 +30,9 @@ fait, version par version : `docs/historique.md`.
    (notifications du soir pas reçues chez Paul), prochaine question dans
    les Réglages. APK n° 8 (23/10/2026) : moment envoyé à Android en
    temps universel (une question de 7 h 01 arrivait à 8 h 01) ;
-   questions rangées par heure. Prochain APK : `version: 1.0.0+9`,
+   questions rangées par heure. Dans le code depuis : page Stats
+   centrée sur les croisements, notification revue (sans date, sans
+   couleur, nouveau logo blanc). Prochain APK : `version: 1.0.0+9`,
    **toujours demander à Paul avant de le fabriquer.**
 8. [ ] Test longue durée par Paul (2 à 3 semaines de vraies réponses),
    corrections.

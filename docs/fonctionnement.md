@@ -17,9 +17,9 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 | `data/suggestions.dart` | Suggestions de réponses de l'écran Nouvelle question (« Oui / Non », « Bien / Moyen / Pas bien » au départ), créées, modifiées ou supprimées par la personne, gardées dans les préférences du téléphone. |
 | `data/notifications.dart` | Programmation des notifications, boutons, réponse depuis la notification (`reponseNotifArrierePlan`). |
 | `utils/planification.dart` | Calcul pur de ce qu'il faut programmer (testé). |
-| `utils/stats.dart` | Bilans, évolution, jour de la semaine, croisements et leurs phrases (testé). |
+| `utils/stats.dart` | Bilans, évolution, jour de la semaine, liens automatiques, croisement libre de deux questions (`croisement`) (testé). |
 | `utils/jour.dart`, `utils/date_fr.dart` | Jours de calendrier (« 2026-10-22 ») et dates en français. |
-| `screens/` | Accueil (onglets), Aujourd'hui (une page par jour, on glisse vers la droite pour la veille, jamais après aujourd'hui), Stats, fiche d'une question, Questions (par heure, sans rangement à la main), modification, Réglages. |
+| `screens/` | Accueil (onglets), Aujourd'hui (une page par jour, on glisse vers la droite pour la veille, jamais après aujourd'hui), Stats (croiseur libre de deux questions, liens les plus nets en barres « avec / sans », une ligne par question), fiche d'une question, Questions (par heure, sans rangement à la main), modification, Réglages. |
 | `theme/app_theme.dart` | Style « Nuit ronde », toujours sombre (choix de Paul du 22/10/2026) : couleurs dans `Teintes`, polices Unbounded (titres) et Figtree (texte), embarquées dans `assets/fonts` (licence OFL). Réponses : citron, abricot, corail. |
 | `widgets/rond.dart` | Briques rondes : carte, pastille, bouton rond et bouton +, grand titre (réduit plutôt que coupé), barre d'onglets flottante, choix en pilules, pilule à toucher, jour de la semaine en rond. Pas de puces Material (police et couleurs mal reprises). |
 
@@ -30,8 +30,10 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
   Pillow) écrit toutes les icônes : Android classiques, adaptatives
   (avec monochrome pour Android 13) et iPhone. Taille du logo réglée par
   `TAILLE` (0,95 : réduit de 5 % à la demande de Paul).
-- Petite icône des notifications : `drawable/ic_stat_ouinon.xml` (logo
-  en blanc), gardée par `raw/keep.xml`. Écran de démarrage sombre.
+- Petite icône des notifications : `drawable/ic_stat_ouinon.xml`, en
+  blanc : moitié gauche pleine (oui), moitié droite en contour (non),
+  gardée par `raw/keep.xml`. Pas de couleur de notification (Samsung
+  assombrissait le citron en vert olive). Écran de démarrage sombre.
 
 ## Notifications
 
@@ -70,6 +72,8 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
   question, refaite à chaque reprogrammation) et apparaissent par appui
   long sur la notification ; `AppDelegate.swift` enregistre les modules
   pour le moteur d'arrière-plan.
+- **Contenu** : titre = la question, sans texte dessous (la date ne
+  servait à rien) ; le jour concerné est dans le contenu caché.
 - **Ordre des boutons** : la moins bonne réponse à gauche, la meilleure
   à droite (choix de Paul du 22/10/2026), dans la notification comme
   dans l'appli (boutons de la page Jour, barre de bilan, pastilles de la
@@ -82,6 +86,14 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
   par le module (`ScheduledNotificationBootReceiver`).
 
 ## Stats
+
+- **Page Stats** (refaite le 23/10/2026, Paul s'intéresse surtout aux
+  croisements) : en haut, croiser deux questions au choix (« Quand »,
+  « Regarder », même jour ou lendemain) : une barre des réponses de la
+  seconde pour chaque réponse de la première ; puis les liens les plus
+  nets en cartes (pastilles, barres « avec » et « sans ») ; toucher un
+  lien l'ouvre dans le croiseur ; enfin une ligne par question (barre
+  des 30 jours). Peu de texte.
 
 - **Bilan** : nombre de chaque réponse sur 7 jours, 30 jours ou depuis
   le début.

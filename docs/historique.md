@@ -112,3 +112,12 @@ a validé celui-ci le 23/10/2026.
 - Questions rangées dans l'ordre de la journée (heure), dans « Jour »
   comme dans « Questions » ; le rangement à la main (appui long) est
   retiré.
+
+## Après l'APK n° 8 (dans le code, APK n° 9 pas encore fabriqué)
+
+- Page Stats refaite autour des croisements (Paul : « une série de
+  textes qui ne sert pas à grand-chose ») : croiseur libre de deux
+  questions, liens en barres « avec / sans », une ligne par question.
+- Notification revue : plus de date sous la question ; plus de couleur
+  (le citron devenait vert olive chez Samsung) ; nouveau logo blanc,
+  moitié pleine (oui), moitié en contour (non).

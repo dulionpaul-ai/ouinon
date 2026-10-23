@@ -1,10 +1,8 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/painting.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import '../models/question.dart';
-import '../utils/date_fr.dart';
 import '../utils/jour.dart';
 import '../utils/planification.dart';
 import 'base.dart';
@@ -27,8 +25,10 @@ Future<void> reponseNotifArrierePlan(NotificationResponse reponse) =>
     Notifications.instance.traiteReponse(reponse);
 
 /// Les notifications des questions, programmées sur le téléphone (rien ne
-/// part sur internet). Chaque notification porte la question et le jour
-/// dont elle parle ; ses boutons sont les réponses de la question.
+/// part sur internet). Le titre est la question, sans autre texte (la
+/// date ne servait à rien, avis de Paul du 23/10/2026) ; ses boutons sont
+/// les réponses. Le jour dont elle parle est dans son contenu caché
+/// (`payload`).
 ///
 /// Programmation une par une pour les jours à venir (`planifie`), refaite
 /// à chaque ouverture de l'appli, à chaque modification et à chaque
@@ -187,7 +187,6 @@ class Notifications {
       await _plugin.zonedSchedule(
         id: n.id,
         title: n.question.texte,
-        body: majuscule(jourEtDate(n.jour)),
         scheduledDate: _tz(n.quand),
         notificationDetails: _details(n.question),
         androidScheduleMode: mode,
@@ -222,7 +221,6 @@ class Notifications {
     await _plugin.show(
       id: idNotification(q.id!, jour),
       title: q.texte,
-      body: majuscule(jourEtDate(jour)),
       notificationDetails: _details(q),
       payload: '${q.id}|${cleJour(jour)}',
     );
@@ -238,8 +236,9 @@ class Notifications {
       importance: Importance.high,
       priority: Priority.high,
       category: AndroidNotificationCategory.reminder,
+      // Pas de couleur : Samsung assombrissait le citron en vert olive ;
+      // rond neutre du système, logo blanc.
       icon: '@drawable/ic_stat_ouinon',
-      color: const Color(0xFFD4FF3A),
       // La moins bonne à gauche, la meilleure à droite (choix de Paul) ;
       // « r0 » reste la meilleure.
       actions: [
@@ -256,7 +255,6 @@ class Notifications {
       'Questions',
       channelDescription: 'Les questions du jour, avec leurs réponses.',
       icon: '@drawable/ic_stat_ouinon',
-      color: Color(0xFFD4FF3A),
     ),
     iOS: DarwinNotificationDetails(),
   );

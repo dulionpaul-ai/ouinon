@@ -247,18 +247,55 @@ void main() {
       }
     });
     await ouvre(tester, StatsScreen(base: base, maintenant: midi));
-    expect(find.textContaining('« Sport ? Oui »'), findsWidgets);
-    expect(find.textContaining('10 fois sur 10'), findsWidgets);
-    expect(find.text('Sur 10 jours.'), findsWidgets);
+    // Croiseur : quand Sport, regarder En forme, le même jour.
+    await tester.tap(find.byKey(const ValueKey('a-3')));
+    await tester.tap(find.byKey(const ValueKey('b-2')));
+    await tester.tap(find.text('Le même jour'));
+    await tester.pump();
+    expect(find.text('Sur 10 jours.'), findsOneWidget);
+    expect(find.text('100 % « Bien »'), findsOneWidget);
+    expect(find.text('0 % « Bien »'), findsOneWidget);
+    // Le lien, en pastilles et en barres « avec » / « sans ».
+    await tester.scrollUntilVisible(
+      find.text('Sport ? Oui'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Sport ? Oui'), findsWidgets);
+    expect(find.text('100 %'), findsWidgets);
+    expect(find.text('0 %'), findsWidgets);
+  });
+
+  testWidgets('Stats : croiser deux questions au choix', (tester) async {
+    await tester.runAsync(() async {
+      await base.repond(1, DateTime(2026, 10, 20), 0); // Sommeil 8 h et +
+      await base.repond(3, DateTime(2026, 10, 20), 0); // Sport Oui
+      await base.repond(1, DateTime(2026, 10, 21), 2);
+      await base.repond(3, DateTime(2026, 10, 21), 1);
+    });
+    await ouvre(tester, StatsScreen(base: base, maintenant: midi));
+    // Par défaut : Sommeil et En forme (pas de jour commun).
+    expect(
+      find.text('Pas encore de jours où les deux ont une réponse.'),
+      findsOneWidget,
+    );
+    await tester.tap(find.byKey(const ValueKey('b-3'))); // Regarder : Sport
+    await tester.pump();
+    expect(find.text('Sur 2 jours.'), findsOneWidget);
+    expect(find.text('100 % « Oui »'), findsOneWidget);
+    expect(find.text('0 % « Oui »'), findsOneWidget);
   });
 
   testWidgets('Stats : sans réponse, explication', (tester) async {
     await ouvre(tester, StatsScreen(base: base, maintenant: midi));
     expect(
-      find.textContaining('apparaîtront après au moins 7 jours'),
+      find.textContaining('apparaissent après 7 jours de réponses'),
       findsOneWidget,
     );
-    expect(find.text('Pas encore de réponse.'), findsNWidgets(4));
+    expect(
+      find.text('Pas encore de jours où les deux ont une réponse.'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('premier lancement : bienvenue puis notifications', (

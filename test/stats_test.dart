@@ -122,4 +122,17 @@ void main() {
     expect(foisSurDix(0.66), '7 fois sur 10');
     expect(foisSurDix(0), '0 fois sur 10');
   });
+
+  test('croisement libre : réponses de B selon chaque réponse de A', () {
+    final rs = {j(0): 0, j(1): 0, j(2): 1, j(3): 1};
+    final rf = {j(0): 0, j(1): 1, j(2): 2, j(4): 0};
+    final c = croisement(sport, forme, 0, rs, rf);
+    expect(c, hasLength(2));
+    expect(c[0].comptes, [1, 1, 0]); // jours avec sport
+    expect(c[1].comptes, [0, 0, 1]); // jours sans (j(3) sans réponse B)
+    // Lendemain : sport j(3) → forme j(4).
+    final l = croisement(sport, forme, 1, rs, rf);
+    expect(l[0].comptes, [0, 1, 1]);
+    expect(l[1].comptes, [1, 0, 0]);
+  });
 }

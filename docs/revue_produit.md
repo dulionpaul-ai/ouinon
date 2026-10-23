@@ -35,8 +35,8 @@ Privée (rien ne quitte le téléphone), gratuite, sans pub, épurée.
 2. **Mes questions** : ajouter, modifier (tout, y compris passer de 2 à
    3 réponses ou l'inverse), mettre en pause, supprimer.
    Pour chacune : le texte, 2 ou 3 réponses, l'heure, les jours.
-3. **Stats** : les liens les plus nets entre questions (« ce qui va
-   avec quoi »), puis le bilan des 30 derniers jours de chaque question.
+3. **Stats** : centrée sur les croisements : croiser deux questions au
+   choix, les liens les plus nets en barres, puis une ligne par question.
 4. **Fiche d'une question** : bilan (7 jours, 30 jours, depuis le
    début), évolution semaine par semaine, jour de la semaine, calendrier.
 5. **Réglages** : autorisation des notifications, essai d'une

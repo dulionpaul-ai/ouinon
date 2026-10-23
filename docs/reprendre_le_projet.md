@@ -10,11 +10,12 @@ Mis à jour le 22/10/2026.
   heure ; on répond avec 2 ou 3 boutons, sans ouvrir l'appli. L'appli
   garde les réponses sur le téléphone et en tire des stats, dont des
   croisements entre questions.
-- **Où on en est** : V1 codée et testée en automatique (35 tests).
+- **Où on en est** : V1 codée et testée en automatique (37 tests).
   Paul teste les APK sur son téléphone Android (Samsung, mode sombre,
   texte agrandi) et envoie des retours en captures d'écran. Dernier APK
-  envoyé : **n° 8** (version 1.0.0+8, 23/10/2026). Toujours demander à
-  Paul avant d'en fabriquer un autre. Les boutons de
+  envoyé : **n° 8** (version 1.0.0+8, 23/10/2026). Depuis, dans le code :
+  page Stats refaite, notification revue (voir `docs/historique.md`).
+  Toujours demander à Paul avant de fabriquer un APK. Les boutons de
   notification marchent appli fermée (confirmé par Paul).
 - **Le code est sur `main`** du dépôt `dulionpaul-ai/ouinon` (voir
   « Branche »).

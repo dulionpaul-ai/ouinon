@@ -153,7 +153,9 @@ class BarreOnglets extends StatelessWidget {
       top: false,
       minimum: const EdgeInsets.only(bottom: 14),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
+        padding: EdgeInsets.symmetric(
+          horizontal: libelles.length > 3 ? 16 : 32,
+        ),
         child: Container(
           height: 64,
           padding: const EdgeInsets.all(7),
@@ -188,13 +190,25 @@ class BarreOnglets extends StatelessWidget {
                           customBorder: const StadiumBorder(),
                           onTap: () => onChoix(i),
                           child: Center(
-                            child: Text(
-                              libelle,
-                              maxLines: 1,
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w800,
-                                color: i == index ? t.surAccent : t.texteBarre,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                              ),
+                              // Réduit plutôt que coupé (petit téléphone,
+                              // gros texte).
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  libelle,
+                                  maxLines: 1,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w800,
+                                    color: i == index
+                                        ? t.surAccent
+                                        : t.texteBarre,
+                                  ),
+                                ),
                               ),
                             ),
                           ),

@@ -7,10 +7,11 @@ import '../data/base.dart';
 import '../data/notifications.dart';
 import '../widgets/rond.dart';
 import 'aujourdhui_screen.dart';
+import 'planning_screen.dart';
 import 'questions_screen.dart';
 import 'stats_screen.dart';
 
-/// Écran principal : trois onglets (Aujourd'hui, Stats, Questions).
+/// Écran principal : quatre onglets (Jour, Demain, Stats, Questions).
 /// Reprogramme les notifications à l'ouverture, au retour dans l'appli et
 /// après chaque modification.
 class AccueilScreen extends StatefulWidget {
@@ -187,6 +188,7 @@ class _AccueilScreenState extends State<AccueilScreen>
         index: _onglet,
         children: [
           AujourdhuiScreen(base: base),
+          PlanningScreen(base: base),
           StatsScreen(base: base),
           QuestionsScreen(base: base),
         ],
@@ -194,7 +196,7 @@ class _AccueilScreenState extends State<AccueilScreen>
       extendBody: true,
       bottomNavigationBar: BarreOnglets(
         index: _onglet,
-        libelles: const ['Jour', 'Stats', 'Questions'],
+        libelles: const ['Jour', 'Demain', 'Stats', 'Questions'],
         onChoix: (i) => setState(() => _onglet = i),
       ),
     );

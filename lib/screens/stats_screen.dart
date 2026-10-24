@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../data/base.dart';
 import '../models/question.dart';
+import '../models/tache.dart';
 import '../theme/app_theme.dart';
 import '../utils/courbes.dart';
+import '../utils/date_fr.dart';
 import '../utils/jour.dart';
+import '../utils/planning.dart';
 import '../utils/stats.dart';
 import '../widgets/graphiques.dart';
 import '../widgets/rond.dart';
@@ -14,7 +17,10 @@ import 'fiche_question_screen.dart';
 /// trouve les liens tout seul, des courbes à comparer, des graphiques
 /// modernes et animés) : découvertes automatiques, comparateur de
 /// courbes avec décalage, nuage de points, carte de chaleur de tous les
-/// liens, puis chaque question en mini-courbe et anneau.
+/// liens, le planning, puis chaque question en mini-courbe et anneau.
+///
+/// Le planning compte comme une courbe de plus (la part faite chaque
+/// jour) : l'appli cherche aussi ses liens avec les questions.
 class StatsScreen extends StatefulWidget {
   final Base base;
 
@@ -35,7 +41,12 @@ class _StatsScreenState extends State<StatsScreen> {
   static const _decouvertesMontrees = 4;
 
   List<Question> _questions = const [];
+
+  /// Les questions, et le planning s'il a des réponses : tout ce qui se
+  /// compare.
+  List<Question> _courbes = const [];
   Map<int, Reponses> _reponses = const {};
+  List<Tache> _taches = const [];
   List<Decouverte> _ressemblances = const [];
   List<Decouverte> _decouvertes = const [];
 
@@ -63,23 +74,29 @@ class _StatsScreenState extends State<StatsScreen> {
   Future<void> _recharge() async {
     final questions = await widget.base.questions();
     final reponses = await widget.base.toutesLesReponses();
+    final taches = await widget.base.taches();
     if (!mounted) return;
-    final ressemblances = toutesLesRessemblances(questions, reponses);
+    final planning = reponsesPlanning(taches);
+    if (planning.isNotEmpty) reponses[idPlanning] = planning;
+    final courbes = [...questions, if (planning.isNotEmpty) questionPlanning];
+    final ressemblances = toutesLesRessemblances(courbes, reponses);
     setState(() {
       _questions = questions;
+      _courbes = courbes;
+      _taches = taches;
       _reponses = reponses;
       _ressemblances = ressemblances;
       _decouvertes = [
         for (final d in ressemblances)
           if (d.r.abs() >= seuilDecouverte) d,
       ];
-      final ids = {for (final q in questions) q.id};
+      final ids = {for (final q in courbes) q.id};
       if (!ids.contains(_idA) || !ids.contains(_idB) || _idA == _idB) {
         if (_decouvertes.isNotEmpty) {
           _choisit(_decouvertes.first);
-        } else if (questions.length >= 2) {
-          _idA = questions[0].id;
-          _idB = questions[1].id;
+        } else if (courbes.length >= 2) {
+          _idA = courbes[0].id;
+          _idB = courbes[1].id;
           _decalage = 0;
         }
       }
@@ -93,7 +110,7 @@ class _StatsScreenState extends State<StatsScreen> {
   }
 
   Question? _question(int? id) {
-    for (final q in _questions) {
+    for (final q in _courbes) {
       if (q.id == id) return q;
     }
     return null;
@@ -165,7 +182,7 @@ class _StatsScreenState extends State<StatsScreen> {
                 ),
             const SizedBox(height: 18),
             _Section('Comparer deux courbes', cle: _cleComparateur),
-            if (_questions.length < 2)
+            if (_courbes.length < 2)
               CarteRonde(
                 child: Text(
                   'Il faut au moins deux questions pour comparer.',
@@ -175,7 +192,7 @@ class _StatsScreenState extends State<StatsScreen> {
             else
               _comparateur(context),
             const SizedBox(height: 18),
-            if (_questions.length >= 2) ...[
+            if (_courbes.length >= 2) ...[
               const _Section('Tous les liens'),
               CarteRonde(
                 child: AnimeQuandVisible(
@@ -183,7 +200,7 @@ class _StatsScreenState extends State<StatsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       CarteChaleur(
-                        questions: _questions,
+                        questions: _courbes,
                         ressemblances: _ressemblances,
                         t: avance,
                         choisie: _paireChoisie(),
@@ -201,6 +218,11 @@ class _StatsScreenState extends State<StatsScreen> {
                 ),
               ),
               const SizedBox(height: 18),
+            ],
+            if (_taches.isNotEmpty) ...[
+              const _Section('Ton planning'),
+              ..._planning(context),
+              const SizedBox(height: 8),
             ],
             const _Section('Tes questions'),
             for (final q in _questions)
@@ -265,6 +287,184 @@ class _StatsScreenState extends State<StatsScreen> {
     }
   }
 
+  /// Le planning : part faite sur 30 jours, sa courbe, selon le moment
+  /// et le jour, la charge de la journée, et ce qui est le plus reporté.
+  List<Widget> _planning(BuildContext context) {
+    final t = Teintes.de(context);
+    final doux = TextStyle(color: t.doux, fontSize: 13, height: 1.35);
+    const titre = TextStyle(fontSize: 16, fontWeight: FontWeight.w800);
+    final passees = [
+      for (final tache in _taches)
+        if (!tache.jour.isAfter(_aujourdhui)) tache,
+    ];
+    final mois = [
+      for (final tache in passees)
+        if (!tache.jour.isBefore(ajouteJours(_aujourdhui, -29))) tache,
+    ];
+    final c = compte(mois);
+    final reportees = plusReportees(passees);
+    final charge = pointsCharge(passees);
+    Widget carte(Widget enfant) => Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: CarteRonde(child: enfant),
+    );
+    Widget ligne(Color couleur, String texte, int n) => Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(color: couleur, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              texte,
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+          Text('$n', style: TextStyle(color: t.doux)),
+        ],
+      ),
+    );
+    return [
+      carte(
+        AnimeQuandVisible(
+          builder: (context, avance) => Row(
+            children: [
+              Anneau(
+                question: reponsesTache,
+                bilan: Bilan([c.faits, c.pasFaits]),
+                t: avance,
+                taille: 124,
+              ),
+              const SizedBox(width: 18),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text('30 derniers jours', style: titre),
+                    const SizedBox(height: 6),
+                    ligne(t.meilleure, 'Fait', c.faits),
+                    ligne(t.moinsBonne, 'Pas fait', c.pasFaits),
+                    ligne(t.puce, 'Sans réponse', c.sansReponse),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      if (_reponses[idPlanning] != null)
+        carte(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text('La courbe', style: titre),
+              const SizedBox(height: 4),
+              Text('Part faite chaque jour, moyenne sur 7 jours.', style: doux),
+              const SizedBox(height: 12),
+              AnimeQuandVisible(
+                builder: (context, avance) => Courbes(
+                  debut: ajouteJours(_aujourdhui, -90),
+                  a: _courbe(questionPlanning, 91),
+                  couleurA: t.meilleure,
+                  nomA: 'Planning',
+                  t: avance,
+                ),
+              ),
+            ],
+          ),
+        ),
+      carte(
+        AnimeQuandVisible(
+          builder: (context, avance) => Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text('Selon le moment', style: titre),
+              const SizedBox(height: 4),
+              Text(
+                'Part faite le matin, l\'après-midi (dès midi) et le soir '
+                '(dès 18 h).',
+                style: doux,
+              ),
+              const SizedBox(height: 12),
+              Barres(
+                valeurs: partParMoment(passees),
+                etiquettes: moments,
+                t: avance,
+                hauteur: 130,
+              ),
+              const SizedBox(height: 18),
+              const Text('Selon le jour', style: titre),
+              const SizedBox(height: 12),
+              Barres(
+                valeurs: partParJourSemaine(passees),
+                etiquettes: initialesJours,
+                t: avance,
+                hauteur: 130,
+              ),
+            ],
+          ),
+        ),
+      ),
+      if (charge.length >= 3)
+        carte(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text('Journées chargées', style: titre),
+              const SizedBox(height: 4),
+              Text(
+                'Un point par jour : à droite, plus d\'heures prévues ; en '
+                'haut, plus de choses faites.',
+                style: doux,
+              ),
+              const SizedBox(height: 10),
+              AnimeQuandVisible(
+                builder: (context, avance) => Nuage(
+                  points: charge,
+                  nomX: 'Heures prévues (0 à $heuresMaxCharge h)',
+                  nomY: 'Fait',
+                  t: avance,
+                  bulle: (p) =>
+                      '${dateCourte(p.lundi)}\n'
+                      '${dureeFr((p.x * heuresMaxCharge * 60).round())} '
+                      'prévues · ${(p.y * 100).round()} % fait',
+                ),
+              ),
+            ],
+          ),
+        ),
+      if (reportees.isNotEmpty)
+        carte(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text('Le plus reporté', style: titre),
+              const SizedBox(height: 8),
+              for (final r in reportees)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          r.texte,
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                      Pastille('${r.fois} fois'),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+    ];
+  }
+
   Widget _comparateur(BuildContext context) {
     final t = Teintes.de(context);
     final a = _question(_idA);
@@ -282,7 +482,7 @@ class _StatsScreenState extends State<StatsScreen> {
               spacing: 6,
               runSpacing: 6,
               children: [
-                for (final q in _questions)
+                for (final q in _courbes)
                   PiluleChoix(
                     q.texte,
                     key: ValueKey('$cle-${q.id}'),

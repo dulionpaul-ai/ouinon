@@ -38,14 +38,22 @@ fait, version par version : `docs/historique.md`.
    revue (sans date, sans couleur, nouveau logo blanc), séries, question
    principale et stats en classement, bilan du dimanche. APK n° 10
    (23/10/2026) : stats en graphiques, données de test, numéro d'APK
-   dans les Réglages. Prochain APK : `version: 1.0.0+11`, **seulement
-   avec l'accord de Paul**.
-8. [ ] Plus tard (critique du 23/10/2026) : sauvegarde dans un
+   dans les Réglages.
+8. [ ] Planning (demande de Paul du 24/10/2026), codé et testé, dans
+   l'APK n° 11 (`version: 1.0.0+11`, **à fabriquer seulement avec
+   l'accord de Paul**) : onglet « Demain », choses prévues avec heure et
+   durée, rappel à l'heure pile « Pas fait · Reporter · Fait » (reporter
+   = une heure plus tard), rappel du soir pour préparer le lendemain,
+   « Remettre demain », stats du planning (et liens avec les
+   questions). Seulement aujourd'hui et demain pour l'instant ; un autre
+   jour de la semaine viendra peut-être ensuite. Reste : avis de Paul.
+9. [ ] Plus tard (critique du 23/10/2026) : sauvegarde dans un
    fichier, mode « expérience » (tester une habitude 14 jours), objectifs
-   tout prêts au démarrage (« Mieux dormir »…).
-9. [ ] Test longue durée par Paul (2 à 3 semaines de vraies réponses),
+   tout prêts au démarrage (« Mieux dormir »…), planning sur toute la
+   semaine.
+10. [ ] Test longue durée par Paul (2 à 3 semaines de vraies réponses),
    corrections.
-10. [ ] Plus tard, avec l'accord de Paul : iPhone (TestFlight), sauvegarde,
+11. [ ] Plus tard, avec l'accord de Paul : iPhone (TestFlight), sauvegarde,
    fiches Play Store et App Store.
 
 ## Relecture du plan (22/10/2026) : risques et corrections
@@ -90,3 +98,32 @@ fait, version par version : `docs/historique.md`.
 
 - Répondre aux questions pendant quelques semaines, puis donner son avis
   sur les stats.
+
+## Relecture du planning (24/10/2026) : ce qui a changé par rapport à la première idée
+
+- **Aujourd'hui aussi, pas seulement demain.** Si on oublie de préparer
+  la veille, ou qu'un rendez-vous tombe le matin, il faut pouvoir
+  l'ajouter le jour même ; sinon la journée est perdue pour le planning.
+  On reste sur aujourd'hui et demain (pas le reste de la semaine).
+- **« Fait » à l'heure pile est souvent trop tôt.** La notification
+  reste dans la barre ; on répond quand c'est fait, ou on reporte. Sans
+  réponse, la chose reste « sans réponse » (comme une question) et ne
+  compte pas dans le pourcentage, plutôt que d'être comptée « pas
+  faite ».
+- **Reporter : une heure après l'appui**, pas une heure après l'heure
+  prévue (on reporte à 18 h 20, ça revient à 19 h 20). Jamais après
+  minuit : la chose reste alors à remettre au lendemain.
+- **Fin de journée : on propose, on n'impose pas.** Pas de report
+  automatique au lendemain (le planning se remplirait de choses
+  abandonnées) : dans « Demain », une liste « Pas fait aujourd'hui »
+  avec « Remettre demain ».
+- **Rappel du soir utile** : il dit où en est la journée (« 3 faits sur
+  5 ») et ce qui est déjà prévu le lendemain, à 21 h 30 par défaut
+  (après les questions de 21 h), réglable ou coupable.
+- **Ajouter vite** : ce qu'on prévoit souvent revient en raccourci (avec
+  sa durée) ; l'heure proposée suit la dernière chose prévue ; un
+  horaire qui en croise un autre est signalé.
+- **Stats** : la part faite chaque jour devient une courbe comme une
+  question, donc l'appli cherche aussi ses liens avec les questions ;
+  plus selon le moment, le jour, la charge de la journée, et ce qui est
+  le plus reporté. Toujours des constats, jamais de conseil.

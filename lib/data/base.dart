@@ -3,17 +3,19 @@ import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 
 import '../models/question.dart';
+import '../models/tache.dart';
 import '../utils/jour.dart';
 import '../utils/stats.dart';
 
-/// Les questions et les réponses, dans une base SQLite sur le téléphone
+/// Les questions, les réponses et le planning, dans une base SQLite sur le téléphone
 /// (`ouinon.sqlite`). Rien ne part sur internet.
 ///
 /// La base est aussi ouverte par le moteur d'arrière-plan qui enregistre
 /// les réponses données depuis une notification (appli fermée) : toujours
 /// relire la base plutôt que garder une copie.
 class Base {
-  static const version = 1;
+  /// 2 : planning (24/10/2026).
+  static const version = 2;
 
   final Database db;
 
@@ -64,6 +66,9 @@ class Base {
         version: version,
         onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
         onCreate: (db, _) => _cree(db, questionsDeDepart),
+        onUpgrade: (db, ancienne, _) async {
+          if (ancienne < 2) await _creePlanning(db);
+        },
         singleInstance: instanceUnique,
       ),
     );
@@ -89,11 +94,27 @@ class Base {
         repondu_le TEXT NOT NULL,
         PRIMARY KEY (question_id, jour)
       )''');
+    await _creePlanning(db);
     if (avecDepart) {
       for (final q in questionsDeDepart) {
         await db.insert('questions', q.versLigne());
       }
     }
+  }
+
+  static Future<void> _creePlanning(Database db) async {
+    await db.execute('''
+      CREATE TABLE planning (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        jour TEXT NOT NULL,
+        debut INTEGER NOT NULL,
+        duree INTEGER NOT NULL,
+        texte TEXT NOT NULL,
+        etat INTEGER,
+        reports INTEGER NOT NULL DEFAULT 0,
+        test INTEGER NOT NULL DEFAULT 0
+      )''');
+    await db.execute('CREATE INDEX planning_jour ON planning (jour)');
   }
 
   // Questions
@@ -209,19 +230,50 @@ class Base {
     }),
   );
 
-  /// Nombre de réponses de test.
-  Future<int> nombreReponsesTest() async =>
-      Sqflite.firstIntValue(
-        await db.rawQuery(
-          'SELECT COUNT(*) FROM reponses WHERE repondu_le = ?',
-          [marqueTest],
-        ),
-      ) ??
-      0;
+  /// Ajoute des choses prévues de test, sur des jours qui n'ont encore
+  /// rien de prévu (le vrai planning n'est jamais mélangé). Rend le
+  /// nombre ajouté.
+  Future<int> ajouteTachesTest(List<Tache> taches) => _ecrit(
+    db.transaction((t) async {
+      final occupes = {
+        for (final l in await t.query('planning', columns: ['jour']))
+          l['jour'] as String,
+      };
+      var ajoutees = 0;
+      for (final tache in taches) {
+        if (occupes.contains(cleJour(tache.jour))) continue;
+        await t.insert('planning', tache.versLigne());
+        ajoutees++;
+      }
+      return ajoutees;
+    }),
+  );
 
-  /// Efface toutes les réponses de test (les vraies restent).
+  /// Nombre de réponses et de choses prévues de test.
+  Future<int> nombreReponsesTest() async =>
+      (Sqflite.firstIntValue(
+            await db.rawQuery(
+              'SELECT COUNT(*) FROM reponses WHERE repondu_le = ?',
+              [marqueTest],
+            ),
+          ) ??
+          0) +
+      (Sqflite.firstIntValue(
+            await db.rawQuery('SELECT COUNT(*) FROM planning WHERE test = 1'),
+          ) ??
+          0);
+
+  /// Efface toutes les réponses et choses prévues de test (les vraies
+  /// restent).
   Future<int> effaceReponsesTest() => _ecrit(
-    db.delete('reponses', where: 'repondu_le = ?', whereArgs: [marqueTest]),
+    db.transaction((t) async {
+      final reponses = await t.delete(
+        'reponses',
+        where: 'repondu_le = ?',
+        whereArgs: [marqueTest],
+      );
+      return reponses + await t.delete('planning', where: 'test = 1');
+    }),
   );
 
   /// Efface la réponse d'une question pour un jour.
@@ -279,5 +331,90 @@ class Base {
       whereArgs: [cleJour(depuis)],
     );
     return {for (final l in lignes) '${l['question_id']}|${l['jour']}'};
+  }
+
+  // Planning
+
+  /// Les choses prévues d'un jour, dans l'ordre de la journée.
+  Future<List<Tache>> tachesDu(DateTime jour) async {
+    final lignes = await db.query(
+      'planning',
+      where: 'jour = ?',
+      whereArgs: [cleJour(jour)],
+      orderBy: 'debut, id',
+    );
+    return [for (final l in lignes) Tache.depuisLigne(l)];
+  }
+
+  /// Les choses prévues à partir de `depuis` (toutes sans `depuis`).
+  Future<List<Tache>> taches({DateTime? depuis}) async {
+    final lignes = await db.query(
+      'planning',
+      where: depuis == null ? null : 'jour >= ?',
+      whereArgs: depuis == null ? null : [cleJour(depuis)],
+      orderBy: 'jour, debut, id',
+    );
+    return [for (final l in lignes) Tache.depuisLigne(l)];
+  }
+
+  Future<Tache?> tache(int id) async {
+    final lignes = await db.query('planning', where: 'id = ?', whereArgs: [id]);
+    return lignes.isEmpty ? null : Tache.depuisLigne(lignes.first);
+  }
+
+  /// Ajoute (sans id) ou met à jour une chose prévue.
+  Future<Tache> enregistreTache(Tache tache) => _ecrit(() async {
+    if (tache.id == null) {
+      final id = await db.insert('planning', tache.versLigne());
+      return tache.copie(id: id);
+    }
+    await db.update(
+      'planning',
+      tache.versLigne(),
+      where: 'id = ?',
+      whereArgs: [tache.id],
+    );
+    return tache;
+  }());
+
+  Future<void> supprimeTache(int id) =>
+      _ecrit(db.delete('planning', where: 'id = ?', whereArgs: [id]));
+
+  /// « Fait » (`Tache.fait`), « Pas fait » (`Tache.pasFait`) ou nul pour
+  /// effacer la réponse.
+  Future<void> repondTache(int id, int? etat) => _ecrit(
+    db.update('planning', {'etat': etat}, where: 'id = ?', whereArgs: [id]),
+  );
+
+  /// « Reporter » : la chose revient une heure après `maintenant` (même
+  /// durée), le même jour. Rend la chose reportée, ou nulle si l'heure
+  /// dépasserait minuit (elle reste alors sans réponse, à remettre au
+  /// lendemain).
+  Future<Tache?> reporteTache(int id, DateTime maintenant) async {
+    final tache = await this.tache(id);
+    if (tache == null || tache.etat != null) return null;
+    final base = jourDe(maintenant) == tache.jour
+        ? maintenant.hour * 60 + maintenant.minute
+        : tache.debut;
+    final debut = base + 60;
+    if (debut >= 24 * 60) return null;
+    return enregistreTache(
+      tache.copie(debut: debut, reports: tache.reports + 1),
+    );
+  }
+
+  /// Ce qu'on prévoit le plus souvent (texte et durée la plus récente),
+  /// pour l'ajouter d'un toucher.
+  Future<List<({String texte, int duree})>> habitudes({int nombre = 6}) async {
+    final lignes = await db.rawQuery(
+      'SELECT texte, duree, COUNT(*) AS fois, MAX(jour) AS dernier '
+      'FROM planning WHERE test = 0 GROUP BY texte '
+      'ORDER BY fois DESC, dernier DESC LIMIT ?',
+      [nombre],
+    );
+    return [
+      for (final l in lignes)
+        (texte: l['texte'] as String, duree: l['duree'] as int),
+    ];
   }
 }

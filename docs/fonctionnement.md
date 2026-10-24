@@ -13,17 +13,20 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 | Dossier | Contenu |
 |---|---|
 | `models/question.dart` | Une question : texte, réponses (meilleure d'abord), heure, jours (masque lundi = bit 0), en pause ou non ; les 4 questions de départ. |
-| `data/base.dart` | Base `ouinon.sqlite` : tables `questions` (rendues dans l'ordre de la journée : heure, puis création) et `reponses` (une réponse par question et par jour, effacée avec sa question). Changement du nombre de réponses avec conversion de l'historique (`enregistreAvecNombre`). |
-| `data/preferences.dart` | Choix gardés sur le téléphone : bilan du dimanche (activé par défaut). |
+| `models/tache.dart` | Une chose prévue du planning : jour, début et durée (minutes), texte, réponse (`fait` = 0, `pasFait` = 1, ou nulle), nombre de reports, marque « test ». |
+| `data/base.dart` | Base `ouinon.sqlite` (version 2) : tables `questions` (rendues dans l'ordre de la journée : heure, puis création), `reponses` (une réponse par question et par jour, effacée avec sa question) et `planning` (ajoutée en version 2, par mise à jour de la base). Reporter une chose (`reporteTache`), raccourcis (`habitudes`). Changement du nombre de réponses avec conversion de l'historique (`enregistreAvecNombre`). |
+| `data/preferences.dart` | Choix gardés sur le téléphone : bilan du dimanche, rappel du soir et son heure (activés par défaut, 21 h 30). |
 | `data/suggestions.dart` | Suggestions de réponses de l'écran Nouvelle question (« Oui / Non », « Bien / Moyen / Pas bien » au départ), créées, modifiées ou supprimées par la personne, gardées dans les préférences du téléphone. |
-| `data/notifications.dart` | Programmation des notifications, boutons, réponse depuis la notification (`reponseNotifArrierePlan`). |
+| `data/notifications.dart` | Programmation des notifications (questions, choses prévues, rappel du soir, bilan), boutons, réponse depuis la notification (`reponseNotifArrierePlan`). |
+| `utils/planning.dart` | Calculs du planning (testés) : rappels à programmer, textes, part faite, planning vu comme une question (`questionPlanning`), stats (moment, jour, charge, plus reportées), horaires qui se croisent, ligne du bilan. |
 | `utils/planification.dart` | Calcul pur de ce qu'il faut programmer (testé). |
 | `utils/stats.dart` | Bilans, jour de la semaine, séries (`serie`), bilan de la semaine (`bilanSemaine`) (testé). |
 | `utils/courbes.dart` | Notes de 0 à 1, moyenne glissante sur 7 jours, ressemblance de deux courbes avec décalage, découvertes, points par semaine, droite de tendance (testé). |
-| `data/donnees_test.dart` | 6 mois de réponses de test (marquées « test » dans la base, effaçables d'un coup). |
+| `data/donnees_test.dart` | 6 mois de réponses et de planning de test (marqués « test » dans la base, effaçables d'un coup ; jamais sur un jour déjà planifié). |
+| `widgets/bloc_tache.dart` | Une chose prévue en bloc horaire (heures à gauche, liseré à la couleur de la réponse, boutons « Pas fait / Fait »), temps libre entre deux. |
 | `widgets/graphiques.dart` | Graphiques (module `fl_chart` 1.2.0) : courbes, anneau, barres, nuage de points, grille de 6 mois, carte des liens ; animation quand on s'arrête dessus (`AnimeQuandVisible`). |
 | `utils/jour.dart`, `utils/date_fr.dart` | Jours de calendrier (« 2026-10-22 ») et dates en français. |
-| `screens/` | Accueil (onglets), Aujourd'hui (une page par jour, on glisse vers la droite pour la veille, jamais après aujourd'hui), Stats (découvertes, comparateur de deux courbes, carte des liens, une carte par question), fiche d'une question, Questions (par heure, sans rangement à la main), modification, Réglages. |
+| `screens/` | Accueil (4 onglets : Jour, Demain, Stats, Questions), Demain (planning d'aujourd'hui ou de demain, « Pas fait aujourd'hui » à remettre demain), À prévoir (ajout ou modification d'une chose), Aujourd'hui (une page par jour, on glisse vers la droite pour la veille, jamais après aujourd'hui), Stats (découvertes, comparateur de deux courbes, carte des liens, une carte par question), fiche d'une question, Questions (par heure, sans rangement à la main), modification, Réglages. |
 | `theme/app_theme.dart` | Style « Nuit ronde », toujours sombre (choix de Paul du 22/10/2026) : couleurs dans `Teintes`, polices Unbounded (titres) et Figtree (texte), embarquées dans `assets/fonts` (licence OFL). Réponses : citron, abricot, corail. |
 | `widgets/rond.dart` | Briques rondes : carte, pastille, bouton rond et bouton +, grand titre (réduit plutôt que coupé), barre d'onglets flottante, choix en pilules, pilule à toucher, jour de la semaine en rond. Pas de puces Material (police et couleurs mal reprises). |
 
@@ -138,6 +141,36 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
   l'inverse ; toujours le même tirage). Elles ne remplacent jamais une
   vraie réponse et s'effacent d'un coup (« Effacer les réponses de
   test »).
+
+## Planning
+
+- **Une chose prévue** : jour (aujourd'hui ou demain), début, durée
+  (15 min à 3 h), texte (40 caractères). Pas de répétition : chaque
+  soir, on prépare le lendemain.
+- **Rappel à l'heure pile** (canal « Planning », identifiant négatif
+  = −id de la chose, contenu caché « t|id ») avec trois boutons, de
+  gauche à droite : « Pas fait » (`tp`), « Reporter » (`tr`), « Fait »
+  (`tf`). Reporter : la chose revient une heure après l'appui, même
+  durée, compteur de reports + 1 ; si ça passe minuit, rien ne bouge
+  (elle reste sans réponse). Dans l'appli : « Pas fait / Fait »
+  seulement (on change l'heure pour reporter).
+- **Sans réponse** ne compte pas comme « pas fait » : la part faite
+  = faits / (faits + pas faits).
+- **Rappel du soir** (identifiant 3, canal « Préparer demain ») à
+  21 h 30 par défaut : point sur la journée et ce qui est prévu le
+  lendemain. Recalculé à chaque reprogrammation.
+- **Demain** : blocs horaires, temps libre (dès 30 min), pastille
+  « Croise » si deux horaires se chevauchent. « Pas fait aujourd'hui » :
+  choses d'aujourd'hui pas faites, ou passées sans réponse, pas déjà
+  prévues demain, avec « Remettre demain ».
+- **Stats** : le planning est aussi une courbe (« Planning », id −1,
+  note du jour = part faite arrondie au dixième), comparée aux
+  questions dans les découvertes, le comparateur et la carte des liens.
+  Section « Ton planning » : anneau des 30 jours, courbe, selon le
+  moment (matin / après-midi dès midi / soir dès 18 h) et le jour,
+  « Journées chargées » (un point par jour : heures prévues jusqu'à
+  8 h, part faite), « Le plus reporté ».
+- **Bilan du dimanche** : ligne « Planning : 12 faits sur 15 ».
 
 ## Vérifications et compilation
 

@@ -10,14 +10,14 @@ Mis à jour le 22/10/2026.
   heure ; on répond avec 2 ou 3 boutons, sans ouvrir l'appli. L'appli
   garde les réponses sur le téléphone et en tire des stats, dont des
   croisements entre questions.
-- **Où on en est** : V1 codée et testée en automatique (46 tests).
+- **Où on en est** : V1 codée et testée en automatique (66 tests).
   Paul teste les APK sur son téléphone Android (Samsung, mode sombre,
   texte agrandi) et envoie des retours en captures d'écran. Dernier APK
   envoyé : **n° 10** (version 1.0.0+10, 23/10/2026) : stats refaites
   en graphiques animés, liens trouvés seuls, bouton « Ajouter 6 mois de
-  test » dans les Réglages (voir `docs/historique.md`). Pour le
-  prochain, passer `version` à 1.0.0+11 dans `pubspec.yaml` et
-  `lib/utils/version.dart`.
+  test » dans les Réglages (voir `docs/historique.md`). Depuis, dans le
+  code : le **planning** (onglet « Demain »), version déjà passée à
+  1.0.0+11 pour l'APK n° 11, pas encore fabriqué.
   Toujours demander à Paul avant de fabriquer un APK. Les boutons de
   notification marchent appli fermée (confirmé par Paul).
 - **Le code est sur `main`** du dépôt `dulionpaul-ai/ouinon` (voir
@@ -56,6 +56,10 @@ Détail dans `docs/revue_produit.md`. Les plus importants :
   comparer, décalées d'un jour au besoin, nuage de points, anneaux,
   barres, grille ; modernes et animés. La « question principale » est
   abandonnée. Bilan du dimanche à 20 h.
+- **Planning** (24/10/2026) : le soir, il prépare sa journée du
+  lendemain (quoi, à quelle heure, combien de temps) ; rappel à l'heure
+  pile avec « Pas fait · Reporter · Fait » ; reporter = une heure plus
+  tard. Seulement aujourd'hui et demain pour l'instant.
 - Liens dès 14 jours communs et 30 % de ressemblance, présentés comme
   des coïncidences, jamais des causes.
 - Heure précise des notifications : autorisation « Alarmes et rappels »
@@ -119,7 +123,10 @@ Tout est dans `docs/fonctionnement.md`. L'essentiel :
 - `lib/utils/planification.dart`, `lib/utils/stats.dart`,
   `lib/utils/courbes.dart` : calculs purs et testés.
 - `lib/widgets/graphiques.dart` : graphiques animés (module fl_chart).
-- `lib/data/donnees_test.dart` : 6 mois de réponses de test.
+- `lib/data/donnees_test.dart` : 6 mois de réponses et de planning de test.
+- Planning : `lib/models/tache.dart`, `lib/utils/planning.dart`,
+  `lib/screens/planning_screen.dart`, `lib/screens/edition_tache_screen.dart`,
+  `lib/widgets/bloc_tache.dart`.
 - `lib/screens/` : Jour (pages qui glissent), Stats, fiche d'une
   question, Questions, Nouvelle question / Modifier, Réglages.
 - `lib/theme/app_theme.dart` + `lib/widgets/rond.dart` : le style.

@@ -7,6 +7,9 @@ directement depuis la notification avec 2 ou 3 boutons, sans ouvrir
 l'appli. L'appli garde les réponses et en tire des stats en graphiques animés :
 courbes, anneaux, barres, calendrier, et liens trouvés seuls entre
 questions (courbes qui se ressemblent, décalées de 0 à 3 jours).
+Deuxième partie, le planning : chaque soir, on prépare la journée du
+lendemain (quoi, à quelle heure, combien de temps) ; un rappel arrive à
+l'heure pile avec « Pas fait · Reporter · Fait ».
 Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
 
 ## Consignes de Paul
@@ -59,6 +62,9 @@ Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
   (une nuit de lundi à mardi, demandée mardi matin, compte pour mardi).
 - De gauche à droite, toujours la moins bonne réponse à gauche et la
   meilleure à droite (notification, boutons, barres).
+- Une chose prévue (planning) : « Fait » = 0, « Pas fait » = 1, sans
+  réponse = nulle (ne compte pas dans le pourcentage) ; « Reporter » la
+  remet une heure après l'appui, jamais après minuit.
 - Toujours sombre ; style et couleurs dans `lib/theme/app_theme.dart`
   (`Teintes`) et `lib/widgets/rond.dart`, pas de puces Material.
 - Identifiant de l'appli : `fr.ouinon.app`, nom affiché « Ouinon ».

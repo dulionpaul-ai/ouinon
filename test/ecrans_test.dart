@@ -4,9 +4,12 @@ import 'package:ouinon/data/base.dart';
 import 'package:ouinon/data/donnees_test.dart';
 import 'package:ouinon/data/notifications.dart';
 import 'package:ouinon/main.dart';
+import 'package:ouinon/models/tache.dart';
 import 'package:ouinon/screens/accueil_screen.dart';
 import 'package:ouinon/screens/aujourdhui_screen.dart';
 import 'package:ouinon/screens/edition_question_screen.dart';
+import 'package:ouinon/screens/edition_tache_screen.dart';
+import 'package:ouinon/screens/planning_screen.dart';
 import 'package:ouinon/screens/reglages_screen.dart';
 import 'package:ouinon/screens/stats_screen.dart';
 import 'package:ouinon/widgets/graphiques.dart';
@@ -332,15 +335,157 @@ void main() {
 
   testWidgets('Réglages : couper le bilan du dimanche', (tester) async {
     await ouvre(tester, ReglagesScreen(base: base));
+    final interrupteur = find.byKey(const ValueKey('interrupteur-bilan'));
     await tester.scrollUntilVisible(
-      find.byType(Switch),
+      interrupteur,
       200,
       scrollable: find.byType(Scrollable).first,
     );
-    expect(tester.widget<Switch>(find.byType(Switch)).value, isTrue);
-    await tester.tap(find.byType(Switch));
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, -200));
+    await tester.pumpAndSettle();
+    expect(tester.widget<Switch>(interrupteur).value, isTrue);
+    await tester.tap(interrupteur);
     await attends(tester);
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getBool('bilan_dimanche'), isFalse);
+  });
+
+  group('planning', () {
+    final jeudi = DateTime(2026, 10, 22);
+    final vendredi = DateTime(2026, 10, 23);
+
+    testWidgets('demain vide, puis une chose prévue', (tester) async {
+      await ouvre(tester, PlanningScreen(base: base, maintenant: midi));
+      expect(find.text('Demain'), findsWidgets);
+      expect(
+        find.textContaining('Prépare ta journée de demain'),
+        findsOneWidget,
+      );
+      await tester.tap(find.byTooltip('Prévoir quelque chose'));
+      await tester.pumpAndSettle();
+      await attends(tester);
+      expect(find.byType(EditionTacheScreen), findsOneWidget);
+      await tester.enterText(find.byType(TextField).first, 'Garage');
+      await tester.ensureVisible(find.byKey(const ValueKey('duree-90')));
+      await tester.tap(find.byKey(const ValueKey('duree-90')));
+      await tester.pump();
+      expect(find.text('Demain, de 9 h à 10 h 30'), findsOneWidget);
+      await tester.tap(find.text('Enregistrer'));
+      await attends(tester);
+      await tester.pumpAndSettle();
+      final prevues = (await tester.runAsync(() => base.tachesDu(vendredi)))!;
+      expect(prevues.single.texte, 'Garage');
+      expect(prevues.single.debut, 9 * 60);
+      expect(prevues.single.duree, 90);
+      expect(find.text('Garage'), findsOneWidget);
+      expect(find.textContaining('1 chose · 1 h 30'), findsOneWidget);
+    });
+
+    testWidgets('aujourd\'hui : répondre ; demain : remettre ce qui reste', (
+      tester,
+    ) async {
+      final faite = (await tester.runAsync(
+        () => base.enregistreTache(
+          Tache(jour: jeudi, debut: 10 * 60, texte: 'Banque'),
+        ),
+      ))!;
+      await tester.runAsync(
+        () => base.enregistreTache(
+          Tache(jour: jeudi, debut: 18 * 60, texte: 'Garage'),
+        ),
+      );
+      await ouvre(tester, PlanningScreen(base: base, maintenant: midi));
+      // 10 h est passée et sans réponse : à remettre demain.
+      expect(find.text('Pas fait aujourd\'hui'), findsOneWidget);
+      await tester.tap(find.text('Aujourd\'hui').last);
+      await attends(tester);
+      await tester.tap(find.text('Fait').first);
+      await attends(tester);
+      expect(
+        (await tester.runAsync(() => base.tache(faite.id!)))!.etat,
+        Tache.fait,
+      );
+      expect(notifs.retireesTaches, [faite.id]);
+      // Plus rien à remettre (Garage est à 18 h).
+      await tester.tap(find.text('Demain').last);
+      await attends(tester);
+      expect(find.text('Pas fait aujourd\'hui'), findsNothing);
+      await tester.runAsync(() => base.repondTache(faite.id!, Tache.pasFait));
+      await attends(tester);
+      await tester.scrollUntilVisible(
+        find.text('Remettre demain'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(find.text('Remettre demain'));
+      await attends(tester);
+      final demain = (await tester.runAsync(() => base.tachesDu(vendredi)))!;
+      expect(demain.single.texte, 'Banque');
+      expect(demain.single.debut, 10 * 60);
+      expect(find.text('Pas fait aujourd\'hui'), findsNothing);
+    });
+
+    testWidgets('horaires qui se croisent : signalés', (tester) async {
+      await tester.runAsync(
+        () => base.enregistreTache(
+          Tache(jour: vendredi, debut: 9 * 60, texte: 'Courses'),
+        ),
+      );
+      await ouvre(
+        tester,
+        EditionTacheScreen(base: base, jour: vendredi, maintenant: midi),
+      );
+      // Après Courses (9 h – 10 h) : 10 h proposé.
+      expect(find.text('10 h'), findsOneWidget);
+      await tester.enterText(find.byType(TextField).first, 'Garage');
+      await tester.ensureVisible(find.byKey(const ValueKey('duree-180')));
+      await tester.tap(find.byKey(const ValueKey('duree-180')));
+      await tester.pump();
+      expect(find.textContaining('Croise'), findsNothing);
+      // Raccourci : ce qu'on a déjà prévu revient.
+      expect(find.widgetWithText(PiluleChoix, 'Courses'), findsOneWidget);
+    });
+
+    testWidgets('la page Jour montre ce qui était prévu', (tester) async {
+      await tester.runAsync(
+        () => base.enregistreTache(
+          Tache(jour: jeudi, debut: 18 * 60, texte: 'Garage'),
+        ),
+      );
+      await ouvre(tester, AujourdhuiScreen(base: base, maintenant: midi));
+      await tester.scrollUntilVisible(
+        find.text('Garage'),
+        200,
+        scrollable: find.byType(Scrollable).last,
+      );
+      expect(find.text('Prévu'), findsOneWidget);
+      expect(find.text('18 h'), findsWidgets);
+    });
+
+    testWidgets('Stats : le planning et sa courbe', (tester) async {
+      await tester.runAsync(
+        () => ajouteDonneesTest(base, maintenant: DateTime(2026, 10, 22)),
+      );
+      await ouvre(tester, StatsScreen(base: base, maintenant: midi));
+      await tester.pumpAndSettle();
+      // Le planning se compare comme une question.
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('a--1')),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.scrollUntilVisible(
+        find.text('Ton planning'),
+        400,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('Ton planning'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text('Selon le moment'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('Selon le moment'), findsOneWidget);
+    });
   });
 }

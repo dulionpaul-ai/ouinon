@@ -27,6 +27,8 @@ class _ReglagesScreenState extends State<ReglagesScreen>
   bool? _autorisees;
   bool? _precise;
   bool _bilan = true;
+  bool _rappelPlanning = true;
+  int _heureRappel = Preferences.heureRappelPlanningParDefaut;
   int _reponsesTest = 0;
   NotifPrevue? _prochaine;
   int? _enAttente;
@@ -63,6 +65,8 @@ class _ReglagesScreenState extends State<ReglagesScreen>
       enAttente = await Notifications.instance.enAttente();
     } catch (_) {}
     final bilan = await Preferences.bilanDimanche();
+    final rappelPlanning = await Preferences.rappelPlanning();
+    final heureRappel = await Preferences.heureRappelPlanning();
     final reponsesTest = await widget.base.nombreReponsesTest();
     final maintenant = DateTime.now();
     final plan = planifie(
@@ -77,6 +81,8 @@ class _ReglagesScreenState extends State<ReglagesScreen>
       _enAttente = enAttente;
       _prochaine = plan.notifs.isEmpty ? null : plan.notifs.first;
       _bilan = bilan;
+      _rappelPlanning = rappelPlanning;
+      _heureRappel = heureRappel;
       _reponsesTest = reponsesTest;
     });
   }
@@ -87,9 +93,10 @@ class _ReglagesScreenState extends State<ReglagesScreen>
       builder: (context) => AlertDialog(
         title: const Text('Ajouter 6 mois de test ?'),
         content: const Text(
-          'Des réponses inventées pour tes questions, sur les 6 derniers '
-          'mois, pour essayer les graphiques. Tes vraies réponses ne sont '
-          'pas touchées, et tu pourras effacer les réponses de test.',
+          'Des réponses inventées pour tes questions et un planning '
+          'inventé, sur les 6 derniers mois, pour essayer les graphiques. '
+          'Tes vraies réponses ne sont pas touchées, et tu pourras effacer '
+          'les données de test.',
         ),
         actions: [
           TextButton(
@@ -107,7 +114,7 @@ class _ReglagesScreenState extends State<ReglagesScreen>
     final ajoutees = await ajouteDonneesTest(widget.base);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$ajoutees réponses de test ajoutées.')),
+      SnackBar(content: Text('$ajoutees données de test ajoutées.')),
     );
     await _verifie(replanifier: true);
   }
@@ -116,7 +123,7 @@ class _ReglagesScreenState extends State<ReglagesScreen>
     final effacees = await widget.base.effaceReponsesTest();
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$effacees réponses de test effacées.')),
+      SnackBar(content: Text('$effacees données de test effacées.')),
     );
     await _verifie(replanifier: true);
   }
@@ -124,6 +131,36 @@ class _ReglagesScreenState extends State<ReglagesScreen>
   Future<void> _changeBilan(bool oui) async {
     setState(() => _bilan = oui);
     await Preferences.activeBilan(oui);
+    try {
+      await Notifications.instance.replanifie(widget.base);
+    } catch (_) {}
+  }
+
+  Future<void> _changeRappelPlanning(bool oui) async {
+    setState(() => _rappelPlanning = oui);
+    await Preferences.activeRappelPlanning(oui);
+    try {
+      await Notifications.instance.replanifie(widget.base);
+    } catch (_) {}
+  }
+
+  Future<void> _choisitHeureRappel() async {
+    final choisie = await showTimePicker(
+      context: context,
+      initialEntryMode: TimePickerEntryMode.dialOnly,
+      initialTime: TimeOfDay(
+        hour: _heureRappel ~/ 60,
+        minute: _heureRappel % 60,
+      ),
+      builder: (context, enfant) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+        child: enfant!,
+      ),
+    );
+    if (choisie == null || !mounted) return;
+    final minutes = choisie.hour * 60 + choisie.minute;
+    setState(() => _heureRappel = minutes);
+    await Preferences.changeHeureRappelPlanning(minutes);
     try {
       await Notifications.instance.replanifie(widget.base);
     } catch (_) {}
@@ -263,19 +300,52 @@ class _ReglagesScreenState extends State<ReglagesScreen>
               child: const Text('Essayer une notification'),
             ),
           ]),
+          bloc('Préparer demain', [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Chaque soir, un rappel pour préparer ta journée de '
+                    'demain, avec le point sur aujourd\'hui.',
+                    style: doux,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Switch(
+                  key: const ValueKey('interrupteur-rappel'),
+                  value: _rappelPlanning,
+                  activeThumbColor: Teintes.de(context).surAccent,
+                  activeTrackColor: Teintes.de(context).accent,
+                  onChanged: _changeRappelPlanning,
+                ),
+              ],
+            ),
+            if (_rappelPlanning) ...[
+              const SizedBox(height: 10),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: OutlinedButton.icon(
+                  onPressed: _choisitHeureRappel,
+                  icon: const Icon(Icons.schedule_rounded),
+                  label: Text('À ${heureFr(_heureRappel)}'),
+                ),
+              ),
+            ],
+          ]),
           bloc('Bilan du dimanche', [
             Row(
               children: [
                 Expanded(
                   child: Text(
                     'Le dimanche à 20 h, ta semaine en quelques lignes : '
-                    'tes réponses, ta meilleure série, et ta découverte la '
-                    'plus forte.',
+                    'tes réponses, ta meilleure série, ta découverte la '
+                    'plus forte et ton planning.',
                     style: doux,
                   ),
                 ),
                 const SizedBox(width: 12),
                 Switch(
+                  key: const ValueKey('interrupteur-bilan'),
                   value: _bilan,
                   activeThumbColor: Teintes.de(context).surAccent,
                   activeTrackColor: Teintes.de(context).accent,
@@ -287,9 +357,9 @@ class _ReglagesScreenState extends State<ReglagesScreen>
           bloc('Données de test', [
             Text(
               _reponsesTest == 0
-                  ? 'Pour essayer les graphiques : 6 mois de réponses '
-                        'inventées, effaçables d\'un coup.'
-                  : '$_reponsesTest réponses de test en ce moment. Tes '
+                  ? 'Pour essayer les graphiques : 6 mois de réponses et de '
+                        'planning inventés, effaçables d\'un coup.'
+                  : '$_reponsesTest données de test en ce moment. Tes '
                         'vraies réponses sont à part.',
               style: doux,
             ),
@@ -306,7 +376,7 @@ class _ReglagesScreenState extends State<ReglagesScreen>
               const SizedBox(height: 8),
               OutlinedButton(
                 onPressed: _effaceTest,
-                child: const Text('Effacer les réponses de test'),
+                child: const Text('Effacer les données de test'),
               ),
             ],
           ]),

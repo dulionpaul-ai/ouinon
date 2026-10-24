@@ -490,12 +490,16 @@ class Barres extends StatelessWidget {
   }
 }
 
-/// Nuage de points (une semaine par point) et sa droite de tendance.
+/// Nuage de points (une semaine par point, ou un jour) et sa droite de
+/// tendance.
 class Nuage extends StatelessWidget {
   final List<({double x, double y, DateTime lundi})> points;
   final String nomX;
   final String nomY;
   final double t;
+
+  /// Bulle d'un point : « Semaine du … » par défaut.
+  final String Function(({double x, double y, DateTime lundi}) point)? bulle;
 
   const Nuage({
     super.key,
@@ -503,6 +507,7 @@ class Nuage extends StatelessWidget {
     required this.nomX,
     required this.nomY,
     required this.t,
+    this.bulle,
   });
 
   @override
@@ -541,9 +546,10 @@ class Nuage extends StatelessWidget {
             for (final s in touches)
               s.barIndex == 0
                   ? LineTooltipItem(
-                      'Semaine du ${dateCourte(points[s.spotIndex].lundi)}\n'
-                      '$nomX ${(s.x * 100).round()} % · '
-                      '$nomY ${(s.y * 100).round()} %',
+                      bulle?.call(points[s.spotIndex]) ??
+                          'Semaine du ${dateCourte(points[s.spotIndex].lundi)}'
+                              '\n$nomX ${(s.x * 100).round()} % · '
+                              '$nomY ${(s.y * 100).round()} %',
                       TextStyle(
                         color: teintes.texte,
                         fontSize: 12,
@@ -561,8 +567,9 @@ class Nuage extends StatelessWidget {
           color: Colors.transparent,
           dotData: FlDotData(
             getDotPainter: (spot, _, _, i) => FlDotCirclePainter(
+              // Plus petits quand ils sont nombreux (un point par jour).
               radius:
-                  7 *
+                  (points.length > 40 ? 4.5 : 7) *
                   Curves.easeOutBack.transform(
                     ((t * points.length - i * 0.5) / 2).clamp(0.0, 1.0),
                   ),

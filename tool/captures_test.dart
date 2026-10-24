@@ -12,9 +12,13 @@ import 'package:ouinon/data/base.dart';
 import 'package:ouinon/data/donnees_test.dart';
 import 'package:ouinon/data/notifications.dart';
 import 'package:ouinon/main.dart';
+import 'package:ouinon/models/tache.dart';
 import 'package:ouinon/screens/accueil_screen.dart';
+import 'package:ouinon/screens/aujourdhui_screen.dart';
+import 'package:ouinon/screens/edition_tache_screen.dart';
 import 'package:ouinon/screens/edition_question_screen.dart';
 import 'package:ouinon/screens/fiche_question_screen.dart';
+import 'package:ouinon/screens/planning_screen.dart';
 import 'package:ouinon/screens/questions_screen.dart';
 import 'package:ouinon/screens/reglages_screen.dart';
 import 'package:ouinon/screens/stats_screen.dart';
@@ -62,7 +66,34 @@ void main() {
     await ajouteDonneesTest(base, maintenant: maintenant);
     await base.repond(1, DateTime(2026, 10, 22), 0);
     await base.repond(2, DateTime(2026, 10, 22), 1);
+    // Le planning du jour et du lendemain.
+    final jeudi = DateTime(2026, 10, 22), vendredi = DateTime(2026, 10, 23);
+    for (final t in [
+      Tache(jour: jeudi, debut: 540, duree: 30, texte: 'Mails', etat: 0),
+      Tache(jour: jeudi, debut: 630, duree: 30, texte: 'Banque', etat: 1),
+      Tache(jour: jeudi, debut: 750, duree: 15, texte: 'Appeler maman'),
+      Tache(jour: jeudi, debut: 1080, texte: 'Garage', reports: 1),
+      Tache(jour: jeudi, debut: 1290, duree: 30, texte: 'Lire'),
+      Tache(jour: vendredi, debut: 420, duree: 45, texte: 'Courir'),
+      Tache(jour: vendredi, debut: 540, duree: 30, texte: 'Mails'),
+      Tache(jour: vendredi, debut: 600, texte: 'Courses'),
+      Tache(jour: vendredi, debut: 630, duree: 30, texte: 'Pressing'),
+      Tache(jour: vendredi, debut: 1050, texte: 'Garage'),
+      Tache(jour: vendredi, debut: 1140, texte: 'Préparer le dîner'),
+    ]) {
+      await base.enregistreTache(t);
+    }
   });
+
+  Widget avecOnglets(Widget ecran, int index) => Scaffold(
+    body: ecran,
+    extendBody: true,
+    bottomNavigationBar: BarreOnglets(
+      index: index,
+      libelles: const ['Jour', 'Demain', 'Stats', 'Questions'],
+      onChoix: (_) {},
+    ),
+  );
 
   Future<void> capture(
     WidgetTester tester,
@@ -100,25 +131,13 @@ void main() {
     });
 
     testWidgets('stats $suffixe', (tester) async {
-      SharedPreferences.setMockInitialValues({
-        'bienvenue_vue': true,
-        'question_principale': 2,
-      });
       await remplit(tester);
       await capture(
         tester,
         '2-stats-$suffixe',
-        Scaffold(
-          body: StatsScreen(base: base, maintenant: () => maintenant),
-          extendBody: true,
-          bottomNavigationBar: BarreOnglets(
-            index: 1,
-            libelles: const ['Jour', 'Stats', 'Questions'],
-            onChoix: (_) {},
-          ),
-        ),
+        avecOnglets(StatsScreen(base: base, maintenant: () => maintenant), 2),
         mode,
-        hauteur: 3800,
+        hauteur: 6200,
       );
     });
 
@@ -192,16 +211,74 @@ void main() {
       await capture(
         tester,
         '4-questions-$suffixe',
-        Scaffold(
-          body: QuestionsScreen(base: base),
-          extendBody: true,
-          bottomNavigationBar: BarreOnglets(
-            index: 2,
-            libelles: const ['Jour', 'Stats', 'Questions'],
-            onChoix: (_) {},
-          ),
+        avecOnglets(QuestionsScreen(base: base), 3),
+        mode,
+      );
+    });
+
+    testWidgets('demain $suffixe', (tester) async {
+      await remplit(tester);
+      await capture(
+        tester,
+        '12-demain-$suffixe',
+        avecOnglets(
+          PlanningScreen(base: base, maintenant: () => maintenant),
+          1,
         ),
         mode,
+        hauteur: 1500,
+      );
+    });
+
+    testWidgets('planning du jour $suffixe', (tester) async {
+      await remplit(tester);
+      await capture(
+        tester,
+        '13-aujourdhui-planning-$suffixe',
+        avecOnglets(
+          PlanningScreen(base: base, maintenant: () => maintenant),
+          1,
+        ),
+        mode,
+        hauteur: 1500,
+        avant: (tester) async {
+          await tester.tap(find.text('Aujourd\'hui').last);
+          await attends(tester);
+          await tester.pumpAndSettle();
+        },
+      );
+    });
+
+    testWidgets('prévoir $suffixe', (tester) async {
+      await remplit(tester);
+      await capture(
+        tester,
+        '14-prevoir-$suffixe',
+        EditionTacheScreen(
+          base: base,
+          jour: DateTime(2026, 10, 23),
+          maintenant: () => maintenant,
+        ),
+        mode,
+        hauteur: 1100,
+        avant: (tester) async {
+          await tester.enterText(find.byType(TextField).first, 'Garage');
+          await tester.pump();
+        },
+      );
+    });
+
+    testWidgets('jour avec planning $suffixe', (tester) async {
+      await remplit(tester);
+      await capture(
+        tester,
+        '16-jour-prevu-$suffixe',
+        avecOnglets(
+          AujourdhuiScreen(base: base, maintenant: () => maintenant),
+          0,
+        ),
+        mode,
+        hauteur: 1700,
       );
     });
   }
@@ -258,6 +335,19 @@ void main() {
       ThemeMode.light,
       largeur: 360,
       hauteur: 1600,
+      texte: 1.3,
+    );
+  });
+
+  testWidgets('petit écran, gros texte, demain', (tester) async {
+    await remplit(tester);
+    await capture(
+      tester,
+      '15-petit-demain',
+      avecOnglets(PlanningScreen(base: base, maintenant: () => maintenant), 1),
+      ThemeMode.dark,
+      largeur: 360,
+      hauteur: 900,
       texte: 1.3,
     );
   });

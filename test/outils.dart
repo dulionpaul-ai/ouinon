@@ -23,6 +23,7 @@ Future<Base> ouvreBase({bool depart = true}) async {
 class FaussesNotifications extends Notifications {
   int replanifications = 0;
   final retirees = <String>[];
+  final retireesTaches = <int>[];
   bool precise = true;
   int demandesHeurePrecise = 0;
 
@@ -38,6 +39,9 @@ class FaussesNotifications extends Notifications {
   Future<void> retire(int questionId, DateTime jour) async {
     retirees.add('$questionId|${jour.toIso8601String()}');
   }
+
+  @override
+  Future<void> retireTache(int id) async => retireesTaches.add(id);
 
   @override
   Future<bool?> autorisees() async => true;

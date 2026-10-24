@@ -19,6 +19,7 @@ Privée (rien ne quitte le téléphone), gratuite, sans pub, épurée.
 | Jours | Au choix par question (tous les jours par défaut) |
 | Séries | Oui (demande du 23/10/2026) : jours d'affilée avec la meilleure réponse, et record |
 | Bilan du dimanche | À 20 h, la semaine en quelques lignes (désactivable) |
+| Planning | Oui (24/10/2026) : préparer demain (quoi, heure, durée), rappel à l'heure pile « Pas fait · Reporter · Fait », reporter = une heure plus tard ; aujourd'hui et demain seulement pour l'instant |
 | Objectifs | Pas pour l'instant |
 | Note écrite | Non, que les réponses |
 | Stats | En graphiques modernes et animés (23/10/2026) : courbes, nuage de points, anneaux, barres, grille |
@@ -30,7 +31,7 @@ Privée (rien ne quitte le téléphone), gratuite, sans pub, épurée.
 | Style | Ultra moderne et rond, police originale, toujours sombre (« Nuit ronde ») |
 | Logo | N° 3 : rond coupé en deux, citron et corail ; nom « Ouinon » |
 
-## V1 : cinq écrans
+## V1 : six écrans
 
 1. **Aujourd'hui** : les questions du jour, avec leurs boutons de
    réponse ; on peut changer une réponse ou glisser vers un jour passé.
@@ -43,7 +44,10 @@ Privée (rien ne quitte le téléphone), gratuite, sans pub, épurée.
 4. **Fiche d'une question** : bilan (7 jours, 30 jours, depuis le
    début) en anneau, courbe, jour de la semaine, 6 mois en cases,
    calendrier.
-5. **Réglages** : autorisation des notifications, essai d'une
+5. **Demain** : le planning d'aujourd'hui ou de demain, en blocs
+   horaires ; ajouter, modifier, remettre au lendemain ce qui n'a pas
+   été fait.
+6. **Réglages** : autorisation des notifications, essai d'une
    notification, à propos.
 
 Questions de départ (modifiables) : Sport ? (Oui / Non), En forme ?

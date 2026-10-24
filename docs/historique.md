@@ -154,3 +154,19 @@ Fabriqué avec l'accord de Paul le 23/10/2026.
   - question principale, classement et croiseur retirés.
 - Bouton « Ajouter 6 mois de test » dans les Réglages (et « Effacer les
   réponses de test ») pour essayer les graphiques sans attendre.
+
+## APK n° 11 (1.0.0+11, dans le code) : planning
+
+- Paul propose une deuxième partie : « qu'est-ce que je dois faire
+  demain, de quelle heure à quelle heure », planifiée chaque soir, avec
+  des rappels qui suivent, et pour chacun « oui, non ou reporter » (une
+  heure plus tard). Choix : rappel à l'heure pile, seulement demain pour
+  l'instant.
+- Idée relue et améliorée (`docs/plan_action.md`, « Relecture du
+  planning »), puis codée : onglet « Demain » (aujourd'hui / demain),
+  écran « À prévoir » (quoi, quand, durée, raccourcis), blocs horaires
+  avec le temps libre, « Pas fait aujourd'hui » à remettre demain,
+  section « Prévu » sur la page Jour, rappel du soir (Réglages), ligne
+  du planning dans le bilan du dimanche, section « Ton planning » dans
+  les stats et courbe « Planning » comparée aux questions. Planning de
+  test ajouté au bouton « Ajouter 6 mois de test ».

@@ -3,16 +3,20 @@ import 'package:flutter/material.dart';
 import '../data/base.dart';
 import '../data/notifications.dart';
 import '../models/question.dart';
+import '../models/tache.dart';
 import '../utils/date_fr.dart';
 import '../utils/jour.dart';
 import '../utils/stats.dart';
 import '../theme/app_theme.dart';
+import '../widgets/bloc_tache.dart';
 import '../widgets/boutons_reponse.dart';
 import '../widgets/rond.dart';
+import 'edition_tache_screen.dart';
 import 'reglages_screen.dart';
 
-/// Les questions d'un jour (aujourd'hui au départ) avec leurs réponses :
-/// pour rattraper une notification manquée ou changer d'avis. On passe
+/// Les questions d'un jour (aujourd'hui au départ) avec leurs réponses,
+/// puis ce qui était prévu ce jour-là (planning) : pour rattraper une
+/// notification manquée ou changer d'avis. On passe
 /// d'un jour à l'autre en glissant le doigt (vers la droite : la veille)
 /// ou avec les flèches, sans dépasser aujourd'hui.
 class AujourdhuiScreen extends StatefulWidget {
@@ -95,6 +99,7 @@ class _PageJourState extends State<_PageJour> {
   int get _decalage => widget.decalage;
   List<Question> _questions = const [];
   Map<int, int> _reponses = const {};
+  List<Tache> _taches = const [];
   bool _charge = false;
 
   DateTime get _jour => ajouteJours(jourDe(widget.maintenant()), _decalage);
@@ -120,6 +125,7 @@ class _PageJourState extends State<_PageJour> {
     final questions = await widget.base.questions();
     final reponses = await widget.base.reponsesDuJour(jour);
     final toutes = await widget.base.toutesLesReponses();
+    final taches = await widget.base.tachesDu(jour);
     if (!mounted || jour != _jour) return;
     setState(() {
       _questions = [
@@ -127,6 +133,7 @@ class _PageJourState extends State<_PageJour> {
           if (q.active && q.revientLe(jour.weekday)) q,
       ];
       _reponses = reponses;
+      _taches = taches;
       _series = {
         for (final q in _questions)
           q.id!: serie(q, toutes[q.id] ?? const {}, jour).actuelle,
@@ -146,6 +153,27 @@ class _PageJourState extends State<_PageJour> {
       } catch (_) {}
     }
   }
+
+  Future<void> _repondTache(Tache tache, int? etat) async {
+    await widget.base.repondTache(tache.id!, etat);
+    if (etat != null) {
+      try {
+        await Notifications.instance.retireTache(tache.id!);
+      } catch (_) {}
+    }
+  }
+
+  void _ouvreTache(Tache tache) => Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => EditionTacheScreen(
+        base: widget.base,
+        tache: tache,
+        jour: tache.jour,
+        maintenant: widget.maintenant,
+      ),
+    ),
+  );
 
   String get _titre => switch (_decalage) {
     0 => 'Aujourd\'hui',
@@ -290,6 +318,20 @@ class _PageJourState extends State<_PageJour> {
                   ),
                 ),
               ),
+            if (_taches.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(6, 18, 6, 10),
+                child: Text(
+                  'Prévu',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ),
+              ...blocsDuJour(
+                _taches,
+                onTap: _ouvreTache,
+                onChoix: _repondTache,
+              ),
+            ],
           ],
         ),
       ),

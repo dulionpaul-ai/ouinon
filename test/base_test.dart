@@ -4,6 +4,11 @@ import 'package:ouinon/data/donnees_test.dart';
 import 'package:ouinon/utils/courbes.dart';
 import 'package:ouinon/data/notifications.dart';
 import 'package:ouinon/models/question.dart';
+import 'package:ouinon/models/tache.dart';
+import 'package:path/path.dart' as p;
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+
+import 'dart:io';
 
 import 'outils.dart';
 
@@ -153,4 +158,143 @@ void main() {
       expect(reponseNotifArrierePlan, isA<Function>());
     },
   );
+
+  group('planning', () {
+    final jeudi = DateTime(2026, 10, 22);
+    final vendredi = DateTime(2026, 10, 23);
+
+    test('ajouter, ranger par heure, répondre, retirer', () async {
+      final base = await ouvreBase();
+      final garage = await base.enregistreTache(
+        Tache(jour: vendredi, debut: 18 * 60, texte: 'Garage'),
+      );
+      await base.enregistreTache(
+        Tache(jour: vendredi, debut: 9 * 60, duree: 30, texte: 'Mails'),
+      );
+      await base.enregistreTache(
+        Tache(jour: jeudi, debut: 10 * 60, texte: 'Courses'),
+      );
+      final demain = await base.tachesDu(vendredi);
+      expect([for (final t in demain) t.texte], ['Mails', 'Garage']);
+      expect(demain.first.duree, 30);
+      await base.repondTache(garage.id!, Tache.fait);
+      expect((await base.tache(garage.id!))!.etat, Tache.fait);
+      await base.repondTache(garage.id!, null);
+      expect((await base.tache(garage.id!))!.etat, isNull);
+      expect(await base.taches(depuis: vendredi), hasLength(2));
+      await base.supprimeTache(garage.id!);
+      expect(await base.tachesDu(vendredi), hasLength(1));
+      // Ce qu'on prévoit souvent revient en raccourci.
+      expect((await base.habitudes()).map((h) => h.texte), contains('Mails'));
+    });
+
+    test('reporter : une heure plus tard, jamais après minuit', () async {
+      final base = await ouvreBase();
+      final t = await base.enregistreTache(
+        Tache(jour: jeudi, debut: 18 * 60, duree: 60, texte: 'Garage'),
+      );
+      final reportee = await base.reporteTache(
+        t.id!,
+        DateTime(2026, 10, 22, 18, 20),
+      );
+      expect(reportee!.debut, 19 * 60 + 20);
+      expect(reportee.duree, 60);
+      expect(reportee.reports, 1);
+      expect(
+        await base.reporteTache(t.id!, DateTime(2026, 10, 22, 23, 10)),
+        isNull,
+      );
+      expect((await base.tache(t.id!))!.debut, 19 * 60 + 20);
+    });
+
+    test('données de test : jamais sur un jour déjà planifié', () async {
+      final base = await ouvreBase();
+      final hier = DateTime(2026, 10, 21);
+      await base.enregistreTache(Tache(jour: hier, debut: 600, texte: 'Vrai'));
+      await ajouteDonneesTest(base, maintenant: jeudi);
+      expect([for (final t in await base.tachesDu(hier)) t.texte], ['Vrai']);
+      expect(await base.taches(), hasLength(greaterThan(400)));
+      await base.effaceReponsesTest();
+      expect([for (final t in await base.taches()) t.texte], ['Vrai']);
+    });
+
+    test('une base de la version 1 gagne le planning', () async {
+      sqfliteFfiInit();
+      final dossier = await Directory.systemTemp.createTemp('ouinon');
+      addTearDown(() => dossier.delete(recursive: true));
+      final chemin = p.join(dossier.path, 'v1.sqlite');
+      final v1 = await databaseFactoryFfi.openDatabase(
+        chemin,
+        options: OpenDatabaseOptions(
+          version: 1,
+          onCreate: (db, _) async {
+            await db.execute(
+              'CREATE TABLE questions (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+              'texte TEXT NOT NULL, reponses TEXT NOT NULL, heure INTEGER '
+              'NOT NULL, jours INTEGER NOT NULL, active INTEGER NOT NULL '
+              'DEFAULT 1, ordre INTEGER NOT NULL DEFAULT 0)',
+            );
+            await db.execute(
+              'CREATE TABLE reponses (question_id INTEGER NOT NULL, jour TEXT '
+              'NOT NULL, choix INTEGER NOT NULL, repondu_le TEXT NOT NULL, '
+              'PRIMARY KEY (question_id, jour))',
+            );
+            await db.insert('questions', questionsDeDepart.first.versLigne());
+          },
+        ),
+      );
+      await v1.close();
+      final base = Base(
+        await Base.ouvrirAvec(
+          databaseFactoryFfi,
+          chemin,
+          instanceUnique: false,
+        ),
+      );
+      expect(await base.questions(), hasLength(1));
+      await base.enregistreTache(Tache(jour: jeudi, debut: 600, texte: 'A'));
+      expect(await base.tachesDu(jeudi), hasLength(1));
+      await base.db.close();
+    });
+
+    group('réponse depuis une notification', () {
+      late Base base;
+      late FaussesNotifications notifs;
+      late Tache garage;
+
+      setUp(() async {
+        base = await ouvreBase();
+        Base.remplace(base);
+        notifs = FaussesNotifications()
+          ..horloge = () => DateTime(2026, 10, 22, 18, 5);
+        garage = await base.enregistreTache(
+          Tache(jour: jeudi, debut: 18 * 60, texte: 'Garage'),
+        );
+      });
+
+      test('Fait, Pas fait', () async {
+        await notifs.traiteReponse(reponseBouton('tf', 't|${garage.id}'));
+        expect((await base.tache(garage.id!))!.etat, Tache.fait);
+        await notifs.traiteReponse(reponseBouton('tp', 't|${garage.id}'));
+        expect((await base.tache(garage.id!))!.etat, Tache.pasFait);
+        expect(notifs.replanifications, 2);
+      });
+
+      test('Reporter : revient une heure après', () async {
+        await notifs.traiteReponse(reponseBouton('tr', 't|${garage.id}'));
+        final t = (await base.tache(garage.id!))!;
+        expect(t.debut, 19 * 60 + 5);
+        expect(t.etat, isNull);
+        expect(t.reports, 1);
+        expect(notifs.replanifications, 1);
+      });
+
+      test('chose inconnue ou appui sur le texte : rien', () async {
+        await notifs.traiteReponse(reponseBouton('tf', 't|999'));
+        await notifs.traiteReponse(reponseBouton('ouvrir', 't|${garage.id}'));
+        expect((await base.tache(garage.id!))!.etat, isNull);
+        expect(notifs.replanifications, 0);
+      });
+    });
+  });
 }

@@ -3,9 +3,11 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import '../models/question.dart';
+import '../models/tache.dart';
 import '../utils/courbes.dart';
 import '../utils/jour.dart';
 import '../utils/planification.dart';
+import '../utils/planning.dart';
 import '../utils/stats.dart';
 import 'base.dart';
 import 'preferences.dart';
@@ -36,13 +38,29 @@ Future<void> reponseNotifArrierePlan(NotificationResponse reponse) =>
 /// Programmation une par une pour les jours à venir (`planifie`), refaite
 /// à chaque ouverture de l'appli, à chaque modification et à chaque
 /// réponse : les jours déjà répondus sont sautés.
+///
+/// Planning : chaque chose prévue sans réponse a sa notification à son
+/// heure pile, avec « Pas fait · Reporter · Fait » (contenu caché
+/// « t|id ») ; « Reporter » la reprogramme une heure plus tard. Le soir,
+/// un rappel invite à préparer le lendemain.
 class Notifications {
   /// Remplacé dans les tests (aucun appel au système).
   static Notifications instance = Notifications();
 
   static const _canal = 'questions';
 
+  /// Boutons des choses prévues, de gauche à droite : la moins bonne
+  /// réponse à gauche, la meilleure à droite (choix de Paul).
+  static const _actionsTache = [
+    ('tp', 'Pas fait'),
+    ('tr', 'Reporter'),
+    ('tf', 'Fait'),
+  ];
+
   final _plugin = FlutterLocalNotificationsPlugin();
+
+  /// L'heure qu'il est (remplacée dans les tests).
+  DateTime Function() horloge = DateTime.now;
   Future<void>? _pret;
 
   /// Au démarrage (appli ou moteur d'arrière-plan) : module de
@@ -83,6 +101,13 @@ class Notifications {
                       DarwinNotificationAction.plain('r$i', q.reponses[i]),
                   ],
                 ),
+            DarwinNotificationCategory(
+              'tache',
+              actions: [
+                for (final (id, texte) in _actionsTache)
+                  DarwinNotificationAction.plain(id, texte),
+              ],
+            ),
           ],
         ),
       ),
@@ -148,6 +173,9 @@ class Notifications {
   Future<void> traiteReponse(NotificationResponse reponse) async {
     final action = reponse.actionId;
     final contenu = reponse.payload;
+    if (contenu != null && contenu.startsWith('t|')) {
+      return _traiteTache(action, contenu);
+    }
     if (action == null || !action.startsWith('r') || contenu == null) return;
     final morceaux = contenu.split('|');
     if (morceaux.length != 2) return;
@@ -161,19 +189,45 @@ class Notifications {
     await replanifie(base);
   }
 
+  /// Bouton d'une chose prévue : fait, pas fait, ou reportée d'une heure.
+  Future<void> _traiteTache(String? action, String contenu) async {
+    final id = int.tryParse(contenu.substring(2));
+    if (id == null || action == null) return;
+    final base = await Base.ouvrir();
+    if (await base.tache(id) == null) return;
+    switch (action) {
+      case 'tf':
+        await base.repondTache(id, Tache.fait);
+      case 'tp':
+        await base.repondTache(id, Tache.pasFait);
+      case 'tr':
+        await base.reporteTache(id, horloge());
+      default:
+        return;
+    }
+    await replanifie(base);
+  }
+
   /// Reprogramme toutes les notifications d'après les questions et les
   /// réponses déjà données.
   Future<void> replanifie(Base base, {DateTime? maintenant}) async {
     await prepare();
     final now = maintenant ?? DateTime.now();
     final questions = await base.questions();
+    final taches = rappelsAProgrammer(
+      await base.taches(depuis: jourDe(now)),
+      now,
+    );
     final plan = planifie(
       questions: questions,
       repondues: await base.reponduesDepuis(jourDe(now)),
       maintenant: now,
-      // iPhone : 64 notifications programmées au plus (deux gardées pour
-      // le rappel « continuer » et le bilan). Android : 500 alarmes.
-      maxNotifs: defaultTargetPlatform == TargetPlatform.iOS ? 62 : 400,
+      // iPhone : 64 notifications programmées au plus (trois gardées pour
+      // le rappel « continuer », le bilan et le rappel du soir, plus le
+      // planning). Android : 500 alarmes.
+      maxNotifs:
+          (defaultTargetPlatform == TargetPlatform.iOS ? 61 : 400) -
+          taches.length,
     );
     if (defaultTargetPlatform == TargetPlatform.iOS) {
       await _initialise(questions);
@@ -207,7 +261,55 @@ class Notifications {
         androidScheduleMode: mode,
       );
     }
+    for (final t in taches) {
+      await _plugin.zonedSchedule(
+        id: idNotifTache(t.id!),
+        title: t.texte,
+        body: plageFr(t),
+        scheduledDate: _tz(t.quand),
+        notificationDetails: _detailsTache,
+        androidScheduleMode: mode,
+        payload: 't|${t.id}',
+      );
+    }
+    await _programmeRappelPlanning(base, now, mode);
     await _programmeBilan(base, questions, now, mode);
+  }
+
+  /// Rappel du soir (si activé) : « Prépare ta journée de demain », avec
+  /// le point sur la journée et ce qui est déjà prévu.
+  Future<void> _programmeRappelPlanning(
+    Base base,
+    DateTime maintenant,
+    AndroidScheduleMode mode,
+  ) async {
+    if (!await Preferences.rappelPlanning()) return;
+    final quand = prochainRappelPlanning(
+      maintenant,
+      await Preferences.heureRappelPlanning(),
+    );
+    final jour = jourDe(quand);
+    final texte = texteRappelPlanning(
+      await base.tachesDu(jour),
+      await base.tachesDu(ajouteJours(jour, 1)),
+    );
+    await _plugin.zonedSchedule(
+      id: idRappelPlanning,
+      title: 'Prépare ta journée de demain',
+      body: texte,
+      scheduledDate: _tz(quand),
+      notificationDetails: NotificationDetails(
+        android: AndroidNotificationDetails(
+          'rappel_planning',
+          'Préparer demain',
+          channelDescription: 'Le soir, un rappel pour préparer le lendemain.',
+          icon: '@drawable/ic_stat_ouinon',
+          styleInformation: BigTextStyleInformation(texte),
+        ),
+        iOS: const DarwinNotificationDetails(),
+      ),
+      androidScheduleMode: mode,
+    );
   }
 
   /// Bilan du dimanche soir (si activé) : la semaine en quelques lignes.
@@ -223,13 +325,17 @@ class Notifications {
     final quand = prochainBilan(maintenant);
     final reponses = await base.toutesLesReponses();
     final trouvees = decouvertes(questions, reponses);
-    final lignes = bilanSemaine(
-      questions,
-      reponses,
-      quand,
-      enPlus: trouvees.isEmpty ? null : ligneBilan(trouvees.first),
-    );
-    if (lignes == null) return;
+    final planning = ligneBilanPlanning(await base.taches(), quand);
+    final lignes = [
+      ...?bilanSemaine(
+        questions,
+        reponses,
+        quand,
+        enPlus: trouvees.isEmpty ? null : ligneBilan(trouvees.first),
+      ),
+      ?planning,
+    ];
+    if (lignes.isEmpty) return;
     final texte = lignes.join('\n');
     await _plugin.zonedSchedule(
       id: idBilanDimanche,
@@ -256,6 +362,13 @@ class Notifications {
   Future<void> retire(int questionId, DateTime jour) async {
     await prepare();
     await _plugin.cancel(id: idNotification(questionId, jour));
+  }
+
+  /// Retire la notification affichée d'une chose prévue (réponse donnée
+  /// dans l'appli).
+  Future<void> retireTache(int id) async {
+    await prepare();
+    await _plugin.cancel(id: idNotifTache(id));
   }
 
   /// Envoie tout de suite la notification d'une question pour aujourd'hui
@@ -292,6 +405,23 @@ class Notifications {
       ],
     ),
     iOS: DarwinNotificationDetails(categoryIdentifier: 'q${q.id}'),
+  );
+
+  static final _detailsTache = NotificationDetails(
+    android: AndroidNotificationDetails(
+      'planning',
+      'Planning',
+      channelDescription: 'Les choses prévues, à leur heure.',
+      importance: Importance.high,
+      priority: Priority.high,
+      category: AndroidNotificationCategory.reminder,
+      icon: '@drawable/ic_stat_ouinon',
+      actions: [
+        for (final (id, texte) in _actionsTache)
+          AndroidNotificationAction(id, texte),
+      ],
+    ),
+    iOS: const DarwinNotificationDetails(categoryIdentifier: 'tache'),
   );
 
   static const _detailsSimples = NotificationDetails(

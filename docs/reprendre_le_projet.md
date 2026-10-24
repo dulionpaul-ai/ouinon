@@ -10,16 +10,17 @@ Mis à jour le 22/10/2026.
   heure ; on répond avec 2 ou 3 boutons, sans ouvrir l'appli. L'appli
   garde les réponses sur le téléphone et en tire des stats, dont des
   croisements entre questions.
-- **Où on en est** : V1 codée et testée en automatique (79 tests).
+- **Où on en est** : V1 codée et testée en automatique (82 tests).
   Paul teste les APK sur son téléphone Android (Samsung, mode sombre,
   texte agrandi) et envoie des retours en captures d'écran. Dernier APK
   envoyé : **n° 10** (version 1.0.0+10, 23/10/2026) : stats refaites
   en graphiques animés, liens trouvés seuls, bouton « Ajouter 6 mois de
   test » dans les Réglages. **APK n° 11** (1.0.0+11, 24/10/2026) :
   planning et liste « À faire » en 4 cases d'Eisenhower, « Remplir ma
-  journée », deux notifications par chose (voir `docs/historique.md`).
-  Pour le prochain, passer `version` à 1.0.0+12 dans `pubspec.yaml` et
-  `lib/utils/version.dart`.
+  journée », deux notifications par chose. **APK n° 12** (1.0.0+12) :
+  onglet « À faire » calqué sur le tableau blanc de Paul (voir
+  `docs/historique.md`). Pour le prochain, passer `version` à 1.0.0+13
+  dans `pubspec.yaml` et `lib/utils/version.dart`.
   Toujours demander à Paul avant de fabriquer un APK. Les boutons de
   notification marchent appli fermée (confirmé par Paul).
 - **Le code est sur `main`** du dépôt `dulionpaul-ai/ouinon` (voir
@@ -58,10 +59,12 @@ Détail dans `docs/revue_produit.md`. Les plus importants :
   comparer, décalées d'un jour au besoin, nuage de points, anneaux,
   barres, grille ; modernes et animés. La « question principale » est
   abandonnée. Bilan du dimanche à 20 h.
-- **Planning et liste « À faire »** (24/10/2026) : une liste avec le
-  temps de chaque chose, rangée dans les 4 cases d'Eisenhower ; le soir,
-  il pose ses impératifs de demain, puis « Remplir ma journée » place la
-  liste dans les trous. Deux notifications par chose : au début
+- **Planning et liste « À faire »** (24/10/2026), comme son tableau
+  blanc : « En fond » = sa matrice d'Eisenhower (temps de chaque
+  chose) ; le soir, il y pioche ce qu'il fait demain (bac « À placer »),
+  puis le glisse dans la journée heure par heure (8 h – 23 h), ou
+  « Remplir » le place. Créneaux fixes grisés (« Enfants 17 h –
+  23 h »). Deux notifications par chose : au début
   (« C'est l'heure », Reporter), à la fin (« C'est fait ? » : Pas fait ·
   Reporter · Fait) ; reporter = une heure plus tard. Seulement
   aujourd'hui et demain pour l'instant. « Remplir ma journée » est une
@@ -133,6 +136,8 @@ Tout est dans `docs/fonctionnement.md`. L'essentiel :
 - Planning et liste : `lib/models/a_faire.dart`, `lib/models/tache.dart`,
   `lib/utils/planning.dart`, `lib/utils/remplissage.dart`,
   `lib/screens/edition_a_faire_screen.dart`, `lib/widgets/cases.dart`,
+  `lib/models/creneau.dart`, `lib/screens/edition_creneau_screen.dart`,
+  `lib/widgets/grille_journee.dart` (la journée, glisser-déposer),
   `lib/screens/planning_screen.dart`, `lib/screens/edition_tache_screen.dart`,
   `lib/widgets/bloc_tache.dart`.
 - `lib/screens/` : Jour (pages qui glissent), Stats, fiche d'une

@@ -78,7 +78,15 @@ void main() {
     expect(
       texte,
       'Aujourd\'hui : 1 fait sur 3, 1 sans réponse.\n'
-      'Demain : 2 choses prévues, de 7 h à 21 h 30.',
+      'Demain : 2 choses placées, de 7 h à 21 h 30.',
+    );
+    expect(
+      texteRappelPlanning([], [], aPlacer: 3, enFond: 9),
+      '3 choses choisies à placer.',
+    );
+    expect(
+      texteRappelPlanning([], [], enFond: 9),
+      'Rien de choisi pour demain : 9 choses en fond.',
     );
     expect(
       texteRappelPlanning([], []),

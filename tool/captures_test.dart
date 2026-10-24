@@ -12,6 +12,7 @@ import 'package:ouinon/data/base.dart';
 import 'package:ouinon/data/donnees_test.dart';
 import 'package:ouinon/data/notifications.dart';
 import 'package:ouinon/main.dart';
+import 'package:ouinon/models/creneau.dart';
 import 'package:ouinon/models/tache.dart';
 import 'package:ouinon/screens/accueil_screen.dart';
 import 'package:ouinon/screens/aujourdhui_screen.dart';
@@ -75,13 +76,13 @@ void main() {
       Tache(jour: jeudi, debut: 750, duree: 15, texte: 'Appeler maman'),
       Tache(jour: jeudi, debut: 1080, texte: 'Garage', reports: 1),
       Tache(jour: jeudi, debut: 1290, duree: 30, texte: 'Lire'),
-      Tache(jour: vendredi, debut: 420, duree: 45, texte: 'Courir'),
-      Tache(jour: vendredi, debut: 600, texte: 'Dentiste'),
-      Tache(jour: vendredi, debut: 1050, texte: 'Garage'),
-      Tache(jour: vendredi, debut: 1140, texte: 'Préparer le dîner'),
+      Tache(jour: vendredi, debut: 540, texte: 'Garage C3'),
     ]) {
       await base.enregistreTache(t);
     }
+    await base.enregistreCreneau(
+      const Creneau(texte: 'Enfants', debut: 17 * 60, fin: 23 * 60),
+    );
   });
 
   Widget avecOnglets(Widget ecran, int index) => Scaffold(
@@ -256,7 +257,7 @@ void main() {
           PlanningScreen(
             base: base,
             maintenant: () => maintenant,
-            vue: VuePlanning.liste,
+            vue: VuePlanning.enFond,
           ),
           1,
         ),

@@ -7,10 +7,11 @@ directement depuis la notification avec 2 ou 3 boutons, sans ouvrir
 l'appli. L'appli garde les réponses et en tire des stats en graphiques animés :
 courbes, anneaux, barres, calendrier, et liens trouvés seuls entre
 questions (courbes qui se ressemblent, décalées de 0 à 3 jours).
-Deuxième partie, « À faire » : une liste avec le temps de chaque chose,
-rangée dans les 4 cases d'Eisenhower ; chaque soir, on pose ses
-impératifs du lendemain et l'appli place la liste dans les trous
-(« Remplir ma journée ») ; une notification au début (« C'est
+Deuxième partie, « À faire », calquée sur le tableau blanc de Paul : « en
+fond », la matrice d'Eisenhower (temps de chaque chose) ; chaque soir,
+il y pioche ce qu'il fait demain (bac « À placer ») et le glisse dans
+sa journée heure par heure (8 h – 23 h), ou laisse « Remplir » le
+placer ; créneaux fixes grisés (« Enfants 17 h – 23 h ») ; une notification au début (« C'est
 l'heure ») et une à la fin (« C'est fait ? » : Pas fait · Reporter ·
 Fait).
 Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.

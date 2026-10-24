@@ -4,6 +4,7 @@ import 'package:ouinon/data/donnees_test.dart';
 import 'package:ouinon/utils/courbes.dart';
 import 'package:ouinon/data/notifications.dart';
 import 'package:ouinon/models/a_faire.dart';
+import 'package:ouinon/models/creneau.dart';
 import 'package:ouinon/models/question.dart';
 import 'package:ouinon/models/tache.dart';
 import 'package:path/path.dart' as p;
@@ -308,6 +309,7 @@ void main() {
       expect(anciennes.single.imperatif, isTrue);
       await base.enregistreAFaire(AFaire(texte: 'Nouveau', creeLe: jeudi));
       expect(await base.liste(), hasLength(1));
+      expect(await base.creneaux(), isEmpty);
       await base.db.close();
     });
 
@@ -345,6 +347,31 @@ void main() {
       expect(await base.liste(avecFaites: true), hasLength(1));
       await base.supprimeAFaire(papiers.id!);
       expect(await base.liste(avecFaites: true), isEmpty);
+    });
+
+    test('choisie pour un jour, créneaux fixes', () async {
+      final base = await ouvreBase();
+      final a = await base.enregistreAFaire(
+        AFaire(texte: 'Papiers', creeLe: jeudi),
+      );
+      await base.choisitPour(a.id!, vendredi);
+      expect((await base.aFaire(a.id!))!.choisiePour, vendredi);
+      await base.choisitPour(a.id!, null);
+      expect((await base.aFaire(a.id!))!.choisiePour, isNull);
+      final enfants = await base.enregistreCreneau(
+        const Creneau(
+          texte: 'Enfants',
+          debut: 17 * 60,
+          fin: 23 * 60,
+          jours: 0x1F,
+        ),
+      );
+      expect(await base.creneauxDu(vendredi), hasLength(1));
+      expect(await base.creneauxDu(DateTime(2026, 10, 24)), isEmpty);
+      await base.enregistreCreneau(enfants.copie(fin: 22 * 60));
+      expect((await base.creneaux()).single.fin, 22 * 60);
+      await base.supprimeCreneau(enfants.id!);
+      expect(await base.creneaux(), isEmpty);
     });
 
     test('liste de test : une seule fois, effaçable', () async {

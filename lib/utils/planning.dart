@@ -85,11 +85,13 @@ DateTime prochainRappelPlanning(DateTime maintenant, int heure) {
 }
 
 /// Texte du rappel du soir : le point sur la journée, ce qui est déjà
-/// prévu pour le lendemain, et ce qui attend dans la liste.
+/// prévu pour le lendemain, ce qui attend d'être placé, et ce qui est en
+/// fond.
 String texteRappelPlanning(
   List<Tache> duJour,
   List<Tache> lendemain, {
   int aPlacer = 0,
+  int enFond = 0,
 }) {
   final lignes = <String>[];
   final c = compte(duJour);
@@ -100,19 +102,25 @@ String texteRappelPlanning(
       '${c.sansReponse > 0 ? ', ${c.sansReponse} sans réponse' : ''}.',
     );
   }
-  if (lendemain.isEmpty) {
-    lignes.add('Rien de prévu demain pour l\'instant.');
-  } else {
+  if (lendemain.isNotEmpty) {
     final n = lendemain.length;
     lignes.add(
-      'Demain : $n chose${n > 1 ? 's' : ''} prévue${n > 1 ? 's' : ''}, '
+      'Demain : $n chose${n > 1 ? 's' : ''} placée${n > 1 ? 's' : ''}, '
       'de ${heureFr(lendemain.map((t) => t.debut).reduce(_min))} '
       'à ${heureFr(lendemain.map((t) => t.fin).reduce(_max) % (24 * 60))}.',
     );
   }
   if (aPlacer > 0) {
     lignes.add(
-      '$aPlacer chose${aPlacer > 1 ? 's' : ''} à placer dans ta liste.',
+      '$aPlacer chose${aPlacer > 1 ? 's' : ''} choisie${aPlacer > 1 ? 's' : ''}'
+      ' à placer.',
+    );
+  } else if (lendemain.isEmpty) {
+    lignes.add(
+      enFond > 0
+          ? 'Rien de choisi pour demain : $enFond chose${enFond > 1 ? 's' : ''}'
+                ' en fond.'
+          : 'Rien de prévu demain pour l\'instant.',
     );
   }
   return lignes.join('\n');

@@ -298,13 +298,15 @@ class Notifications {
     final jour = jourDe(quand);
     final lendemain = ajouteJours(jour, 1);
     final placees = await base.placees(lendemain);
+    final liste = await base.liste();
     final texte = texteRappelPlanning(
       await base.tachesDu(jour),
       await base.tachesDu(lendemain),
       aPlacer: [
-        for (final a in await base.liste())
-          if (!placees.containsKey(a.id)) a,
+        for (final a in liste)
+          if (a.choisiePour == lendemain && !placees.containsKey(a.id)) a,
       ].length,
+      enFond: liste.length,
     );
     await _plugin.zonedSchedule(
       id: idRappelPlanning,

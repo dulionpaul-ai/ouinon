@@ -186,3 +186,21 @@ Fabriqué avec l'accord de Paul le 23/10/2026.
   journée (9 h – 19 h) et des notifications, stats « Les 4 cases » et
   « Ce qui attend le plus ». Base en version 3.
 - APK fabriqué avec l'accord de Paul (« Go et apk »).
+
+## APK n° 12 (1.0.0+12) : comme le tableau blanc
+
+- Paul montre son tableau blanc : tout à droite les tâches de fond (sa
+  matrice d'Eisenhower), au milieu en rouge ce qu'il fait le lendemain,
+  à gauche les heures de 8 h à 23 h où il trace des flèches, et un bloc
+  « enfants » de 17 h à 23 h. Maquettes validées (« génère l'APK »).
+- Onglet « À faire » refait : vue « En fond » (la matrice, un toucher
+  choisit pour demain, un appui long modifie), bac « À placer » avec
+  « Piocher » et « Remplir », journée heure par heure (8 h – 23 h,
+  heures régulières) où l'on glisse les choses du bac ; appui long pour
+  déplacer un bloc, tirer son bas pour la durée, toucher un bloc pour
+  répondre ou le modifier, toucher une heure vide pour un impératif ou
+  un créneau fixe. Créneaux fixes qui reviennent chaque semaine
+  (« Enfants 17 h – 23 h »), grisés, contournés par « Remplir », sans
+  notification. Base en version 4. Les horaires d'école du tableau sont
+  un simple mémo : pas repris.
+- APK fabriqué à la demande de Paul.

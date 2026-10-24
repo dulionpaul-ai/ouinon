@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ouinon/models/a_faire.dart';
+import 'package:ouinon/models/creneau.dart';
 import 'package:ouinon/models/tache.dart';
 import 'package:ouinon/utils/jour.dart';
 import 'package:ouinon/utils/remplissage.dart';
@@ -137,5 +138,33 @@ void main() {
       9 * 60,
     );
     expect(ecartJours(jeudi, vendredi), 1);
+  });
+
+  test('remplir : contourne les créneaux fixes ; « Peut-être » si choisi', () {
+    final p = remplitJournee(
+      jour: vendredi,
+      prevues: const [],
+      aPlacer: [a(1, 'Cave', 120), a(2, 'Papiers', 60, important: true)],
+      debutJournee: 9 * 60,
+      finJournee: 19 * 60,
+      creneaux: const [Creneau(texte: 'École', debut: 8 * 60, fin: 12 * 60)],
+      avecJamais: true,
+    );
+    expect(
+      [for (final t in p.placees) (t.texte, t.debut)],
+      [('Papiers', 12 * 60 + 15), ('Cave', 13 * 60 + 30)],
+    );
+    expect(
+      tempsLibre(
+        jour: vendredi,
+        prevues: const [],
+        debutJournee: 9 * 60,
+        finJournee: 19 * 60,
+        creneaux: const [
+          Creneau(texte: 'Enfants', debut: 17 * 60, fin: 23 * 60),
+        ],
+      ),
+      8 * 60,
+    );
   });
 }

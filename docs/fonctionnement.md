@@ -13,9 +13,12 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 | Dossier | Contenu |
 |---|---|
 | `models/question.dart` | Une question : texte, réponses (meilleure d'abord), heure, jours (masque lundi = bit 0), en pause ou non ; les 4 questions de départ. |
-| `models/a_faire.dart` | Une chose de la liste « À faire » : texte, durée, important, urgent (coché), date limite, créée le, faite le, marque « test » ; sa case d'Eisenhower un jour donné (`caseLe`) ; les 4 cases (`Case`). |
+| `models/a_faire.dart` | Une chose de la liste « À faire » : texte, durée, important, urgent (coché), date limite, créée le, faite le, choisie pour (jour de son bac), marque « test » ; sa case d'Eisenhower un jour donné (`caseLe`) ; les 4 cases (`Case`). |
 | `models/tache.dart` | Une chose prévue du planning : jour, début et durée (minutes), texte, réponse (`fait` = 0, `pasFait` = 1, ou nulle), nombre de reports, marque « test », chose de la liste d'où elle vient (`listeId`, nulle pour un impératif) et sa case au moment du placement (`quadrant`). |
-| `data/base.dart` | Base `ouinon.sqlite` (version 3) : tables `questions` (rendues dans l'ordre de la journée : heure, puis création), `reponses` (une réponse par question et par jour, effacée avec sa question), `planning` (version 2 ; colonnes `liste_id` et `quadrant` en version 3) et `liste` (version 3), par mise à jour de la base. « Fait » sur une chose tirée de la liste la marque faite dans la liste (`repondTache`) ; `placees` dit ce qui est déjà placé. Reporter une chose (`reporteTache`), raccourcis (`habitudes`). Changement du nombre de réponses avec conversion de l'historique (`enregistreAvecNombre`). |
+| `models/creneau.dart` | Un créneau fixe qui revient chaque semaine (texte, début, fin, jours). |
+| `widgets/grille_journee.dart` | La journée heure par heure (52 px par heure, 8 h – 23 h, élargie si besoin) : blocs à leur vraie taille (couleur de leur case, blanc pour un impératif), créneaux hachurés, trait « maintenant » ; dépôt d'une chose du bac ou d'un bloc (au quart d'heure, d'après le haut de ce qu'on glisse), durée en tirant le bas, toucher une heure vide. |
+| `screens/edition_creneau_screen.dart` | Ajout ou modification d'un créneau fixe. |
+| `data/base.dart` | Base `ouinon.sqlite` (version 4 : colonne `choisie_pour` de `liste` et table `creneaux`) : tables `questions` (rendues dans l'ordre de la journée : heure, puis création), `reponses` (une réponse par question et par jour, effacée avec sa question), `planning` (version 2 ; colonnes `liste_id` et `quadrant` en version 3) et `liste` (version 3), par mise à jour de la base. « Fait » sur une chose tirée de la liste la marque faite dans la liste (`repondTache`) ; `placees` dit ce qui est déjà placé. Reporter une chose (`reporteTache`), raccourcis (`habitudes`). Changement du nombre de réponses avec conversion de l'historique (`enregistreAvecNombre`). |
 | `data/preferences.dart` | Choix gardés sur le téléphone : bilan du dimanche, rappel du soir et son heure (activés par défaut, 21 h 30), heures de la journée (9 h – 19 h), notifications du planning (début et fin par défaut). |
 | `data/suggestions.dart` | Suggestions de réponses de l'écran Nouvelle question (« Oui / Non », « Bien / Moyen / Pas bien » au départ), créées, modifiées ou supprimées par la personne, gardées dans les préférences du téléphone. |
 | `data/notifications.dart` | Programmation des notifications (questions, choses prévues, rappel du soir, bilan), boutons, réponse depuis la notification (`reponseNotifArrierePlan`). |
@@ -29,7 +32,7 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 | `widgets/bloc_tache.dart` | Une chose prévue en bloc horaire (heures à gauche, liseré à la couleur de la réponse, boutons « Pas fait / Fait »), temps libre entre deux. |
 | `widgets/graphiques.dart` | Graphiques (module `fl_chart` 1.2.0) : courbes, anneau, barres, nuage de points, grille de 6 mois, carte des liens ; animation quand on s'arrête dessus (`AnimeQuandVisible`). |
 | `utils/jour.dart`, `utils/date_fr.dart` | Jours de calendrier (« 2026-10-22 ») et dates en français. |
-| `screens/` | Accueil (4 onglets : Jour, À faire, Stats, Questions), À faire (vues Liste, Aujourd'hui, Demain : grille des 4 cases, « Remplir ma journée », « À placer », « Pas fait aujourd'hui » pour les impératifs), écran « À faire » (une chose de la liste), Impératif (ajout ou modification d'une chose prévue), Aujourd'hui (une page par jour, on glisse vers la droite pour la veille, jamais après aujourd'hui), Stats (découvertes, comparateur de deux courbes, carte des liens, une carte par question), fiche d'une question, Questions (par heure, sans rangement à la main), modification, Réglages. |
+| `screens/` | Accueil (4 onglets : Jour, À faire, Stats, Questions), À faire (vues En fond, Aujourd'hui, Demain : matrice à cocher, bac « À placer » avec Piocher et Remplir, journée heure par heure, « Pas fait aujourd'hui » pour les impératifs), écran « À faire » (une chose de la liste), Impératif (ajout ou modification d'une chose prévue), Aujourd'hui (une page par jour, on glisse vers la droite pour la veille, jamais après aujourd'hui), Stats (découvertes, comparateur de deux courbes, carte des liens, une carte par question), fiche d'une question, Questions (par heure, sans rangement à la main), modification, Réglages. |
 | `theme/app_theme.dart` | Style « Nuit ronde », toujours sombre (choix de Paul du 22/10/2026) : couleurs dans `Teintes`, polices Unbounded (titres) et Figtree (texte), embarquées dans `assets/fonts` (licence OFL). Réponses : citron, abricot, corail. |
 | `widgets/rond.dart` | Briques rondes : carte, pastille, bouton rond et bouton +, grand titre (réduit plutôt que coupé), barre d'onglets flottante, choix en pilules, pilule à toucher, jour de la semaine en rond. Pas de puces Material (police et couleurs mal reprises). |
 
@@ -203,6 +206,24 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
   liste.
 - **Stats** : « Les 4 cases » (part du temps fait sur « À planifier »
   sur 30 jours, part faite par case) et « Ce qui attend le plus ».
+
+## Onglet « À faire » (tableau blanc, 24/10/2026)
+
+- **En fond** : la matrice en 2 × 2 ; un toucher choisit une chose pour
+  demain (`choisitPour`, cochée en citron), un appui long l'ouvre ;
+  « Préparer demain · N choisies · durée » passe à Demain.
+- **Bac « À placer »** (Aujourd'hui, Demain) : les choses choisies pour
+  ce jour et pas placées. « Piocher » coche dans la matrice ; « Remplir »
+  place tout le bac (même « Peut-être jamais », puisqu'il a été choisi)
+  autour des impératifs et des créneaux fixes.
+- **Journée** : appui long sur une chose du bac puis glisser sur une
+  heure ; la page défile près des bords pendant le glisser. Bloc :
+  toucher = répondre (Fait / Pas fait, jusqu'à aujourd'hui), modifier,
+  retirer (une chose de la liste retourne dans le bac) ; appui long =
+  déplacer ; tirer le bas = durée. Heure vide : impératif ou créneau
+  fixe.
+- **Après le jour** : une chose choisie et pas faite n'est plus dans un
+  bac (sa date est passée) : elle reste en fond, à repiocher.
 
 ## Vérifications et compilation
 

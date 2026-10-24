@@ -1,4 +1,5 @@
 import '../models/a_faire.dart';
+import '../models/creneau.dart';
 import '../models/tache.dart';
 import 'jour.dart';
 
@@ -6,14 +7,15 @@ import 'jour.dart';
 /// impératifs de demain et je laisse l'appli pré-remplir le reste ») :
 /// première version, simple et prévisible, à améliorer avec lui.
 ///
-/// Les impératifs et ce qui est déjà prévu restent où ils sont. Les choses
-/// de la liste sont posées dans les trous, entre le début et la fin de la
+/// Les impératifs, les créneaux fixes et ce qui est déjà prévu restent où
+/// ils sont. Les choses du bac (choisies pour ce jour) sont posées dans
+/// les trous, entre le début et la fin de la
 /// journée choisis dans les Réglages, avec un quart d'heure de marge
 /// autour de chaque chose : d'abord ce dont c'est le dernier jour (date
 /// limite atteinte), puis « D'abord », « À planifier », « Vite fait » ;
 /// dans une case, la date limite la plus proche, puis la plus ancienne.
-/// « Peut-être jamais » n'est jamais placé tout seul. Les horaires
-/// tombent au quart d'heure.
+/// « Peut-être jamais » n'est placé que s'il a été choisi pour ce jour
+/// (`avecJamais`). Les horaires tombent au quart d'heure.
 
 /// Marge laissée avant et après chaque chose, en minutes.
 const margePlanning = 15;
@@ -22,10 +24,14 @@ const margePlanning = 15;
 const pasPlanning = 15;
 
 /// Ordre de placement des choses de la liste.
-List<AFaire> ordreDePlacement(Iterable<AFaire> liste, DateTime jour) {
+List<AFaire> ordreDePlacement(
+  Iterable<AFaire> liste,
+  DateTime jour, {
+  bool avecJamais = false,
+}) {
   final aPlacer = [
     for (final a in liste)
-      if (!a.faite && a.caseLe(jour) != Case.peutEtreJamais) a,
+      if (!a.faite && (avecJamais || a.caseLe(jour) != Case.peutEtreJamais)) a,
   ];
   int cle(DateTime? d) => d == null ? 1 << 30 : ecartJours(DateTime(2020), d);
   bool dernierJour(AFaire a) =>
@@ -70,6 +76,10 @@ int? premierCreneau(
   return null;
 }
 
+/// Un créneau fixe vu comme une chose prévue (pour savoir où c'est pris).
+Tache occupation(Creneau c, DateTime jour) =>
+    Tache(jour: jourDe(jour), debut: c.debut, duree: c.duree, texte: c.texte);
+
 /// La proposition pour `jour` : les choses placées, et celles qui ne
 /// rentrent pas.
 ({List<Tache> placees, List<AFaire> horsJournee}) remplitJournee({
@@ -79,15 +89,18 @@ int? premierCreneau(
   required int debutJournee,
   required int finJournee,
   DateTime? maintenant,
+  List<Creneau> creneaux = const [],
+  bool avecJamais = false,
 }) {
   final depuis = premierDebut(jour, debutJournee, maintenant);
   final occupe = [
     for (final t in prevues)
       if (t.etat != Tache.pasFait) t,
+    for (final c in creneaux) occupation(c, jour),
   ];
   final placees = <Tache>[];
   final horsJournee = <AFaire>[];
-  for (final a in ordreDePlacement(aPlacer, jour)) {
+  for (final a in ordreDePlacement(aPlacer, jour, avecJamais: avecJamais)) {
     final debut = premierCreneau(
       a.duree,
       occupe,
@@ -121,13 +134,15 @@ int tempsLibre({
   required int debutJournee,
   required int finJournee,
   DateTime? maintenant,
+  List<Creneau> creneaux = const [],
 }) {
   final depuis = premierDebut(jour, debutJournee, maintenant);
   var libre = 0;
   for (var m = depuis; m < finJournee; m++) {
     if (prevues.every(
-      (t) => t.etat == Tache.pasFait || m < t.debut || m >= t.fin,
-    )) {
+          (t) => t.etat == Tache.pasFait || m < t.debut || m >= t.fin,
+        ) &&
+        creneaux.every((c) => m < c.debut || m >= c.fin)) {
       libre++;
     }
   }

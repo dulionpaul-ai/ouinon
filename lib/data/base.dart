@@ -3,6 +3,7 @@ import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 
 import '../models/a_faire.dart';
+import '../models/creneau.dart';
 import '../models/question.dart';
 import '../models/tache.dart';
 import '../utils/jour.dart';
@@ -16,8 +17,9 @@ import '../utils/stats.dart';
 /// les réponses données depuis une notification (appli fermée) : toujours
 /// relire la base plutôt que garder une copie.
 class Base {
-  /// 2 : planning ; 3 : liste « À faire » (24/10/2026).
-  static const version = 3;
+  /// 2 : planning ; 3 : liste « À faire » ; 4 : choisies pour un jour et
+  /// créneaux fixes (24/10/2026).
+  static const version = 4;
 
   final Database db;
 
@@ -79,7 +81,12 @@ class Base {
               'ALTER TABLE planning ADD COLUMN quadrant INTEGER',
             );
           }
-          if (ancienne < 3) await _creeListe(db);
+          if (ancienne < 3) {
+            await _creeListe(db);
+          } else if (ancienne < 4) {
+            await db.execute('ALTER TABLE liste ADD COLUMN choisie_pour TEXT');
+          }
+          if (ancienne < 4) await _creeCreneaux(db);
         },
         singleInstance: instanceUnique,
       ),
@@ -108,6 +115,7 @@ class Base {
       )''');
     await _creePlanning(db);
     await _creeListe(db);
+    await _creeCreneaux(db);
     if (avecDepart) {
       for (final q in questionsDeDepart) {
         await db.insert('questions', q.versLigne());
@@ -143,7 +151,19 @@ class Base {
         echeance TEXT,
         cree_le TEXT NOT NULL,
         faite_le TEXT,
-        test INTEGER NOT NULL DEFAULT 0
+        test INTEGER NOT NULL DEFAULT 0,
+        choisie_pour TEXT
+      )''');
+  }
+
+  static Future<void> _creeCreneaux(Database db) async {
+    await db.execute('''
+      CREATE TABLE creneaux (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        texte TEXT NOT NULL,
+        debut INTEGER NOT NULL,
+        fin INTEGER NOT NULL,
+        jours INTEGER NOT NULL
       )''');
   }
 
@@ -583,4 +603,51 @@ class Base {
     }
     return placees;
   }
+
+  /// Choisit une chose de la liste pour un jour (dans son bac « À
+  /// placer »), ou la remet en fond (`jour` nul).
+  Future<void> choisitPour(int id, DateTime? jour) => _ecrit(
+    db.update(
+      'liste',
+      {'choisie_pour': jour == null ? null : cleJour(jour)},
+      where: 'id = ?',
+      whereArgs: [id],
+    ),
+  );
+
+  // Créneaux fixes
+
+  Future<List<Creneau>> creneaux() async {
+    final lignes = await db.query('creneaux', orderBy: 'debut, id');
+    return [for (final l in lignes) Creneau.depuisLigne(l)];
+  }
+
+  /// Les créneaux fixes d'un jour.
+  Future<List<Creneau>> creneauxDu(DateTime jour) async => [
+    for (final c in await creneaux())
+      if (c.revientLe(jour.weekday)) c,
+  ];
+
+  Future<Creneau> enregistreCreneau(Creneau c) => _ecrit(() async {
+    if (c.id == null) {
+      final id = await db.insert('creneaux', c.versLigne());
+      return Creneau(
+        id: id,
+        texte: c.texte,
+        debut: c.debut,
+        fin: c.fin,
+        jours: c.jours,
+      );
+    }
+    await db.update(
+      'creneaux',
+      c.versLigne(),
+      where: 'id = ?',
+      whereArgs: [c.id],
+    );
+    return c;
+  }());
+
+  Future<void> supprimeCreneau(int id) =>
+      _ecrit(db.delete('creneaux', where: 'id = ?', whereArgs: [id]));
 }

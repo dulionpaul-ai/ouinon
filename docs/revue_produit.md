@@ -45,9 +45,9 @@ Privée (rien ne quitte le téléphone), gratuite, sans pub, épurée.
 4. **Fiche d'une question** : bilan (7 jours, 30 jours, depuis le
    début) en anneau, courbe, jour de la semaine, 6 mois en cases,
    calendrier.
-5. **À faire** : la liste en 4 cases, puis le planning d'aujourd'hui
-   ou de demain en blocs horaires (impératifs, « Remplir ma journée »,
-   « À placer »).
+5. **À faire**, comme le tableau blanc de Paul : « En fond » (la
+   matrice), bac « À placer » de demain, journée heure par heure où
+   l'on glisse les choses ; créneaux fixes grisés.
 6. **Réglages** : autorisation des notifications, essai d'une
    notification, à propos.
 

@@ -24,6 +24,10 @@ class EditionTacheScreen extends StatefulWidget {
   /// Jour proposé pour une nouvelle chose.
   final DateTime jour;
 
+  /// Début proposé (heure touchée dans la journée) ; sinon après la
+  /// dernière chose prévue.
+  final int? debut;
+
   /// Moment présent imposé (tests).
   final DateTime Function() maintenant;
 
@@ -32,6 +36,7 @@ class EditionTacheScreen extends StatefulWidget {
     required this.base,
     this.tache,
     required this.jour,
+    this.debut,
     this.maintenant = DateTime.now,
   });
 
@@ -62,8 +67,8 @@ class _EditionTacheScreenState extends State<EditionTacheScreen> {
     _texte = TextEditingController(text: t?.texte ?? '');
     _jour = t?.jour ?? widget.jour;
     _duree = t?.duree ?? 60;
-    _debut = t?.debut ?? 9 * 60;
-    _chargeJour(proposeHeure: t == null);
+    _debut = t?.debut ?? widget.debut ?? 9 * 60;
+    _chargeJour(proposeHeure: t == null && widget.debut == null);
     if (t == null) {
       widget.base.habitudes().then((h) {
         if (mounted) setState(() => _habitudes = h);

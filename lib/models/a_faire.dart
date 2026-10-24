@@ -2,9 +2,12 @@ import '../utils/jour.dart';
 
 /// Une chose de la liste « À faire » (demande de Paul du 24/10/2026) :
 /// ce qu'il y a à faire, le temps que ça prend, rangé dans une des 4
-/// cases d'Eisenhower. Elle reste dans la liste tant qu'elle n'est pas
-/// faite ; placée sur une journée, elle devient une chose prévue
-/// (`Tache.listeId`) ; pas faite, elle revient d'elle-même « à placer ».
+/// cases d'Eisenhower : la matrice, que Paul appelle « en fond » (comme la
+/// colonne de son tableau blanc). Chaque soir, il y pioche ce qu'il fera
+/// le lendemain (`choisiePour`) : ces choses attendent dans le bac « À
+/// placer », puis il les glisse dans les heures de la journée ; placée,
+/// elle devient une chose prévue (`Tache.listeId`). Pas faite, elle
+/// revient d'elle-même en fond.
 class AFaire {
   final int? id;
   final String texte;
@@ -24,6 +27,9 @@ class AFaire {
   /// Faite le (nulle tant qu'elle est à faire).
   final DateTime? faiteLe;
 
+  /// Choisie pour ce jour-là (dans le bac « À placer » de ce jour).
+  final DateTime? choisiePour;
+
   /// Inventée par « Ajouter 6 mois de test » (effaçable d'un coup).
   final bool test;
 
@@ -39,6 +45,7 @@ class AFaire {
     this.echeance,
     required this.creeLe,
     this.faiteLe,
+    this.choisiePour,
     this.test = false,
   });
 
@@ -61,6 +68,7 @@ class AFaire {
     bool? urgent,
     DateTime? Function()? echeance,
     DateTime? Function()? faiteLe,
+    DateTime? Function()? choisiePour,
   }) => AFaire(
     id: id ?? this.id,
     texte: texte ?? this.texte,
@@ -70,6 +78,7 @@ class AFaire {
     echeance: echeance == null ? this.echeance : echeance(),
     creeLe: creeLe,
     faiteLe: faiteLe == null ? this.faiteLe : faiteLe(),
+    choisiePour: choisiePour == null ? this.choisiePour : choisiePour(),
     test: test,
   );
 
@@ -82,6 +91,7 @@ class AFaire {
     'echeance': echeance == null ? null : cleJour(echeance!),
     'cree_le': cleJour(creeLe),
     'faite_le': faiteLe == null ? null : cleJour(faiteLe!),
+    'choisie_pour': choisiePour == null ? null : cleJour(choisiePour!),
     'test': test ? 1 : 0,
   };
 
@@ -97,6 +107,10 @@ class AFaire {
     },
     creeLe: jourDepuisCle(l['cree_le'] as String),
     faiteLe: switch (l['faite_le']) {
+      final String c => jourDepuisCle(c),
+      _ => null,
+    },
+    choisiePour: switch (l['choisie_pour']) {
       final String c => jourDepuisCle(c),
       _ => null,
     },

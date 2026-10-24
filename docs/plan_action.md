@@ -42,7 +42,9 @@ fait, version par version : `docs/historique.md`.
 8. [ ] Planning et liste « À faire » (demandes de Paul du 24/10/2026),
    dans l'APK n° 11 (fabriqué avec son accord). Liste en 4 cases
    d'Eisenhower, impératifs, « Remplir ma journée », deux notifications
-   (début, fin). Prochain APK : `version: 1.0.0+12`, **seulement avec
+   (début, fin). APK n° 12 : écran calqué sur son tableau blanc (En
+   fond → bac « À placer » → journée heure par heure, glisser-déposer,
+   créneaux fixes). Prochain APK : `version: 1.0.0+13`, **seulement avec
    l'accord de Paul**. Planning d'origine : onglet « Demain », choses prévues avec heure et
    durée, rappel à l'heure pile « Pas fait · Reporter · Fait » (reporter
    = une heure plus tard), rappel du soir pour préparer le lendemain,
@@ -155,3 +157,13 @@ fait, version par version : `docs/historique.md`.
   Reporter · Fait ». Réglable : une seule.
 - **Rien ne se perd** : pas faite, une chose de la liste revient « à
   placer » d'elle-même ; faite, elle sort de la liste.
+
+## Le tableau blanc de Paul (24/10/2026)
+
+Trois colonnes : « en fond » (la matrice d'Eisenhower), ce qu'il fait
+le lendemain (en rouge, sans heure), et les heures de 8 h à 23 h où il
+trace des flèches ; plus des blocs de contrainte (« enfants » 17 h –
+23 h). L'appli suit le même chemin : En fond → bac « À placer » →
+journée heure par heure (glisser-déposer). Pistes : faire défiler plus
+finement pendant un glisser, placer plusieurs choses dans un même
+créneau (comme ses crochets), glisser d'un jour à l'autre.

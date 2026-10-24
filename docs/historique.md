@@ -155,7 +155,7 @@ Fabriqué avec l'accord de Paul le 23/10/2026.
 - Bouton « Ajouter 6 mois de test » dans les Réglages (et « Effacer les
   réponses de test ») pour essayer les graphiques sans attendre.
 
-## APK n° 11 (1.0.0+11, dans le code) : planning
+## APK n° 11 (1.0.0+11) : planning, liste « À faire », Eisenhower
 
 - Paul propose une deuxième partie : « qu'est-ce que je dois faire
   demain, de quelle heure à quelle heure », planifiée chaque soir, avec
@@ -170,3 +170,19 @@ Fabriqué avec l'accord de Paul le 23/10/2026.
   du planning dans le bilan du dimanche, section « Ton planning » dans
   les stats et courbe « Planning » comparée aux questions. Planning de
   test ajouté au bouton « Ajouter 6 mois de test ».
+- Deuxième idée de Paul le même jour : une liste « À faire » avec le
+  temps de chaque chose, rangée dans les 4 cases d'Eisenhower, placée
+  chaque soir sur la journée du lendemain, puis des notifications. Ses
+  choix : deux notifications (début et fin), « Remplir ma journée »
+  automatique (à creuser ensuite), urgent coché à la main **et** déduit
+  d'une date limite ; il pose ses impératifs, l'appli pré-remplit le
+  reste.
+- Codé : onglet « À faire » (Liste · Aujourd'hui · Demain), grille des
+  4 cases (D'abord, À planifier, Vite fait, Peut-être jamais), écran
+  « À faire » (temps, important ?, urgent ?, date limite), « Remplir ma
+  journée » (proposition à valider), « Placer » d'un toucher, ce qui
+  n'est pas fait revient « à placer », notification au début (« C'est
+  l'heure », Reporter) et à la fin (« C'est fait ? »), réglages de la
+  journée (9 h – 19 h) et des notifications, stats « Les 4 cases » et
+  « Ce qui attend le plus ». Base en version 3.
+- APK fabriqué avec l'accord de Paul (« Go et apk »).

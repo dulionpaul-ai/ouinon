@@ -19,7 +19,8 @@ Privée (rien ne quitte le téléphone), gratuite, sans pub, épurée.
 | Jours | Au choix par question (tous les jours par défaut) |
 | Séries | Oui (demande du 23/10/2026) : jours d'affilée avec la meilleure réponse, et record |
 | Bilan du dimanche | À 20 h, la semaine en quelques lignes (désactivable) |
-| Planning | Oui (24/10/2026) : préparer demain (quoi, heure, durée), rappel à l'heure pile « Pas fait · Reporter · Fait », reporter = une heure plus tard ; aujourd'hui et demain seulement pour l'instant |
+| Planning | Oui (24/10/2026) : impératifs de demain (quoi, heure, durée), puis « Remplir ma journée » avec la liste ; deux notifications (début « C'est l'heure », fin « C'est fait ? » : Pas fait · Reporter · Fait), reporter = une heure plus tard ; aujourd'hui et demain seulement pour l'instant |
+| Liste « À faire » | Oui (24/10/2026) : temps de chaque chose, 4 cases d'Eisenhower (D'abord, À planifier, Vite fait, Peut-être jamais), urgent coché ou déduit d'une date limite |
 | Objectifs | Pas pour l'instant |
 | Note écrite | Non, que les réponses |
 | Stats | En graphiques modernes et animés (23/10/2026) : courbes, nuage de points, anneaux, barres, grille |
@@ -44,9 +45,9 @@ Privée (rien ne quitte le téléphone), gratuite, sans pub, épurée.
 4. **Fiche d'une question** : bilan (7 jours, 30 jours, depuis le
    début) en anneau, courbe, jour de la semaine, 6 mois en cases,
    calendrier.
-5. **Demain** : le planning d'aujourd'hui ou de demain, en blocs
-   horaires ; ajouter, modifier, remettre au lendemain ce qui n'a pas
-   été fait.
+5. **À faire** : la liste en 4 cases, puis le planning d'aujourd'hui
+   ou de demain en blocs horaires (impératifs, « Remplir ma journée »,
+   « À placer »).
 6. **Réglages** : autorisation des notifications, essai d'une
    notification, à propos.
 

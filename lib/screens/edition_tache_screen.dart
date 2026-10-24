@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 
 import '../data/base.dart';
+import '../models/a_faire.dart';
 import '../models/tache.dart';
 import '../theme/app_theme.dart';
 import '../utils/date_fr.dart';
 import '../utils/jour.dart';
 import '../utils/planning.dart';
+import '../widgets/cases.dart';
 import '../widgets/rond.dart';
 
-/// Ajout ou modification d'une chose prévue : quoi, quel jour
-/// (aujourd'hui ou demain), à quelle heure, pour combien de temps.
+/// Ajout d'un impératif (rendez-vous, heure fixe) ou modification d'une
+/// chose prévue : quoi, quel jour (aujourd'hui ou demain), à quelle
+/// heure, pour combien de temps. Une chose tirée de la liste garde son
+/// texte (il se change dans la liste) ; la retirer du planning la remet
+/// « à placer ».
 class EditionTacheScreen extends StatefulWidget {
   final Base base;
 
@@ -47,6 +52,7 @@ class _EditionTacheScreenState extends State<EditionTacheScreen> {
   bool _choixHeure = false;
 
   bool get _nouvelle => widget.tache == null;
+  bool get _deLaListe => widget.tache?.listeId != null;
   DateTime get _aujourdhui => jourDe(widget.maintenant());
 
   @override
@@ -137,7 +143,11 @@ class _EditionTacheScreenState extends State<EditionTacheScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Retirer du planning ?'),
-        content: Text('« ${widget.tache!.texte} » sera effacé.'),
+        content: Text(
+          _deLaListe
+              ? '« ${widget.tache!.texte} » retourne dans ta liste, à placer.'
+              : '« ${widget.tache!.texte} » sera effacé.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -171,7 +181,7 @@ class _EditionTacheScreenState extends State<EditionTacheScreen> {
     );
     return Scaffold(
       appBar: AppBar(
-        title: Text(_nouvelle ? 'À prévoir' : 'Modifier'),
+        title: Text(_nouvelle ? 'Impératif' : 'Modifier'),
         actions: [
           if (!_nouvelle)
             IconButton(
@@ -197,15 +207,35 @@ class _EditionTacheScreenState extends State<EditionTacheScreen> {
           TextField(
             controller: _texte,
             autofocus: _nouvelle,
+            readOnly: _deLaListe,
             textCapitalization: TextCapitalization.sentences,
             maxLength: Tache.longueurMax,
             onChanged: (_) => setState(() => _erreur = null),
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
             decoration: const InputDecoration(
-              hintText: 'Ex. : Garage, Courses, Courir',
+              hintText: 'Ex. : Garage, Rendez-vous, Train',
               counterText: '',
             ),
           ),
+          if (widget.tache?.quadrant case final q? when _deLaListe)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(6, 10, 6, 0),
+              child: Row(
+                children: [
+                  Pastille(
+                    Case.values[q].nom,
+                    fond: couleurCase(context, Case.values[q]),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'De ta liste. Le texte se change dans la liste.',
+                      style: doux,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           if (_erreur != null)
             Padding(
               padding: const EdgeInsets.fromLTRB(6, 8, 6, 0),

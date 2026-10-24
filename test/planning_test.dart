@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ouinon/data/donnees_test.dart';
+import 'package:ouinon/data/preferences.dart';
 import 'package:ouinon/models/tache.dart';
 import 'package:ouinon/utils/jour.dart';
 import 'package:ouinon/utils/planning.dart';
@@ -33,18 +34,28 @@ void main() {
     expect(dureeFr(90), '1 h 30');
   });
 
-  test('rappels : à l\'heure pile, sans réponse, pas passés', () {
+  test('rappels : début et fin, sans réponse, pas passés', () {
     final midi = DateTime(2026, 10, 22, 12);
-    final rappels = rappelsAProgrammer([
+    final taches = [
       tache(1, 'Courses', 10 * 60), // passée
       tache(2, 'Garage', 18 * 60),
       tache(3, 'Banque', 14 * 60, etat: Tache.fait), // déjà répondue
-      tache(4, 'Courir', 7 * 60, jour: DateTime(2026, 10, 23)),
-    ], midi);
-    expect([for (final t in rappels) t.id], [2, 4]);
-    expect(rappels.first.quand, DateTime(2026, 10, 22, 18));
+      tache(4, 'Mails', 11 * 60 + 30), // commencée : reste la fin
+    ];
+    final rappels = rappelsAProgrammer(taches, midi);
+    expect(
+      [for (final r in rappels) (r.tache.id, r.fin, r.question)],
+      [(4, true, true), (2, false, false), (2, true, true)],
+    );
+    expect(rappels[1].quand, DateTime(2026, 10, 22, 18));
+    expect(rappels[2].quand, DateTime(2026, 10, 22, 19));
+    // Une seule notification : elle porte les trois boutons.
+    final debut = rappelsAProgrammer(taches, midi, mode: NotifsPlanning.debut);
+    expect([for (final r in debut) (r.tache.id, r.question)], [(2, true)]);
+    final fin = rappelsAProgrammer(taches, midi, mode: NotifsPlanning.fin);
+    expect([for (final r in fin) r.tache.id], [4, 2]);
     // Identifiants négatifs : jamais ceux des questions.
-    expect(idNotifTache(2), -2);
+    expect([idNotifDebut(2), idNotifFin(2)], [-4, -5]);
   });
 
   test('rappel du soir : le prochain, et son texte', () {

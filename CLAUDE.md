@@ -7,9 +7,12 @@ directement depuis la notification avec 2 ou 3 boutons, sans ouvrir
 l'appli. L'appli garde les réponses et en tire des stats en graphiques animés :
 courbes, anneaux, barres, calendrier, et liens trouvés seuls entre
 questions (courbes qui se ressemblent, décalées de 0 à 3 jours).
-Deuxième partie, le planning : chaque soir, on prépare la journée du
-lendemain (quoi, à quelle heure, combien de temps) ; un rappel arrive à
-l'heure pile avec « Pas fait · Reporter · Fait ».
+Deuxième partie, « À faire » : une liste avec le temps de chaque chose,
+rangée dans les 4 cases d'Eisenhower ; chaque soir, on pose ses
+impératifs du lendemain et l'appli place la liste dans les trous
+(« Remplir ma journée ») ; une notification au début (« C'est
+l'heure ») et une à la fin (« C'est fait ? » : Pas fait · Reporter ·
+Fait).
 Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
 
 ## Consignes de Paul
@@ -64,7 +67,9 @@ Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
   meilleure à droite (notification, boutons, barres).
 - Une chose prévue (planning) : « Fait » = 0, « Pas fait » = 1, sans
   réponse = nulle (ne compte pas dans le pourcentage) ; « Reporter » la
-  remet une heure après l'appui, jamais après minuit.
+  remet une heure après l'appui, jamais après minuit. Tirée de la liste
+  (`listeId`) : « Fait » la sort de la liste, sinon elle revient « à
+  placer ». Cases : D'abord, À planifier, Vite fait, Peut-être jamais.
 - Toujours sombre ; style et couleurs dans `lib/theme/app_theme.dart`
   (`Teintes`) et `lib/widgets/rond.dart`, pas de puces Material.
 - Identifiant de l'appli : `fr.ouinon.app`, nom affiché « Ouinon ».

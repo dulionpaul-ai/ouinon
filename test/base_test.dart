@@ -3,6 +3,7 @@ import 'package:ouinon/data/base.dart';
 import 'package:ouinon/data/donnees_test.dart';
 import 'package:ouinon/utils/courbes.dart';
 import 'package:ouinon/data/notifications.dart';
+import 'package:ouinon/models/a_faire.dart';
 import 'package:ouinon/models/question.dart';
 import 'package:ouinon/models/tache.dart';
 import 'package:path/path.dart' as p;
@@ -254,7 +255,106 @@ void main() {
       expect(await base.questions(), hasLength(1));
       await base.enregistreTache(Tache(jour: jeudi, debut: 600, texte: 'A'));
       expect(await base.tachesDu(jeudi), hasLength(1));
+      expect(await base.liste(), isEmpty);
       await base.db.close();
+    });
+
+    test('une base de la version 2 gagne la liste', () async {
+      sqfliteFfiInit();
+      final dossier = await Directory.systemTemp.createTemp('ouinon');
+      addTearDown(() => dossier.delete(recursive: true));
+      final chemin = p.join(dossier.path, 'v2.sqlite');
+      final v2 = await databaseFactoryFfi.openDatabase(
+        chemin,
+        options: OpenDatabaseOptions(
+          version: 2,
+          onCreate: (db, _) async {
+            await db.execute(
+              'CREATE TABLE questions (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+              'texte TEXT NOT NULL, reponses TEXT NOT NULL, heure INTEGER '
+              'NOT NULL, jours INTEGER NOT NULL, active INTEGER NOT NULL '
+              'DEFAULT 1, ordre INTEGER NOT NULL DEFAULT 0)',
+            );
+            await db.execute(
+              'CREATE TABLE reponses (question_id INTEGER NOT NULL, jour TEXT '
+              'NOT NULL, choix INTEGER NOT NULL, repondu_le TEXT NOT NULL, '
+              'PRIMARY KEY (question_id, jour))',
+            );
+            await db.execute(
+              'CREATE TABLE planning (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+              'jour TEXT NOT NULL, debut INTEGER NOT NULL, duree INTEGER NOT '
+              'NULL, texte TEXT NOT NULL, etat INTEGER, reports INTEGER NOT '
+              'NULL DEFAULT 0, test INTEGER NOT NULL DEFAULT 0)',
+            );
+            await db.insert('planning', {
+              'jour': '2026-10-22',
+              'debut': 600,
+              'duree': 60,
+              'texte': 'Ancien',
+            });
+          },
+        ),
+      );
+      await v2.close();
+      final base = Base(
+        await Base.ouvrirAvec(
+          databaseFactoryFfi,
+          chemin,
+          instanceUnique: false,
+        ),
+      );
+      final anciennes = await base.tachesDu(jeudi);
+      expect(anciennes.single.texte, 'Ancien');
+      expect(anciennes.single.imperatif, isTrue);
+      await base.enregistreAFaire(AFaire(texte: 'Nouveau', creeLe: jeudi));
+      expect(await base.liste(), hasLength(1));
+      await base.db.close();
+    });
+
+    test('liste : faite par le planning, de retour si pas faite', () async {
+      final base = await ouvreBase();
+      final papiers = await base.enregistreAFaire(
+        AFaire(texte: 'Papiers', duree: 60, important: true, creeLe: jeudi),
+      );
+      final t = await base.enregistreTache(
+        Tache(
+          jour: vendredi,
+          debut: 14 * 60,
+          texte: 'Papiers',
+          listeId: papiers.id,
+          quadrant: Case.aPlanifier.index,
+        ),
+      );
+      expect((await base.placees(jeudi)).keys, [papiers.id]);
+      await base.repondTache(t.id!, Tache.pasFait);
+      expect(await base.placees(jeudi), isEmpty);
+      expect(await base.liste(), hasLength(1));
+      await base.repondTache(t.id!, Tache.fait);
+      expect(await base.liste(), isEmpty);
+      expect((await base.aFaire(papiers.id!))!.faiteLe, vendredi);
+      await base.repondTache(t.id!, null);
+      expect(await base.liste(), hasLength(1));
+      // Changer la liste change ce qui est prévu sans réponse.
+      await base.enregistreAFaire(papiers.copie(texte: 'Impôts', duree: 90));
+      expect((await base.tache(t.id!))!.texte, 'Impôts');
+      expect((await base.tache(t.id!))!.duree, 90);
+      // Faite sans le planning : ses passages sans réponse partent.
+      await base.marqueFaite(papiers.id!, jeudi);
+      expect(await base.tache(t.id!), isNull);
+      expect(await base.liste(), isEmpty);
+      expect(await base.liste(avecFaites: true), hasLength(1));
+      await base.supprimeAFaire(papiers.id!);
+      expect(await base.liste(avecFaites: true), isEmpty);
+    });
+
+    test('liste de test : une seule fois, effaçable', () async {
+      final base = await ouvreBase();
+      await base.enregistreAFaire(AFaire(texte: 'Vrai', creeLe: jeudi));
+      await ajouteDonneesTest(base, maintenant: jeudi);
+      expect((await base.liste()).length, greaterThan(5));
+      expect(await ajouteDonneesTest(base, maintenant: jeudi), 0);
+      await base.effaceReponsesTest();
+      expect([for (final a in await base.liste()) a.texte], ['Vrai']);
     });
 
     group('réponse depuis une notification', () {

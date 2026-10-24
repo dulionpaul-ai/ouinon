@@ -39,9 +39,11 @@ fait, version par version : `docs/historique.md`.
    principale et stats en classement, bilan du dimanche. APK n° 10
    (23/10/2026) : stats en graphiques, données de test, numéro d'APK
    dans les Réglages.
-8. [ ] Planning (demande de Paul du 24/10/2026), codé et testé, dans
-   l'APK n° 11 (`version: 1.0.0+11`, **à fabriquer seulement avec
-   l'accord de Paul**) : onglet « Demain », choses prévues avec heure et
+8. [ ] Planning et liste « À faire » (demandes de Paul du 24/10/2026),
+   dans l'APK n° 11 (fabriqué avec son accord). Liste en 4 cases
+   d'Eisenhower, impératifs, « Remplir ma journée », deux notifications
+   (début, fin). Prochain APK : `version: 1.0.0+12`, **seulement avec
+   l'accord de Paul**. Planning d'origine : onglet « Demain », choses prévues avec heure et
    durée, rappel à l'heure pile « Pas fait · Reporter · Fait » (reporter
    = une heure plus tard), rappel du soir pour préparer le lendemain,
    « Remettre demain », stats du planning (et liens avec les
@@ -127,3 +129,29 @@ fait, version par version : `docs/historique.md`.
   question, donc l'appli cherche aussi ses liens avec les questions ;
   plus selon le moment, le jour, la charge de la journée, et ce qui est
   le plus reporté. Toujours des constats, jamais de conseil.
+
+## Liste « À faire » et Eisenhower (24/10/2026) : choix et pistes
+
+- **Noter vite, trier après** : texte et durée d'abord ; « Important ? »
+  et « Urgent ? » en deux touchers plutôt qu'une grille à viser.
+- **Urgent** : coché à la main, ou déduit d'une date limite à moins de
+  2 jours (une chose change de case avec le temps).
+- **Noms des cases** pour la vie perso : D'abord, À planifier, Vite
+  fait, Peut-être jamais (« déléguer » est rarement possible).
+- **Impératifs et liste** : les impératifs (heure fixe) se posent à la
+  main ; la liste se place dans les trous.
+- **« Remplir ma journée », version 1** (à améliorer avec Paul) : entre
+  le début et la fin de journée des Réglages, un quart d'heure de marge
+  entre deux choses, horaires au quart d'heure ; ordre : dernier jour
+  d'une date limite, D'abord, À planifier, Vite fait (date limite la
+  plus proche, puis la plus ancienne) ; « Peut-être jamais » jamais
+  placé tout seul ; proposition à valider, ce qui ne rentre pas est dit.
+  Pistes : remplir le plus long d'abord pour moins de trous, garder des
+  pauses, tenir compte du taux habituel (« tu fais 63 % de ce que tu
+  prévois ») pour moins charger, découper les longues choses, heures
+  préférées (sport le matin…).
+- **Deux notifications** (choix de Paul) : au début « C'est l'heure »
+  avec « Reporter », à la fin « C'est fait ? » avec « Pas fait ·
+  Reporter · Fait ». Réglable : une seule.
+- **Rien ne se perd** : pas faite, une chose de la liste revient « à
+  placer » d'elle-même ; faite, elle sort de la liste.

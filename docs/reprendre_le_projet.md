@@ -10,14 +10,16 @@ Mis à jour le 22/10/2026.
   heure ; on répond avec 2 ou 3 boutons, sans ouvrir l'appli. L'appli
   garde les réponses sur le téléphone et en tire des stats, dont des
   croisements entre questions.
-- **Où on en est** : V1 codée et testée en automatique (66 tests).
+- **Où on en est** : V1 codée et testée en automatique (79 tests).
   Paul teste les APK sur son téléphone Android (Samsung, mode sombre,
   texte agrandi) et envoie des retours en captures d'écran. Dernier APK
   envoyé : **n° 10** (version 1.0.0+10, 23/10/2026) : stats refaites
   en graphiques animés, liens trouvés seuls, bouton « Ajouter 6 mois de
-  test » dans les Réglages (voir `docs/historique.md`). Depuis, dans le
-  code : le **planning** (onglet « Demain »), version déjà passée à
-  1.0.0+11 pour l'APK n° 11, pas encore fabriqué.
+  test » dans les Réglages. **APK n° 11** (1.0.0+11, 24/10/2026) :
+  planning et liste « À faire » en 4 cases d'Eisenhower, « Remplir ma
+  journée », deux notifications par chose (voir `docs/historique.md`).
+  Pour le prochain, passer `version` à 1.0.0+12 dans `pubspec.yaml` et
+  `lib/utils/version.dart`.
   Toujours demander à Paul avant de fabriquer un APK. Les boutons de
   notification marchent appli fermée (confirmé par Paul).
 - **Le code est sur `main`** du dépôt `dulionpaul-ai/ouinon` (voir
@@ -56,10 +58,14 @@ Détail dans `docs/revue_produit.md`. Les plus importants :
   comparer, décalées d'un jour au besoin, nuage de points, anneaux,
   barres, grille ; modernes et animés. La « question principale » est
   abandonnée. Bilan du dimanche à 20 h.
-- **Planning** (24/10/2026) : le soir, il prépare sa journée du
-  lendemain (quoi, à quelle heure, combien de temps) ; rappel à l'heure
-  pile avec « Pas fait · Reporter · Fait » ; reporter = une heure plus
-  tard. Seulement aujourd'hui et demain pour l'instant.
+- **Planning et liste « À faire »** (24/10/2026) : une liste avec le
+  temps de chaque chose, rangée dans les 4 cases d'Eisenhower ; le soir,
+  il pose ses impératifs de demain, puis « Remplir ma journée » place la
+  liste dans les trous. Deux notifications par chose : au début
+  (« C'est l'heure », Reporter), à la fin (« C'est fait ? » : Pas fait ·
+  Reporter · Fait) ; reporter = une heure plus tard. Seulement
+  aujourd'hui et demain pour l'instant. « Remplir ma journée » est une
+  première version à améliorer avec lui.
 - Liens dès 14 jours communs et 30 % de ressemblance, présentés comme
   des coïncidences, jamais des causes.
 - Heure précise des notifications : autorisation « Alarmes et rappels »
@@ -124,7 +130,9 @@ Tout est dans `docs/fonctionnement.md`. L'essentiel :
   `lib/utils/courbes.dart` : calculs purs et testés.
 - `lib/widgets/graphiques.dart` : graphiques animés (module fl_chart).
 - `lib/data/donnees_test.dart` : 6 mois de réponses et de planning de test.
-- Planning : `lib/models/tache.dart`, `lib/utils/planning.dart`,
+- Planning et liste : `lib/models/a_faire.dart`, `lib/models/tache.dart`,
+  `lib/utils/planning.dart`, `lib/utils/remplissage.dart`,
+  `lib/screens/edition_a_faire_screen.dart`, `lib/widgets/cases.dart`,
   `lib/screens/planning_screen.dart`, `lib/screens/edition_tache_screen.dart`,
   `lib/widgets/bloc_tache.dart`.
 - `lib/screens/` : Jour (pages qui glissent), Stats, fiche d'une

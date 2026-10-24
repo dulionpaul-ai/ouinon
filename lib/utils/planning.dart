@@ -1,3 +1,5 @@
+import '../data/preferences.dart';
+import '../models/a_faire.dart';
 import '../models/question.dart';
 import '../models/tache.dart';
 import 'date_fr.dart';
@@ -19,9 +21,10 @@ const reponsesTache = Question(
 /// Identifiant du rappel du soir « Prépare ta journée de demain ».
 const idRappelPlanning = 3;
 
-/// Identifiant de la notification d'une chose prévue : négatif, pour ne
-/// jamais croiser celles des questions.
-int idNotifTache(int id) => -id;
+/// Identifiants des notifications d'une chose prévue (début et fin) :
+/// négatifs, pour ne jamais croiser celles des questions.
+int idNotifDebut(int id) => -2 * id;
+int idNotifFin(int id) => -2 * id - 1;
 
 /// « 18 h – 19 h ».
 String plageFr(Tache t) =>
@@ -34,12 +37,34 @@ String dureeFr(int minutes) {
   return m == 0 ? '$h h' : '$h h ${m.toString().padLeft(2, '0')}';
 }
 
-/// Les rappels à programmer : chaque chose sans réponse, à son heure de
-/// début, si elle n'est pas passée.
-List<Tache> rappelsAProgrammer(List<Tache> taches, DateTime maintenant) => [
-  for (final t in taches)
-    if (t.id != null && t.etat == null && t.quand.isAfter(maintenant)) t,
-]..sort((a, b) => a.quand.compareTo(b.quand));
+/// Une notification d'une chose prévue : au début (rappel) ou à la fin
+/// (« c'est fait ? »), et si elle porte les trois boutons.
+typedef RappelTache = ({Tache tache, bool fin, DateTime quand, bool question});
+
+/// Les rappels à programmer : pour chaque chose sans réponse, au début
+/// et/ou à la fin selon `mode`, s'ils ne sont pas passés.
+List<RappelTache> rappelsAProgrammer(
+  List<Tache> taches,
+  DateTime maintenant, {
+  NotifsPlanning mode = NotifsPlanning.debutEtFin,
+}) {
+  final rappels = <RappelTache>[];
+  for (final t in taches) {
+    if (t.id == null || t.etat != null) continue;
+    if (mode != NotifsPlanning.fin && t.quand.isAfter(maintenant)) {
+      rappels.add((
+        tache: t,
+        fin: false,
+        quand: t.quand,
+        question: mode == NotifsPlanning.debut,
+      ));
+    }
+    if (mode != NotifsPlanning.debut && t.quandFin.isAfter(maintenant)) {
+      rappels.add((tache: t, fin: true, quand: t.quandFin, question: true));
+    }
+  }
+  return rappels..sort((a, b) => a.quand.compareTo(b.quand));
+}
 
 /// Le prochain rappel du soir, à `heure` (minutes), strictement après
 /// `maintenant`.
@@ -59,9 +84,13 @@ DateTime prochainRappelPlanning(DateTime maintenant, int heure) {
   return quand;
 }
 
-/// Texte du rappel du soir : le point sur la journée, puis ce qui est
-/// déjà prévu pour le lendemain.
-String texteRappelPlanning(List<Tache> duJour, List<Tache> lendemain) {
+/// Texte du rappel du soir : le point sur la journée, ce qui est déjà
+/// prévu pour le lendemain, et ce qui attend dans la liste.
+String texteRappelPlanning(
+  List<Tache> duJour,
+  List<Tache> lendemain, {
+  int aPlacer = 0,
+}) {
   final lignes = <String>[];
   final c = compte(duJour);
   if (duJour.isNotEmpty) {
@@ -79,6 +108,11 @@ String texteRappelPlanning(List<Tache> duJour, List<Tache> lendemain) {
       'Demain : $n chose${n > 1 ? 's' : ''} prévue${n > 1 ? 's' : ''}, '
       'de ${heureFr(lendemain.map((t) => t.debut).reduce(_min))} '
       'à ${heureFr(lendemain.map((t) => t.fin).reduce(_max) % (24 * 60))}.',
+    );
+  }
+  if (aPlacer > 0) {
+    lignes.add(
+      '$aPlacer chose${aPlacer > 1 ? 's' : ''} à placer dans ta liste.',
     );
   }
   return lignes.join('\n');
@@ -217,4 +251,23 @@ String? ligneBilanPlanning(Iterable<Tache> taches, DateTime dimanche) {
   final total = c.faits + c.pasFaits;
   if (total == 0) return null;
   return 'Planning : ${c.faits} fait${c.faits > 1 ? 's' : ''} sur $total';
+}
+
+/// Part faite selon la case d'Eisenhower (choses tirées de la liste).
+List<double?> partParCase(Iterable<Tache> taches) => [
+  for (final c in Case.values)
+    partFaite(taches.where((t) => t.quadrant == c.index)),
+];
+
+/// Part du temps fait (choses tirées de la liste) passée sur « À
+/// planifier », l'important pas urgent : le vrai indicateur
+/// d'Eisenhower. Nulle sans rien de fait.
+double? partTempsImportant(Iterable<Tache> taches) {
+  var total = 0, important = 0;
+  for (final t in taches) {
+    if (t.quadrant == null || t.etat != Tache.fait) continue;
+    total += t.duree;
+    if (t.quadrant == Case.aPlanifier.index) important += t.duree;
+  }
+  return total == 0 ? null : important / total;
 }

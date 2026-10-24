@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import '../models/a_faire.dart';
 import '../models/question.dart';
 import '../models/tache.dart';
 import '../utils/jour.dart';
@@ -79,21 +80,22 @@ List<double> _energie(DateTime debut, int jours, int graine) {
 }
 
 /// Choses à prévoir du planning de test : texte, durée, heures possibles,
-/// et un penchant (les papiers se reportent plus que le sport).
+/// un penchant (les papiers se reportent plus que le sport) et leur case
+/// d'Eisenhower (nulle : un impératif).
 const _choses = [
-  ('Courir', 45, [7, 18], 0.3),
-  ('Courses', 60, [10, 17, 18], 0.4),
-  ('Appeler maman', 15, [12, 19], 0.6),
-  ('Ménage', 60, [10, 14], -0.2),
-  ('Banque', 30, [9, 14], -0.6),
-  ('Lessive', 30, [8, 19], 0.2),
-  ('Lire', 30, [21, 22], 0.1),
-  ('Garage', 60, [9, 17], -0.3),
-  ('Mails', 30, [9, 11], 0.5),
-  ('Préparer le dîner', 60, [19], 0.7),
-  ('Papiers', 60, [14, 20], -0.9),
-  ('Vélo', 90, [10, 16], 0.2),
-  ('Bricolage', 120, [14, 15], -0.4),
+  ('Courir', 45, [7, 18], 0.3, Case.aPlanifier),
+  ('Courses', 60, [10, 17, 18], 0.4, Case.viteFait),
+  ('Appeler maman', 15, [12, 19], 0.6, Case.aPlanifier),
+  ('Ménage', 60, [10, 14], -0.2, Case.viteFait),
+  ('Banque', 30, [9, 14], -0.6, Case.dabord),
+  ('Lessive', 30, [8, 19], 0.2, Case.viteFait),
+  ('Lire', 30, [21, 22], 0.1, Case.aPlanifier),
+  ('Garage', 60, [9, 17], -0.3, null),
+  ('Mails', 30, [9, 11], 0.5, Case.viteFait),
+  ('Préparer le dîner', 60, [19], 0.7, null),
+  ('Papiers', 60, [14, 20], -0.9, Case.dabord),
+  ('Vélo', 90, [10, 16], 0.2, Case.aPlanifier),
+  ('Bricolage', 120, [14, 15], -0.4, Case.peutEtreJamais),
 ];
 
 /// Planning de test des `jours` jours passés (pas aujourd'hui).
@@ -112,7 +114,7 @@ List<Tache> genereTachesTest({
     final nombre = 2 + hasard.nextInt(5);
     final choisies = [..._choses]..shuffle(hasard);
     final du = <Tache>[];
-    for (final (texte, duree, heures, _) in choisies.take(nombre)) {
+    for (final (texte, duree, heures, _, _) in choisies.take(nombre)) {
       final debutMin =
           heures[hasard.nextInt(heures.length)] * 60 +
           (hasard.nextBool() ? 30 : 0);
@@ -120,7 +122,8 @@ List<Tache> genereTachesTest({
     }
     final heures = du.fold(0, (s, t) => s + t.duree) / 60;
     for (final t in du) {
-      final penchant = _choses.firstWhere((c) => c.$1 == t.texte).$4;
+      final chose = _choses.firstWhere((c) => c.$1 == t.texte);
+      final penchant = chose.$4;
       final x =
           1.6 * energie[i + 1] +
           0.9 +
@@ -149,6 +152,7 @@ List<Tache> genereTachesTest({
           etat: etat,
           reports: reports,
           test: true,
+          quadrant: chose.$5?.index,
         ),
       );
     }
@@ -156,8 +160,42 @@ List<Tache> genereTachesTest({
   return taches;
 }
 
-/// Ajoute six mois de réponses et de planning de test à la base. Rend le
-/// nombre ajouté.
+/// Liste « À faire » de test : un peu de tout, dans les 4 cases, avec
+/// des dates limites et des choses qui attendent depuis longtemps.
+List<AFaire> genereListeTest({required DateTime aujourdhui}) {
+  final j = jourDe(aujourdhui);
+  AFaire a(
+    String texte,
+    int duree, {
+    bool important = false,
+    bool urgent = false,
+    int? dans,
+    int depuis = 0,
+  }) => AFaire(
+    texte: texte,
+    duree: duree,
+    important: important,
+    urgent: urgent,
+    echeance: dans == null ? null : ajouteJours(j, dans),
+    creeLe: ajouteJours(j, -depuis),
+    test: true,
+  );
+  return [
+    a('Déclarer les impôts', 90, important: true, dans: 2, depuis: 12),
+    a('Rappeler le plombier', 15, important: true, urgent: true, depuis: 1),
+    a('Préparer le voyage', 60, important: true, dans: 10, depuis: 4),
+    a('Renouveler la carte d\'identité', 30, important: true, depuis: 23),
+    a('Changer d\'assurance', 60, important: true, depuis: 9),
+    a('Apprendre la guitare', 30, important: true, depuis: 2),
+    a('Répondre à Marc', 15, urgent: true, depuis: 1),
+    a('Acheter un cadeau', 45, dans: 1, depuis: 3),
+    a('Trier les photos', 120, depuis: 30),
+    a('Ranger la cave', 120, depuis: 15),
+  ];
+}
+
+/// Ajoute six mois de réponses et de planning de test à la base, et une
+/// liste à faire. Rend le nombre ajouté.
 Future<int> ajouteDonneesTest(Base base, {DateTime? maintenant}) async {
   final aujourdhui = maintenant ?? DateTime.now();
   final reponses = genereReponsesTest(
@@ -165,5 +203,6 @@ Future<int> ajouteDonneesTest(Base base, {DateTime? maintenant}) async {
     aujourdhui: aujourdhui,
   );
   return await base.ajouteReponsesTest(reponses) +
-      await base.ajouteTachesTest(genereTachesTest(aujourdhui: aujourdhui));
+      await base.ajouteTachesTest(genereTachesTest(aujourdhui: aujourdhui)) +
+      await base.ajouteListeTest(genereListeTest(aujourdhui: aujourdhui));
 }

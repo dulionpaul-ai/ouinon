@@ -39,10 +39,11 @@ Future<void> reponseNotifArrierePlan(NotificationResponse reponse) =>
 /// à chaque ouverture de l'appli, à chaque modification et à chaque
 /// réponse : les jours déjà répondus sont sautés.
 ///
-/// Planning : chaque chose prévue sans réponse a sa notification à son
-/// heure pile, avec « Pas fait · Reporter · Fait » (contenu caché
-/// « t|id ») ; « Reporter » la reprogramme une heure plus tard. Le soir,
-/// un rappel invite à préparer le lendemain.
+/// Planning : chaque chose prévue sans réponse a deux notifications
+/// (choix de Paul du 24/10/2026) : au début, « C'est l'heure » avec
+/// « Reporter » ; à la fin, « C'est fait ? » avec « Pas fait · Reporter ·
+/// Fait » (contenu caché « t|id »). « Reporter » la reprogramme une heure
+/// plus tard. Le soir, un rappel invite à préparer le lendemain.
 class Notifications {
   /// Remplacé dans les tests (aucun appel au système).
   static Notifications instance = Notifications();
@@ -107,6 +108,10 @@ class Notifications {
                 for (final (id, texte) in _actionsTache)
                   DarwinNotificationAction.plain(id, texte),
               ],
+            ),
+            DarwinNotificationCategory(
+              'tacheDebut',
+              actions: [DarwinNotificationAction.plain('tr', 'Reporter')],
             ),
           ],
         ),
@@ -217,6 +222,7 @@ class Notifications {
     final taches = rappelsAProgrammer(
       await base.taches(depuis: jourDe(now)),
       now,
+      mode: await Preferences.notifsPlanning(),
     );
     final plan = planifie(
       questions: questions,
@@ -261,13 +267,14 @@ class Notifications {
         androidScheduleMode: mode,
       );
     }
-    for (final t in taches) {
+    for (final r in taches) {
+      final t = r.tache;
       await _plugin.zonedSchedule(
-        id: idNotifTache(t.id!),
-        title: t.texte,
-        body: plageFr(t),
-        scheduledDate: _tz(t.quand),
-        notificationDetails: _detailsTache,
+        id: r.fin ? idNotifFin(t.id!) : idNotifDebut(t.id!),
+        title: r.fin ? '${t.texte}, c\'est fait ?' : t.texte,
+        body: r.fin ? plageFr(t) : 'C\'est l\'heure · ${plageFr(t)}',
+        scheduledDate: _tz(r.quand),
+        notificationDetails: r.question ? _detailsTache : _detailsDebut,
         androidScheduleMode: mode,
         payload: 't|${t.id}',
       );
@@ -289,9 +296,15 @@ class Notifications {
       await Preferences.heureRappelPlanning(),
     );
     final jour = jourDe(quand);
+    final lendemain = ajouteJours(jour, 1);
+    final placees = await base.placees(lendemain);
     final texte = texteRappelPlanning(
       await base.tachesDu(jour),
-      await base.tachesDu(ajouteJours(jour, 1)),
+      await base.tachesDu(lendemain),
+      aPlacer: [
+        for (final a in await base.liste())
+          if (!placees.containsKey(a.id)) a,
+      ].length,
     );
     await _plugin.zonedSchedule(
       id: idRappelPlanning,
@@ -368,7 +381,8 @@ class Notifications {
   /// dans l'appli).
   Future<void> retireTache(int id) async {
     await prepare();
-    await _plugin.cancel(id: idNotifTache(id));
+    await _plugin.cancel(id: idNotifDebut(id));
+    await _plugin.cancel(id: idNotifFin(id));
   }
 
   /// Envoie tout de suite la notification d'une question pour aujourd'hui
@@ -422,6 +436,20 @@ class Notifications {
       ],
     ),
     iOS: const DarwinNotificationDetails(categoryIdentifier: 'tache'),
+  );
+
+  static const _detailsDebut = NotificationDetails(
+    android: AndroidNotificationDetails(
+      'planning',
+      'Planning',
+      channelDescription: 'Les choses prévues, à leur heure.',
+      importance: Importance.high,
+      priority: Priority.high,
+      category: AndroidNotificationCategory.reminder,
+      icon: '@drawable/ic_stat_ouinon',
+      actions: [AndroidNotificationAction('tr', 'Reporter')],
+    ),
+    iOS: DarwinNotificationDetails(categoryIdentifier: 'tacheDebut'),
   );
 
   static const _detailsSimples = NotificationDetails(

@@ -4,9 +4,13 @@ import '../utils/jour.dart';
 /// « chaque jour, je planifie ma journée de demain, et les rappels se
 /// font en accord avec ça ») : un jour, une heure de début, une durée.
 ///
-/// À l'heure pile, une notification demande « Pas fait · Reporter ·
-/// Fait ». Comme pour les questions, « pas répondu » n'est pas une
-/// réponse : `etat` reste nul.
+/// Au début, une notification rappelle la chose ; à la fin, une autre
+/// demande « Pas fait · Reporter · Fait ». Comme pour les questions,
+/// « pas répondu » n'est pas une réponse : `etat` reste nul.
+///
+/// Deux sortes : les impératifs (rendez-vous, heure fixe, ajoutés
+/// directement) et les choses tirées de la liste « À faire »
+/// (`listeId`), placées à la main ou par « Remplir ma journée ».
 class Tache {
   final int? id;
   final DateTime jour;
@@ -28,6 +32,14 @@ class Tache {
   /// Inventée par « Ajouter 6 mois de test » (effaçable d'un coup).
   final bool test;
 
+  /// La chose de la liste « À faire » d'où elle vient (nulle pour un
+  /// impératif).
+  final int? listeId;
+
+  /// Sa case d'Eisenhower au moment où elle a été placée (`Case.index`),
+  /// gardée pour les stats.
+  final int? quadrant;
+
   static const fait = 0;
   static const pasFait = 1;
   static const longueurMax = 40;
@@ -44,13 +56,22 @@ class Tache {
     this.etat,
     this.reports = 0,
     this.test = false,
+    this.listeId,
+    this.quadrant,
   });
+
+  /// Rendez-vous à heure fixe (pas tiré de la liste).
+  bool get imperatif => listeId == null;
 
   int get fin => debut + duree;
 
   /// Moment du rappel : l'heure de début, ce jour-là.
   DateTime get quand =>
       DateTime(jour.year, jour.month, jour.day, debut ~/ 60, debut % 60);
+
+  /// Moment de la question « c'est fait ? » : l'heure de fin.
+  DateTime get quandFin =>
+      DateTime(jour.year, jour.month, jour.day, fin ~/ 60, fin % 60);
 
   Tache copie({
     int? id,
@@ -69,6 +90,8 @@ class Tache {
     etat: etat == null ? this.etat : etat(),
     reports: reports ?? this.reports,
     test: test,
+    listeId: listeId,
+    quadrant: quadrant,
   );
 
   Map<String, Object?> versLigne() => {
@@ -80,6 +103,8 @@ class Tache {
     'etat': etat,
     'reports': reports,
     'test': test ? 1 : 0,
+    'liste_id': listeId,
+    'quadrant': quadrant,
   };
 
   factory Tache.depuisLigne(Map<String, Object?> l) => Tache(
@@ -91,5 +116,7 @@ class Tache {
     etat: l['etat'] as int?,
     reports: l['reports'] as int,
     test: (l['test'] as int) == 1,
+    listeId: l['liste_id'] as int?,
+    quadrant: l['quadrant'] as int?,
   );
 }

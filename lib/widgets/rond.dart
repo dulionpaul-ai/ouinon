@@ -265,13 +265,20 @@ class ChoixPilules<T> extends StatelessWidget {
                       customBorder: const StadiumBorder(),
                       onTap: () => onChoix(v),
                       child: Center(
-                        child: Text(
-                          libelle,
-                          maxLines: 1,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            color: v == valeur ? t.fond : t.texte,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          // Réduit plutôt que coupé (gros texte).
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              libelle,
+                              maxLines: 1,
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: v == valeur ? t.fond : t.texte,
+                              ),
+                            ),
                           ),
                         ),
                       ),

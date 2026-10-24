@@ -13,11 +13,14 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 | Dossier | Contenu |
 |---|---|
 | `models/question.dart` | Une question : texte, réponses (meilleure d'abord), heure, jours (masque lundi = bit 0), en pause ou non ; les 4 questions de départ. |
-| `models/tache.dart` | Une chose prévue du planning : jour, début et durée (minutes), texte, réponse (`fait` = 0, `pasFait` = 1, ou nulle), nombre de reports, marque « test ». |
-| `data/base.dart` | Base `ouinon.sqlite` (version 2) : tables `questions` (rendues dans l'ordre de la journée : heure, puis création), `reponses` (une réponse par question et par jour, effacée avec sa question) et `planning` (ajoutée en version 2, par mise à jour de la base). Reporter une chose (`reporteTache`), raccourcis (`habitudes`). Changement du nombre de réponses avec conversion de l'historique (`enregistreAvecNombre`). |
-| `data/preferences.dart` | Choix gardés sur le téléphone : bilan du dimanche, rappel du soir et son heure (activés par défaut, 21 h 30). |
+| `models/a_faire.dart` | Une chose de la liste « À faire » : texte, durée, important, urgent (coché), date limite, créée le, faite le, marque « test » ; sa case d'Eisenhower un jour donné (`caseLe`) ; les 4 cases (`Case`). |
+| `models/tache.dart` | Une chose prévue du planning : jour, début et durée (minutes), texte, réponse (`fait` = 0, `pasFait` = 1, ou nulle), nombre de reports, marque « test », chose de la liste d'où elle vient (`listeId`, nulle pour un impératif) et sa case au moment du placement (`quadrant`). |
+| `data/base.dart` | Base `ouinon.sqlite` (version 3) : tables `questions` (rendues dans l'ordre de la journée : heure, puis création), `reponses` (une réponse par question et par jour, effacée avec sa question), `planning` (version 2 ; colonnes `liste_id` et `quadrant` en version 3) et `liste` (version 3), par mise à jour de la base. « Fait » sur une chose tirée de la liste la marque faite dans la liste (`repondTache`) ; `placees` dit ce qui est déjà placé. Reporter une chose (`reporteTache`), raccourcis (`habitudes`). Changement du nombre de réponses avec conversion de l'historique (`enregistreAvecNombre`). |
+| `data/preferences.dart` | Choix gardés sur le téléphone : bilan du dimanche, rappel du soir et son heure (activés par défaut, 21 h 30), heures de la journée (9 h – 19 h), notifications du planning (début et fin par défaut). |
 | `data/suggestions.dart` | Suggestions de réponses de l'écran Nouvelle question (« Oui / Non », « Bien / Moyen / Pas bien » au départ), créées, modifiées ou supprimées par la personne, gardées dans les préférences du téléphone. |
 | `data/notifications.dart` | Programmation des notifications (questions, choses prévues, rappel du soir, bilan), boutons, réponse depuis la notification (`reponseNotifArrierePlan`). |
+| `utils/remplissage.dart` | « Remplir ma journée » (testé) : ordre de placement, premier créneau libre, proposition, temps libre. |
+| `widgets/cases.dart` | Couleurs des 4 cases, grille 2 × 2 de la liste. |
 | `utils/planning.dart` | Calculs du planning (testés) : rappels à programmer, textes, part faite, planning vu comme une question (`questionPlanning`), stats (moment, jour, charge, plus reportées), horaires qui se croisent, ligne du bilan. |
 | `utils/planification.dart` | Calcul pur de ce qu'il faut programmer (testé). |
 | `utils/stats.dart` | Bilans, jour de la semaine, séries (`serie`), bilan de la semaine (`bilanSemaine`) (testé). |
@@ -26,7 +29,7 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 | `widgets/bloc_tache.dart` | Une chose prévue en bloc horaire (heures à gauche, liseré à la couleur de la réponse, boutons « Pas fait / Fait »), temps libre entre deux. |
 | `widgets/graphiques.dart` | Graphiques (module `fl_chart` 1.2.0) : courbes, anneau, barres, nuage de points, grille de 6 mois, carte des liens ; animation quand on s'arrête dessus (`AnimeQuandVisible`). |
 | `utils/jour.dart`, `utils/date_fr.dart` | Jours de calendrier (« 2026-10-22 ») et dates en français. |
-| `screens/` | Accueil (4 onglets : Jour, Demain, Stats, Questions), Demain (planning d'aujourd'hui ou de demain, « Pas fait aujourd'hui » à remettre demain), À prévoir (ajout ou modification d'une chose), Aujourd'hui (une page par jour, on glisse vers la droite pour la veille, jamais après aujourd'hui), Stats (découvertes, comparateur de deux courbes, carte des liens, une carte par question), fiche d'une question, Questions (par heure, sans rangement à la main), modification, Réglages. |
+| `screens/` | Accueil (4 onglets : Jour, À faire, Stats, Questions), À faire (vues Liste, Aujourd'hui, Demain : grille des 4 cases, « Remplir ma journée », « À placer », « Pas fait aujourd'hui » pour les impératifs), écran « À faire » (une chose de la liste), Impératif (ajout ou modification d'une chose prévue), Aujourd'hui (une page par jour, on glisse vers la droite pour la veille, jamais après aujourd'hui), Stats (découvertes, comparateur de deux courbes, carte des liens, une carte par question), fiche d'une question, Questions (par heure, sans rangement à la main), modification, Réglages. |
 | `theme/app_theme.dart` | Style « Nuit ronde », toujours sombre (choix de Paul du 22/10/2026) : couleurs dans `Teintes`, polices Unbounded (titres) et Figtree (texte), embarquées dans `assets/fonts` (licence OFL). Réponses : citron, abricot, corail. |
 | `widgets/rond.dart` | Briques rondes : carte, pastille, bouton rond et bouton +, grand titre (réduit plutôt que coupé), barre d'onglets flottante, choix en pilules, pilule à toucher, jour de la semaine en rond. Pas de puces Material (police et couleurs mal reprises). |
 
@@ -147,10 +150,12 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 - **Une chose prévue** : jour (aujourd'hui ou demain), début, durée
   (15 min à 3 h), texte (40 caractères). Pas de répétition : chaque
   soir, on prépare le lendemain.
-- **Rappel à l'heure pile** (canal « Planning », identifiant négatif
-  = −id de la chose, contenu caché « t|id ») avec trois boutons, de
-  gauche à droite : « Pas fait » (`tp`), « Reporter » (`tr`), « Fait »
-  (`tf`). Reporter : la chose revient une heure après l'appui, même
+- **Deux notifications** (canal « Planning », identifiants négatifs :
+  début = −2 × id, fin = −2 × id − 1, contenu caché « t|id ») : au
+  début « C'est l'heure » avec « Reporter » ; à la fin « …, c'est
+  fait ? » avec, de gauche à droite, « Pas fait » (`tp`), « Reporter »
+  (`tr`), « Fait » (`tf`). Réglages : les deux, début seul ou fin seule
+  (la seule porte alors les trois boutons). Reporter : la chose revient une heure après l'appui, même
   durée, compteur de reports + 1 ; si ça passe minuit, rien ne bouge
   (elle reste sans réponse). Dans l'appli : « Pas fait / Fait »
   seulement (on change l'heure pour reporter).
@@ -171,6 +176,33 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
   « Journées chargées » (un point par jour : heures prévues jusqu'à
   8 h, part faite), « Le plus reporté ».
 - **Bilan du dimanche** : ligne « Planning : 12 faits sur 15 ».
+
+## Liste « À faire »
+
+- **Une chose** : texte, durée, « Important ? », « Urgent ? », date
+  limite facultative. Urgente si cochée, ou à moins de 2 jours de sa
+  date limite (ou en retard).
+- **4 cases** : D'abord (urgent et important, corail), À planifier
+  (important, citron), Vite fait (urgent, abricot), Peut-être jamais
+  (neutre). Vue Liste : grille 2 × 2 (nombre et temps par case), puis
+  chaque case ; pastilles durée, « Limite … », « Demain 10 h » si
+  placée, « Depuis 12 j » dès 7 jours.
+- **Placer** : depuis « À placer » (vues Aujourd'hui et Demain), au
+  premier créneau libre, ou tout d'un coup avec « Remplir ma journée »
+  (proposition à valider). Ordre : dernier jour d'une date limite,
+  D'abord, À planifier, Vite fait ; dans une case, date limite la plus
+  proche puis la plus ancienne ; « Peut-être jamais » jamais
+  automatiquement. Entre le début et la fin de journée (Réglages),
+  15 min de marge entre deux choses, horaires au quart d'heure ;
+  aujourd'hui, pas avant le prochain quart d'heure.
+- **Après** : « Fait » sort la chose de la liste ; « Pas fait » ou pas
+  de réponse : elle revient « à placer » d'elle-même. Modifier la liste
+  met à jour ses passages prévus sans réponse ; la supprimer ou la
+  marquer faite les retire.
+- **Rappel du soir** : dit aussi combien de choses attendent dans la
+  liste.
+- **Stats** : « Les 4 cases » (part du temps fait sur « À planifier »
+  sur 30 jours, part faite par case) et « Ce qui attend le plus ».
 
 ## Vérifications et compilation
 

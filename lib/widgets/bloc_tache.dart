@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../models/a_faire.dart';
 import '../models/tache.dart';
 import '../theme/app_theme.dart';
 import '../utils/date_fr.dart';
 import '../utils/planning.dart';
 import 'boutons_reponse.dart';
+import 'cases.dart';
 import 'rond.dart';
 
 /// Une chose prévue, en bloc horaire : l'heure de début et de fin à
@@ -108,6 +110,11 @@ class BlocTache extends StatelessWidget {
                             runSpacing: 6,
                             children: [
                               Pastille(dureeFr(tache.duree)),
+                              if (tache.quadrant case final q?)
+                                Pastille(
+                                  Case.values[q].nom,
+                                  fond: couleurCase(context, Case.values[q]),
+                                ),
                               if (tache.reports > 0)
                                 Pastille(
                                   tache.reports == 1

@@ -11,7 +11,7 @@ import 'planning_screen.dart';
 import 'questions_screen.dart';
 import 'stats_screen.dart';
 
-/// Écran principal : quatre onglets (Jour, Demain, Stats, Questions).
+/// Écran principal : quatre onglets (Jour, À faire, Stats, Questions).
 /// Reprogramme les notifications à l'ouverture, au retour dans l'appli et
 /// après chaque modification.
 class AccueilScreen extends StatefulWidget {
@@ -196,7 +196,7 @@ class _AccueilScreenState extends State<AccueilScreen>
       extendBody: true,
       bottomNavigationBar: BarreOnglets(
         index: _onglet,
-        libelles: const ['Jour', 'Demain', 'Stats', 'Questions'],
+        libelles: const ['Jour', 'À faire', 'Stats', 'Questions'],
         onChoix: (i) => setState(() => _onglet = i),
       ),
     );

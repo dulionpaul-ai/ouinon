@@ -29,6 +29,11 @@ class _ReglagesScreenState extends State<ReglagesScreen>
   bool _bilan = true;
   bool _rappelPlanning = true;
   int _heureRappel = Preferences.heureRappelPlanningParDefaut;
+  ({int debut, int fin}) _journee = (
+    debut: Preferences.debutJourneeParDefaut,
+    fin: Preferences.finJourneeParDefaut,
+  );
+  NotifsPlanning _notifsPlanning = NotifsPlanning.debutEtFin;
   int _reponsesTest = 0;
   NotifPrevue? _prochaine;
   int? _enAttente;
@@ -67,6 +72,8 @@ class _ReglagesScreenState extends State<ReglagesScreen>
     final bilan = await Preferences.bilanDimanche();
     final rappelPlanning = await Preferences.rappelPlanning();
     final heureRappel = await Preferences.heureRappelPlanning();
+    final journee = await Preferences.journee();
+    final notifsPlanning = await Preferences.notifsPlanning();
     final reponsesTest = await widget.base.nombreReponsesTest();
     final maintenant = DateTime.now();
     final plan = planifie(
@@ -83,6 +90,8 @@ class _ReglagesScreenState extends State<ReglagesScreen>
       _bilan = bilan;
       _rappelPlanning = rappelPlanning;
       _heureRappel = heureRappel;
+      _journee = journee;
+      _notifsPlanning = notifsPlanning;
       _reponsesTest = reponsesTest;
     });
   }
@@ -144,21 +153,47 @@ class _ReglagesScreenState extends State<ReglagesScreen>
     } catch (_) {}
   }
 
-  Future<void> _choisitHeureRappel() async {
+  /// Cadran d'heure (sans clavier, 24 h) ; nul si annulé.
+  Future<int?> _heure(int depart) async {
     final choisie = await showTimePicker(
       context: context,
       initialEntryMode: TimePickerEntryMode.dialOnly,
-      initialTime: TimeOfDay(
-        hour: _heureRappel ~/ 60,
-        minute: _heureRappel % 60,
-      ),
+      initialTime: TimeOfDay(hour: depart ~/ 60, minute: depart % 60),
       builder: (context, enfant) => MediaQuery(
         data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
         child: enfant!,
       ),
     );
-    if (choisie == null || !mounted) return;
-    final minutes = choisie.hour * 60 + choisie.minute;
+    return choisie == null ? null : choisie.hour * 60 + choisie.minute;
+  }
+
+  Future<void> _choisitJournee({required bool debut}) async {
+    final minutes = await _heure(debut ? _journee.debut : _journee.fin);
+    if (minutes == null || !mounted) return;
+    final nouvelle = debut
+        ? (debut: minutes, fin: _journee.fin)
+        : (debut: _journee.debut, fin: minutes);
+    if (nouvelle.fin <= nouvelle.debut) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('La fin doit venir après le début.')),
+      );
+      return;
+    }
+    setState(() => _journee = nouvelle);
+    await Preferences.changeJournee(debut: nouvelle.debut, fin: nouvelle.fin);
+  }
+
+  Future<void> _changeNotifsPlanning(NotifsPlanning mode) async {
+    setState(() => _notifsPlanning = mode);
+    await Preferences.changeNotifsPlanning(mode);
+    try {
+      await Notifications.instance.replanifie(widget.base);
+    } catch (_) {}
+  }
+
+  Future<void> _choisitHeureRappel() async {
+    final minutes = await _heure(_heureRappel);
+    if (minutes == null || !mounted) return;
     setState(() => _heureRappel = minutes);
     await Preferences.changeHeureRappelPlanning(minutes);
     try {
@@ -332,6 +367,49 @@ class _ReglagesScreenState extends State<ReglagesScreen>
               ),
             ],
           ]),
+          bloc('Planning', [
+            Text(
+              'Ta journée : « Remplir ma journée » place ta liste entre ces '
+              'deux heures.',
+              style: doux,
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    key: const ValueKey('debut-journee'),
+                    onPressed: () => _choisitJournee(debut: true),
+                    child: Text('De ${heureFr(_journee.debut)}'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton(
+                    key: const ValueKey('fin-journee'),
+                    onPressed: () => _choisitJournee(debut: false),
+                    child: Text('À ${heureFr(_journee.fin)}'),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Notifications d\'une chose prévue : au début (« C\'est '
+              'l\'heure ») et à la fin (« C\'est fait ? »), ou une seule.',
+              style: doux,
+            ),
+            const SizedBox(height: 10),
+            ChoixPilules<NotifsPlanning>(
+              options: const [
+                (NotifsPlanning.debutEtFin, 'Les deux'),
+                (NotifsPlanning.debut, 'Début'),
+                (NotifsPlanning.fin, 'Fin'),
+              ],
+              valeur: _notifsPlanning,
+              onChoix: _changeNotifsPlanning,
+            ),
+          ]),
           bloc('Bilan du dimanche', [
             Row(
               children: [
@@ -357,8 +435,9 @@ class _ReglagesScreenState extends State<ReglagesScreen>
           bloc('Données de test', [
             Text(
               _reponsesTest == 0
-                  ? 'Pour essayer les graphiques : 6 mois de réponses et de '
-                        'planning inventés, effaçables d\'un coup.'
+                  ? 'Pour essayer : 6 mois de réponses et de planning '
+                        'inventés, et une liste à faire, effaçables d\'un '
+                        'coup.'
                   : '$_reponsesTest données de test en ce moment. Tes '
                         'vraies réponses sont à part.',
               style: doux,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/base.dart';
+import '../models/a_faire.dart';
 import '../models/question.dart';
 import '../models/tache.dart';
 import '../theme/app_theme.dart';
@@ -9,6 +10,7 @@ import '../utils/date_fr.dart';
 import '../utils/jour.dart';
 import '../utils/planning.dart';
 import '../utils/stats.dart';
+import '../widgets/cases.dart';
 import '../widgets/graphiques.dart';
 import '../widgets/rond.dart';
 import 'fiche_question_screen.dart';
@@ -47,6 +49,7 @@ class _StatsScreenState extends State<StatsScreen> {
   List<Question> _courbes = const [];
   Map<int, Reponses> _reponses = const {};
   List<Tache> _taches = const [];
+  List<AFaire> _liste = const [];
   List<Decouverte> _ressemblances = const [];
   List<Decouverte> _decouvertes = const [];
 
@@ -75,6 +78,7 @@ class _StatsScreenState extends State<StatsScreen> {
     final questions = await widget.base.questions();
     final reponses = await widget.base.toutesLesReponses();
     final taches = await widget.base.taches();
+    final liste = await widget.base.liste();
     if (!mounted) return;
     final planning = reponsesPlanning(taches);
     if (planning.isNotEmpty) reponses[idPlanning] = planning;
@@ -84,6 +88,7 @@ class _StatsScreenState extends State<StatsScreen> {
       _questions = questions;
       _courbes = courbes;
       _taches = taches;
+      _liste = liste;
       _reponses = reponses;
       _ressemblances = ressemblances;
       _decouvertes = [
@@ -302,6 +307,12 @@ class _StatsScreenState extends State<StatsScreen> {
         if (!tache.jour.isBefore(ajouteJours(_aujourdhui, -29))) tache,
     ];
     final c = compte(mois);
+    final important = partTempsImportant(mois);
+    final avecCase = passees.any((t) => t.quadrant != null);
+    final attente = [
+      for (final a in _liste)
+        if (ecartJours(a.creeLe, _aujourdhui) >= 1) a,
+    ]..sort((x, y) => x.creeLe.compareTo(y.creeLe));
     final reportees = plusReportees(passees);
     final charge = pointsCharge(passees);
     Widget carte(Widget enfant) => Padding(
@@ -434,6 +445,89 @@ class _StatsScreenState extends State<StatsScreen> {
                       'prévues · ${(p.y * 100).round()} % fait',
                 ),
               ),
+            ],
+          ),
+        ),
+      if (avecCase)
+        carte(
+          AnimeQuandVisible(
+            builder: (context, avance) => Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text('Les 4 cases', style: titre),
+                if (important != null) ...[
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Text(
+                        '${(important * 100 * avance).round()} %',
+                        style: TextStyle(
+                          fontFamily: AppTheme.policeTitre,
+                          fontSize: 30,
+                          fontWeight: FontWeight.w700,
+                          color: t.meilleure,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'du temps fait sur ta liste est allé à « À '
+                          'planifier » (important, pas urgent), sur 30 jours.',
+                          style: doux.copyWith(fontSize: 14),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                const SizedBox(height: 16),
+                Text('Part faite selon la case.', style: doux),
+                const SizedBox(height: 12),
+                Barres(
+                  valeurs: partParCase(passees),
+                  etiquettes: const [
+                    'D\'abord',
+                    'À planifier',
+                    'Vite fait',
+                    'Peut-être',
+                  ],
+                  t: avance,
+                  hauteur: 130,
+                ),
+              ],
+            ),
+          ),
+        ),
+      if (attente.isNotEmpty)
+        carte(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text('Ce qui attend le plus', style: titre),
+              const SizedBox(height: 8),
+              for (final a in attente.take(3))
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: couleurCase(context, a.caseLe(_aujourdhui)),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          a.texte,
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                      Pastille('Depuis ${ecartJours(a.creeLe, _aujourdhui)} j'),
+                    ],
+                  ),
+                ),
             ],
           ),
         ),

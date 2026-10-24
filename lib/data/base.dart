@@ -2,20 +2,22 @@ import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 
+import '../models/a_faire.dart';
 import '../models/question.dart';
 import '../models/tache.dart';
 import '../utils/jour.dart';
 import '../utils/stats.dart';
 
-/// Les questions, les réponses et le planning, dans une base SQLite sur le téléphone
+/// Les questions, les réponses, la liste « À faire » et le planning, dans
+/// une base SQLite sur le téléphone
 /// (`ouinon.sqlite`). Rien ne part sur internet.
 ///
 /// La base est aussi ouverte par le moteur d'arrière-plan qui enregistre
 /// les réponses données depuis une notification (appli fermée) : toujours
 /// relire la base plutôt que garder une copie.
 class Base {
-  /// 2 : planning (24/10/2026).
-  static const version = 2;
+  /// 2 : planning ; 3 : liste « À faire » (24/10/2026).
+  static const version = 3;
 
   final Database db;
 
@@ -67,7 +69,17 @@ class Base {
         onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
         onCreate: (db, _) => _cree(db, questionsDeDepart),
         onUpgrade: (db, ancienne, _) async {
-          if (ancienne < 2) await _creePlanning(db);
+          if (ancienne < 2) {
+            await _creePlanning(db);
+          } else if (ancienne < 3) {
+            await db.execute(
+              'ALTER TABLE planning ADD COLUMN liste_id INTEGER',
+            );
+            await db.execute(
+              'ALTER TABLE planning ADD COLUMN quadrant INTEGER',
+            );
+          }
+          if (ancienne < 3) await _creeListe(db);
         },
         singleInstance: instanceUnique,
       ),
@@ -95,6 +107,7 @@ class Base {
         PRIMARY KEY (question_id, jour)
       )''');
     await _creePlanning(db);
+    await _creeListe(db);
     if (avecDepart) {
       for (final q in questionsDeDepart) {
         await db.insert('questions', q.versLigne());
@@ -112,9 +125,26 @@ class Base {
         texte TEXT NOT NULL,
         etat INTEGER,
         reports INTEGER NOT NULL DEFAULT 0,
-        test INTEGER NOT NULL DEFAULT 0
+        test INTEGER NOT NULL DEFAULT 0,
+        liste_id INTEGER,
+        quadrant INTEGER
       )''');
     await db.execute('CREATE INDEX planning_jour ON planning (jour)');
+  }
+
+  static Future<void> _creeListe(Database db) async {
+    await db.execute('''
+      CREATE TABLE liste (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        texte TEXT NOT NULL,
+        duree INTEGER NOT NULL,
+        important INTEGER NOT NULL DEFAULT 0,
+        urgent INTEGER NOT NULL DEFAULT 0,
+        echeance TEXT,
+        cree_le TEXT NOT NULL,
+        faite_le TEXT,
+        test INTEGER NOT NULL DEFAULT 0
+      )''');
   }
 
   // Questions
@@ -249,6 +279,21 @@ class Base {
     }),
   );
 
+  /// Ajoute des choses à faire de test, une seule fois (la vraie liste
+  /// n'est jamais touchée). Rend le nombre ajouté.
+  Future<int> ajouteListeTest(List<AFaire> liste) => _ecrit(
+    db.transaction((t) async {
+      final deja = Sqflite.firstIntValue(
+        await t.rawQuery('SELECT COUNT(*) FROM liste WHERE test = 1'),
+      );
+      if ((deja ?? 0) > 0) return 0;
+      for (final a in liste) {
+        await t.insert('liste', a.versLigne());
+      }
+      return liste.length;
+    }),
+  );
+
   /// Nombre de réponses et de choses prévues de test.
   Future<int> nombreReponsesTest() async =>
       (Sqflite.firstIntValue(
@@ -261,6 +306,10 @@ class Base {
       (Sqflite.firstIntValue(
             await db.rawQuery('SELECT COUNT(*) FROM planning WHERE test = 1'),
           ) ??
+          0) +
+      (Sqflite.firstIntValue(
+            await db.rawQuery('SELECT COUNT(*) FROM liste WHERE test = 1'),
+          ) ??
           0);
 
   /// Efface toutes les réponses et choses prévues de test (les vraies
@@ -272,7 +321,9 @@ class Base {
         where: 'repondu_le = ?',
         whereArgs: [marqueTest],
       );
-      return reponses + await t.delete('planning', where: 'test = 1');
+      return reponses +
+          await t.delete('planning', where: 'test = 1') +
+          await t.delete('liste', where: 'test = 1');
     }),
   );
 
@@ -381,9 +432,31 @@ class Base {
       _ecrit(db.delete('planning', where: 'id = ?', whereArgs: [id]));
 
   /// « Fait » (`Tache.fait`), « Pas fait » (`Tache.pasFait`) ou nul pour
-  /// effacer la réponse.
+  /// effacer la réponse. Tirée de la liste : « Fait » la sort de la
+  /// liste, sinon elle y reste (à placer à nouveau).
   Future<void> repondTache(int id, int? etat) => _ecrit(
-    db.update('planning', {'etat': etat}, where: 'id = ?', whereArgs: [id]),
+    db.transaction((t) async {
+      await t.update(
+        'planning',
+        {'etat': etat},
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      final lignes = await t.query(
+        'planning',
+        columns: ['liste_id', 'jour'],
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      final listeId = lignes.isEmpty ? null : lignes.first['liste_id'];
+      if (listeId == null) return;
+      await t.update(
+        'liste',
+        {'faite_le': etat == Tache.fait ? lignes.first['jour'] : null},
+        where: 'id = ?',
+        whereArgs: [listeId],
+      );
+    }),
   );
 
   /// « Reporter » : la chose revient une heure après `maintenant` (même
@@ -416,5 +489,98 @@ class Base {
       for (final l in lignes)
         (texte: l['texte'] as String, duree: l['duree'] as int),
     ];
+  }
+
+  // Liste « À faire »
+
+  /// Les choses à faire (sans les faites, sauf `avecFaites`), des plus
+  /// anciennes aux plus récentes.
+  Future<List<AFaire>> liste({bool avecFaites = false}) async {
+    final lignes = await db.query(
+      'liste',
+      where: avecFaites ? null : 'faite_le IS NULL',
+      orderBy: 'cree_le, id',
+    );
+    return [for (final l in lignes) AFaire.depuisLigne(l)];
+  }
+
+  Future<AFaire?> aFaire(int id) async {
+    final lignes = await db.query('liste', where: 'id = ?', whereArgs: [id]);
+    return lignes.isEmpty ? null : AFaire.depuisLigne(lignes.first);
+  }
+
+  /// Ajoute (sans id) ou met à jour une chose à faire ; ses passages
+  /// prévus à venir suivent son nouveau texte et sa nouvelle durée.
+  Future<AFaire> enregistreAFaire(AFaire a) => _ecrit(() async {
+    if (a.id == null) {
+      final id = await db.insert('liste', a.versLigne());
+      return a.copie(id: id);
+    }
+    await db.transaction((t) async {
+      await t.update(
+        'liste',
+        a.versLigne(),
+        where: 'id = ?',
+        whereArgs: [a.id],
+      );
+      await t.update(
+        'planning',
+        {'texte': a.texte, 'duree': a.duree},
+        where: 'liste_id = ? AND etat IS NULL',
+        whereArgs: [a.id],
+      );
+    });
+    return a;
+  }());
+
+  /// Supprime une chose de la liste, et ses passages prévus sans réponse.
+  Future<void> supprimeAFaire(int id) => _ecrit(
+    db.transaction((t) async {
+      await t.delete(
+        'planning',
+        where: 'liste_id = ? AND etat IS NULL',
+        whereArgs: [id],
+      );
+      await t.delete('liste', where: 'id = ?', whereArgs: [id]);
+    }),
+  );
+
+  /// Marque une chose faite (ou à faire de nouveau) sans passer par le
+  /// planning ; ses passages prévus sans réponse sont retirés.
+  Future<void> marqueFaite(int id, DateTime? le) => _ecrit(
+    db.transaction((t) async {
+      await t.update(
+        'liste',
+        {'faite_le': le == null ? null : cleJour(le)},
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      if (le != null) {
+        await t.delete(
+          'planning',
+          where: 'liste_id = ? AND etat IS NULL',
+          whereArgs: [id],
+        );
+      }
+    }),
+  );
+
+  /// Les choses de la liste déjà placées à partir de `depuis` (un
+  /// passage prévu qui n'est pas « pas fait ») : id → passage.
+  Future<Map<int, Tache>> placees(DateTime depuis) async {
+    final lignes = await db.query(
+      'planning',
+      where:
+          'liste_id IS NOT NULL AND jour >= ? AND '
+          '(etat IS NULL OR etat = ?)',
+      whereArgs: [cleJour(depuis), Tache.fait],
+      orderBy: 'jour, debut',
+    );
+    // Le plus proche d'abord s'il y en a plusieurs.
+    final placees = <int, Tache>{};
+    for (final l in lignes) {
+      placees.putIfAbsent(l['liste_id'] as int, () => Tache.depuisLigne(l));
+    }
+    return placees;
   }
 }

@@ -45,9 +45,10 @@ Privée (rien ne quitte le téléphone), gratuite, sans pub, épurée.
 4. **Fiche d'une question** : bilan (7 jours, 30 jours, depuis le
    début) en anneau, courbe, jour de la semaine, 6 mois en cases,
    calendrier.
-5. **À faire**, comme le tableau blanc de Paul : « En fond » (la
-   matrice), bac « À placer » de demain, journée heure par heure où
-   l'on glisse les choses ; créneaux fixes grisés.
+5. **To-do** (simplifié le 25/10/2026) : une liste, « Préparer
+   demain » en 2 étapes (choisir avec la jauge, caser dans la journée).
+   Trois onglets en tout : Aujourd'hui, To-do, Stats ; « Mes
+   questions » dans les Réglages.
 6. **Réglages** : autorisation des notifications, essai d'une
    notification, à propos.
 

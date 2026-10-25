@@ -167,3 +167,15 @@ trace des flèches ; plus des blocs de contrainte (« enfants » 17 h –
 journée heure par heure (glisser-déposer). Pistes : faire défiler plus
 finement pendant un glisser, placer plusieurs choses dans un même
 créneau (comme ses crochets), glisser d'un jour à l'autre.
+
+## Simplification (25/10/2026)
+
+Trois onglets : **Aujourd'hui** (questions compactes, ma journée),
+**To-do** (une liste, ajout rapide, « Préparer demain »), **Stats**.
+Préparer demain = choisir (jauge de temps libre) puis caser (glisser ou
+« Caser pour moi »). Réglages en lignes simples, avec « Mes questions »
+et « Créneaux fixes ». Important / Urgent gardés sur une ligne dans
+l'écran d'une chose ; tri automatique. Reste : avis de Paul, APK n° 13
+(`version: 1.0.0+13`) **seulement avec son accord**. Pistes : alléger
+aussi la page Stats (comparateur et carte des liens derrière un
+toucher).

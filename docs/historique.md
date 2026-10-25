@@ -204,3 +204,26 @@ Fabriqué avec l'accord de Paul le 23/10/2026.
   notification. Base en version 4. Les horaires d'école du tableau sont
   un simple mémo : pas repris.
 - APK fabriqué à la demande de Paul.
+
+## Après l'APK n° 12 (dans le code) : grande simplification
+
+- Paul : « l'appli est devenue un peu trop compliquée, il y a des boutons
+  et des bandeaux partout ». Revue complète et comparaison avec les
+  applis du moment (Structured : journée en ligne du temps ; Sunsama :
+  rituel du soir et alerte quand la journée déborde ; Things 3 : listes
+  sobres, cases à cocher). Maquettes « version simple » validées avec ses
+  corrections : Important et Urgent gardés, sur une ligne (pas
+  d'étoile) ; pas de « sans heure » : une chose de la to-do prend une
+  heure quand on la case, avec ses deux notifications.
+- Codé : trois onglets (Aujourd'hui, To-do, Stats) ; « Mes questions »
+  et « Créneaux fixes » passent dans les Réglages, refaits en lignes
+  simples. Aujourd'hui : questions en lignes compactes (répondue = une
+  pastille), puis « Ma journée » (heure, rond à cocher, texte). To-do :
+  une seule liste triée toute seule, barre « Ajouter… » (« Papiers
+  1 h »), bouton « Préparer demain ». Préparer demain en 2 étapes :
+  choisir (jauge « Choisi : 4 h 15 sur 7 h de libre », orange puis
+  rouge) puis caser (glisser sur une heure ou « Caser pour moi » ;
+  « Terminer » case le reste, ce qui ne rentre pas retourne dans la
+  to-do). Le rappel du soir ouvre « Préparer demain ». Supprimés : la
+  matrice en 4 cases, le bac, « Piocher », « En fond », les blocs en
+  cartes et les textes d'aide permanents. Version 1.0.0+13 prête.

@@ -32,7 +32,7 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 | `widgets/bloc_tache.dart` | Une chose prévue en bloc horaire (heures à gauche, liseré à la couleur de la réponse, boutons « Pas fait / Fait »), temps libre entre deux. |
 | `widgets/graphiques.dart` | Graphiques (module `fl_chart` 1.2.0) : courbes, anneau, barres, nuage de points, grille de 6 mois, carte des liens ; animation quand on s'arrête dessus (`AnimeQuandVisible`). |
 | `utils/jour.dart`, `utils/date_fr.dart` | Jours de calendrier (« 2026-10-22 ») et dates en français. |
-| `screens/` | Accueil (4 onglets : Jour, À faire, Stats, Questions), À faire (vues En fond, Aujourd'hui, Demain : matrice à cocher, bac « À placer » avec Piocher et Remplir, journée heure par heure, « Pas fait aujourd'hui » pour les impératifs), écran « À faire » (une chose de la liste), Impératif (ajout ou modification d'une chose prévue), Aujourd'hui (une page par jour, on glisse vers la droite pour la veille, jamais après aujourd'hui), Stats (découvertes, comparateur de deux courbes, carte des liens, une carte par question), fiche d'une question, Questions (par heure, sans rangement à la main), modification, Réglages. |
+| `screens/` | Accueil (3 onglets : Aujourd'hui, To-do, Stats ; le rappel du soir ouvre « Préparer demain »), Aujourd'hui (questions compactes, « Ma journée »), To-do (`todo_screen.dart` : liste, ajout rapide, Préparer demain), Préparer (`preparer_screen.dart` : choisir avec la jauge, puis caser), Créneaux fixes (`creneaux_screen.dart`), Réglages (lignes simples, mènent à Mes questions et Créneaux fixes), écran « À faire » (une chose de la liste), Impératif (ajout ou modification d'une chose prévue), Aujourd'hui (une page par jour, on glisse vers la droite pour la veille, jamais après aujourd'hui), Stats (découvertes, comparateur de deux courbes, carte des liens, une carte par question), fiche d'une question, Questions (par heure, sans rangement à la main), modification, Réglages. |
 | `theme/app_theme.dart` | Style « Nuit ronde », toujours sombre (choix de Paul du 22/10/2026) : couleurs dans `Teintes`, polices Unbounded (titres) et Figtree (texte), embarquées dans `assets/fonts` (licence OFL). Réponses : citron, abricot, corail. |
 | `widgets/rond.dart` | Briques rondes : carte, pastille, bouton rond et bouton +, grand titre (réduit plutôt que coupé), barre d'onglets flottante, choix en pilules, pilule à toucher, jour de la semaine en rond. Pas de puces Material (police et couleurs mal reprises). |
 
@@ -207,23 +207,28 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 - **Stats** : « Les 4 cases » (part du temps fait sur « À planifier »
   sur 30 jours, part faite par case) et « Ce qui attend le plus ».
 
-## Onglet « À faire » (tableau blanc, 24/10/2026)
+## Aujourd'hui, To-do, Préparer demain (simplifié le 25/10/2026)
 
-- **En fond** : la matrice en 2 × 2 ; un toucher choisit une chose pour
-  demain (`choisitPour`, cochée en citron), un appui long l'ouvre ;
-  « Préparer demain · N choisies · durée » passe à Demain.
-- **Bac « À placer »** (Aujourd'hui, Demain) : les choses choisies pour
-  ce jour et pas placées. « Piocher » coche dans la matrice ; « Remplir »
-  place tout le bac (même « Peut-être jamais », puisqu'il a été choisi)
-  autour des impératifs et des créneaux fixes.
-- **Journée** : appui long sur une chose du bac puis glisser sur une
-  heure ; la page défile près des bords pendant le glisser. Bloc :
-  toucher = répondre (Fait / Pas fait, jusqu'à aujourd'hui), modifier,
-  retirer (une chose de la liste retourne dans le bac) ; appui long =
-  déplacer ; tirer le bas = durée. Heure vide : impératif ou créneau
-  fixe.
-- **Après le jour** : une chose choisie et pas faite n'est plus dans un
-  bac (sa date est passée) : elle reste en fond, à repiocher.
+- **Aujourd'hui** : questions en lignes ; répondue, une pastille (la
+  toucher rouvre les boutons). « Ma journée » : choses casées et
+  créneaux fixes dans l'ordre ; le rond coche « Fait » ; toucher une
+  ligne : Pas fait / Fait, Modifier, Remettre dans la to-do. « Préparer »
+  / « Modifier » ouvre Préparer pour ce jour.
+- **To-do** : choses à faire, triées (dernier jour d'une date limite,
+  urgent et important, important, urgent, le reste ; date limite proche
+  puis plus ancienne). Rond = fait (avec « Annuler »). Barre « Ajouter… »
+  : « Papiers 1 h », « Banque 30 min », « Garage 1h30 » (`lisAjout`),
+  30 min sinon. Écran d'une chose : durée, Important et Urgent sur une
+  ligne, date limite (urgente à moins de 2 jours).
+- **Préparer** (un jour) : étape 1, cocher (`choisitPour`) ; jauge =
+  durées choisies face au temps libre de la journée (Réglages, 9 h –
+  19 h) moins rendez-vous et créneaux fixes ; citron, orange dès 85 %,
+  rouge au-delà. Étape 2 : journée (40 px par heure), glisser les
+  choses, « Caser pour moi » (`remplitJournee`), toucher une heure vide
+  = rendez-vous. « Terminer » case le reste ; ce qui ne rentre pas n'est
+  plus choisi et reste dans la to-do.
+- **Après le jour** : une chose casée pas faite reste dans la to-do
+  (« Fait » seul l'en sort).
 
 ## Vérifications et compilation
 

@@ -7,11 +7,13 @@ import '../data/base.dart';
 import '../data/notifications.dart';
 import '../widgets/rond.dart';
 import 'aujourdhui_screen.dart';
-import 'planning_screen.dart';
-import 'questions_screen.dart';
+import '../utils/jour.dart';
+import 'preparer_screen.dart';
 import 'stats_screen.dart';
+import 'todo_screen.dart';
 
-/// Écran principal : quatre onglets (Jour, À faire, Stats, Questions).
+/// Écran principal : trois onglets (Aujourd'hui, To-do, Stats ; revue du
+/// 25/10/2026). Le rappel du soir ouvre « Préparer demain ».
 /// Reprogramme les notifications à l'ouverture, au retour dans l'appli et
 /// après chaque modification.
 class AccueilScreen extends StatefulWidget {
@@ -44,6 +46,8 @@ class _AccueilScreenState extends State<AccueilScreen>
       if (!mounted) return;
       setState(() => _base = base);
       base.changements.addListener(_aChange);
+      Notifications.instance.ouverture.addListener(_ouvreDepuisNotif);
+      WidgetsBinding.instance.addPostFrameCallback((_) => _ouvreDepuisNotif());
       unawaited(_replanifie());
       WidgetsBinding.instance.addPostFrameCallback((_) => _bienvenue());
     } catch (e) {
@@ -55,6 +59,7 @@ class _AccueilScreenState extends State<AccueilScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _base?.changements.removeListener(_aChange);
+    Notifications.instance.ouverture.removeListener(_ouvreDepuisNotif);
     _attente?.cancel();
     super.dispose();
   }
@@ -64,6 +69,26 @@ class _AccueilScreenState extends State<AccueilScreen>
     if (etat != AppLifecycleState.resumed) return;
     // Des réponses ont pu arriver par les notifications.
     _base?.signaleChangement();
+  }
+
+  /// Rappel du soir touché : « Préparer demain ».
+  void _ouvreDepuisNotif() {
+    final base = _base;
+    if (base == null || !mounted) return;
+    if (Notifications.instance.ouverture.value != Notifications.preparer) {
+      return;
+    }
+    Notifications.instance.ouverture.value = null;
+    setState(() => _onglet = 1);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PreparerScreen(
+          base: base,
+          jour: ajouteJours(jourDe(DateTime.now()), 1),
+        ),
+      ),
+    );
   }
 
   /// Plusieurs changements d'affilée : une seule reprogrammation.
@@ -188,15 +213,14 @@ class _AccueilScreenState extends State<AccueilScreen>
         index: _onglet,
         children: [
           AujourdhuiScreen(base: base),
-          PlanningScreen(base: base),
+          TodoScreen(base: base),
           StatsScreen(base: base),
-          QuestionsScreen(base: base),
         ],
       ),
       extendBody: true,
       bottomNavigationBar: BarreOnglets(
         index: _onglet,
-        libelles: const ['Jour', 'À faire', 'Stats', 'Questions'],
+        libelles: const ['Aujourd\'hui', 'To-do', 'Stats'],
         onChoix: (i) => setState(() => _onglet = i),
       ),
     );

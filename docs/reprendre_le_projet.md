@@ -18,9 +18,10 @@ Mis à jour le 22/10/2026.
   test » dans les Réglages. **APK n° 11** (1.0.0+11, 24/10/2026) :
   planning et liste « À faire » en 4 cases d'Eisenhower, « Remplir ma
   journée », deux notifications par chose. **APK n° 12** (1.0.0+12) :
-  onglet « À faire » calqué sur le tableau blanc de Paul (voir
-  `docs/historique.md`). Pour le prochain, passer `version` à 1.0.0+13
-  dans `pubspec.yaml` et `lib/utils/version.dart`.
+  onglet « À faire » calqué sur le tableau blanc de Paul. Depuis, dans le
+  code : **grande simplification** (3 onglets Aujourd'hui · To-do ·
+  Stats, « Préparer demain » en 2 étapes ; voir `docs/historique.md`),
+  version déjà à 1.0.0+13 pour l'APK n° 13, pas encore fabriqué.
   Toujours demander à Paul avant de fabriquer un APK. Les boutons de
   notification marchent appli fermée (confirmé par Paul).
 - **Le code est sur `main`** du dépôt `dulionpaul-ai/ouinon` (voir
@@ -59,12 +60,14 @@ Détail dans `docs/revue_produit.md`. Les plus importants :
   comparer, décalées d'un jour au besoin, nuage de points, anneaux,
   barres, grille ; modernes et animés. La « question principale » est
   abandonnée. Bilan du dimanche à 20 h.
-- **Planning et liste « À faire »** (24/10/2026), comme son tableau
-  blanc : « En fond » = sa matrice d'Eisenhower (temps de chaque
-  chose) ; le soir, il y pioche ce qu'il fait demain (bac « À placer »),
-  puis le glisse dans la journée heure par heure (8 h – 23 h), ou
-  « Remplir » le place. Créneaux fixes grisés (« Enfants 17 h –
-  23 h »). Deux notifications par chose : au début
+- **To-do et journée** (simplifié le 25/10/2026, il trouvait l'appli
+  trop chargée) : une to-do (temps de chaque chose, Important et Urgent
+  sur une ligne, tri automatique) ; chaque soir « Préparer demain » :
+  choisir (jauge de temps libre), puis caser dans la journée (glisser
+  ou « Caser pour moi »). Une chose casée prend une heure et ses deux
+  notifications. Créneaux fixes grisés (« Enfants 17 h – 23 h »).
+  **Garder l'appli simple** : pas de nouveaux boutons ou bandeaux sans
+  nécessité. Deux notifications par chose : au début
   (« C'est l'heure », Reporter), à la fin (« C'est fait ? » : Pas fait ·
   Reporter · Fait) ; reporter = une heure plus tard. Seulement
   aujourd'hui et demain pour l'instant. « Remplir ma journée » est une

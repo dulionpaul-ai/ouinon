@@ -7,7 +7,6 @@ import '../theme/app_theme.dart';
 import '../utils/date_fr.dart';
 import '../utils/jour.dart';
 import '../utils/planning.dart';
-import '../widgets/cases.dart';
 import '../widgets/rond.dart';
 
 /// Ajout ou modification d'une chose de la liste « À faire » : quoi,
@@ -123,20 +122,12 @@ class _EditionAFaireScreenState extends State<EditionAFaireScreen> {
     final theme = Theme.of(context);
     final doux = TextStyle(color: t.doux, height: 1.35);
     final brouillon = _brouillon;
-    final laCase = brouillon.caseLe(_aujourdhui);
     final dimanche = ajouteJours(_aujourdhui, 7 - _aujourdhui.weekday);
     final demain = ajouteJours(_aujourdhui, 1);
     Widget titre(String texte) => Padding(
       padding: const EdgeInsets.fromLTRB(6, 22, 6, 10),
       child: Text(texte, style: theme.textTheme.titleMedium),
     );
-    Widget ouiNon(bool valeur, ValueChanged<bool> f, String cle) =>
-        ChoixPilules<bool>(
-          key: ValueKey(cle),
-          options: const [(false, 'Non'), (true, 'Oui')],
-          valeur: valeur,
-          onChoix: (v) => setState(() => f(v)),
-        );
     String? devientUrgent;
     if (_echeance != null && !brouillon.urgentLe(_aujourdhui)) {
       final le = ajouteJours(_echeance!, -AFaire.joursUrgence);
@@ -211,10 +202,32 @@ class _EditionAFaireScreenState extends State<EditionAFaireScreen> {
                 ),
             ],
           ),
-          titre('Important ?'),
-          ouiNon(_important, (v) => _important = v, 'important'),
-          titre('Urgent ?'),
-          ouiNon(_urgent, (v) => _urgent = v, 'urgent'),
+          const SizedBox(height: 18),
+          // Important et Urgent sur une seule ligne (demande de Paul du
+          // 25/10/2026).
+          Row(
+            children: [
+              Expanded(
+                child: PiluleChoix(
+                  'Important',
+                  key: const ValueKey('important'),
+                  centree: true,
+                  choisie: _important,
+                  onTap: () => setState(() => _important = !_important),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: PiluleChoix(
+                  'Urgent',
+                  key: const ValueKey('urgent'),
+                  centree: true,
+                  choisie: _urgent || brouillon.urgentLe(_aujourdhui),
+                  onTap: () => setState(() => _urgent = !_urgent),
+                ),
+              ),
+            ],
+          ),
           titre('Date limite'),
           Wrap(
             spacing: 6,
@@ -250,47 +263,19 @@ class _EditionAFaireScreenState extends State<EditionAFaireScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 18),
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: couleurCase(context, laCase),
-              borderRadius: BorderRadius.circular(28),
+          if (!_urgent && brouillon.urgentLe(_aujourdhui))
+            Padding(
+              padding: const EdgeInsets.fromLTRB(6, 10, 6, 0),
+              child: Text('Urgent : la date limite est proche.', style: doux),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  laCase.nom,
-                  style: TextStyle(
-                    fontFamily: AppTheme.policeTitre,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: texteSurCase(context, laCase),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  [laCase.detail, ?devientUrgent].join('. '),
-                  style: TextStyle(
-                    color: texteSurCase(context, laCase).withValues(alpha: 0.8),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
+          if (devientUrgent != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(6, 10, 6, 0),
+              child: Text(
+                devientUrgent.endsWith('.') ? devientUrgent : '$devientUrgent.',
+                style: doux,
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(6, 12, 6, 0),
-            child: Text(
-              laCase == Case.peutEtreJamais
-                  ? '« Remplir ma journée » ne place pas cette case : à toi '
-                        'de le faire si tu veux.'
-                  : '« Remplir ma journée » place « D\'abord », puis « À '
-                        'planifier », puis « Vite fait ».',
-              style: doux,
-            ),
-          ),
         ],
       ),
     );

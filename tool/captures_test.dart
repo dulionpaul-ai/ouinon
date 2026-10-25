@@ -20,7 +20,8 @@ import 'package:ouinon/screens/edition_a_faire_screen.dart';
 import 'package:ouinon/screens/edition_tache_screen.dart';
 import 'package:ouinon/screens/edition_question_screen.dart';
 import 'package:ouinon/screens/fiche_question_screen.dart';
-import 'package:ouinon/screens/planning_screen.dart';
+import 'package:ouinon/screens/preparer_screen.dart';
+import 'package:ouinon/screens/todo_screen.dart';
 import 'package:ouinon/screens/questions_screen.dart';
 import 'package:ouinon/screens/reglages_screen.dart';
 import 'package:ouinon/screens/stats_screen.dart';
@@ -90,7 +91,7 @@ void main() {
     extendBody: true,
     bottomNavigationBar: BarreOnglets(
       index: index,
-      libelles: const ['Jour', 'À faire', 'Stats', 'Questions'],
+      libelles: const ['Aujourd\'hui', 'To-do', 'Stats'],
       onChoix: (_) {},
     ),
   );
@@ -211,58 +212,32 @@ void main() {
       await capture(
         tester,
         '4-questions-$suffixe',
-        avecOnglets(QuestionsScreen(base: base), 3),
+        QuestionsScreen(base: base),
         mode,
       );
     });
 
-    testWidgets('demain $suffixe', (tester) async {
+    testWidgets('to-do $suffixe', (tester) async {
       await remplit(tester);
       await capture(
         tester,
-        '12-demain-$suffixe',
-        avecOnglets(
-          PlanningScreen(base: base, maintenant: () => maintenant),
-          1,
-        ),
+        '12-todo-$suffixe',
+        avecOnglets(TodoScreen(base: base, maintenant: () => maintenant), 1),
         mode,
-        hauteur: 2300,
       );
     });
 
-    testWidgets('planning du jour $suffixe', (tester) async {
+    testWidgets('préparer, étape 1 $suffixe', (tester) async {
       await remplit(tester);
       await capture(
         tester,
-        '13-aujourdhui-planning-$suffixe',
-        avecOnglets(
-          PlanningScreen(
-            base: base,
-            maintenant: () => maintenant,
-            vue: VuePlanning.aujourdhui,
-          ),
-          1,
+        '17-preparer-1-$suffixe',
+        PreparerScreen(
+          base: base,
+          jour: DateTime(2026, 10, 23),
+          maintenant: () => maintenant,
         ),
         mode,
-        hauteur: 1700,
-      );
-    });
-
-    testWidgets('liste $suffixe', (tester) async {
-      await remplit(tester);
-      await capture(
-        tester,
-        '17-liste-$suffixe',
-        avecOnglets(
-          PlanningScreen(
-            base: base,
-            maintenant: () => maintenant,
-            vue: VuePlanning.enFond,
-          ),
-          1,
-        ),
-        mode,
-        hauteur: 2000,
       );
     });
 
@@ -276,31 +251,27 @@ void main() {
         avant: (tester) async {
           await tester.enterText(find.byType(TextField).first, 'Papiers');
           await tester.tap(find.byKey(const ValueKey('duree-60')));
-          await tester.tap(
-            find.descendant(
-              of: find.byKey(const ValueKey('important')),
-              matching: find.text('Oui'),
-            ),
-          );
+          await tester.tap(find.byKey(const ValueKey('important')));
           await tester.tap(find.text('Cette semaine'));
           await tester.pumpAndSettle();
         },
       );
     });
 
-    testWidgets('remplir $suffixe', (tester) async {
+    testWidgets('préparer, étape 2 $suffixe', (tester) async {
       await remplit(tester);
       await capture(
         tester,
-        '19-remplir-$suffixe',
-        avecOnglets(
-          PlanningScreen(base: base, maintenant: () => maintenant),
-          1,
+        '19-preparer-2-$suffixe',
+        PreparerScreen(
+          base: base,
+          jour: DateTime(2026, 10, 23),
+          maintenant: () => maintenant,
         ),
         mode,
-        hauteur: 900,
+        hauteur: 1000,
         avant: (tester) async {
-          await tester.tap(find.text('Remplir'));
+          await tester.tap(find.text('Suivant : caser dans la journée'));
           await tester.pumpAndSettle();
         },
       );
@@ -335,7 +306,7 @@ void main() {
           0,
         ),
         mode,
-        hauteur: 1700,
+        hauteur: 1000,
       );
     });
   }
@@ -400,8 +371,8 @@ void main() {
     await remplit(tester);
     await capture(
       tester,
-      '15-petit-demain',
-      avecOnglets(PlanningScreen(base: base, maintenant: () => maintenant), 1),
+      '15-petit-todo',
+      avecOnglets(TodoScreen(base: base, maintenant: () => maintenant), 1),
       ThemeMode.dark,
       largeur: 360,
       hauteur: 900,

@@ -7,8 +7,9 @@ import '../theme/app_theme.dart';
 import '../widgets/rond.dart';
 import 'edition_question_screen.dart';
 
-/// La liste des choses suivies, dans l'ordre de la journée : ajouter,
-/// ouvrir pour modifier.
+/// La liste des questions, dans l'ordre de la journée : ajouter, ouvrir
+/// pour modifier. Depuis les Réglages (revue du 25/10/2026 : trois
+/// onglets seulement).
 class QuestionsScreen extends StatefulWidget {
   final Base base;
 
@@ -50,34 +51,28 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
   Widget build(BuildContext context) {
     final t = Teintes.de(context);
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Mes questions'),
+        actions: [
+          IconButton(
+            tooltip: 'Ajouter une question',
+            onPressed: _ouvre,
+            icon: const Icon(Icons.add_rounded),
+          ),
+        ],
+      ),
       body: SafeArea(
-        bottom: false,
+        top: false,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(14, 12, 14, 120),
+          padding: const EdgeInsets.fromLTRB(14, 4, 14, 40),
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(6, 22, 6, 18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Expanded(child: GrandTitre('Questions')),
-                      const SizedBox(width: 12),
-                      BoutonPlus(
-                        infobulle: 'Ajouter une question',
-                        onPressed: _ouvre,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    _questions.isEmpty
-                        ? 'Aucune question pour l\'instant.'
-                        : 'Dans l\'ordre de la journée. Touche pour modifier.',
-                    style: TextStyle(color: t.doux),
-                  ),
-                ],
+              padding: const EdgeInsets.fromLTRB(6, 0, 6, 14),
+              child: Text(
+                _questions.isEmpty
+                    ? 'Aucune question pour l\'instant.'
+                    : 'Dans l\'ordre de la journée. Touche pour modifier.',
+                style: TextStyle(color: t.doux),
               ),
             ),
             for (final q in _questions)

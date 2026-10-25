@@ -10,9 +10,11 @@ import '../utils/jour.dart';
 import '../utils/planification.dart';
 import '../utils/version.dart';
 import '../widgets/rond.dart';
+import 'creneaux_screen.dart';
+import 'questions_screen.dart';
 
-/// Réglages : autorisation des notifications, essai d'une notification,
-/// et ce que l'appli fait (ou pas) de tes réponses.
+/// Réglages, en lignes simples (revue du 25/10/2026) : tes questions, tes
+/// créneaux fixes, ta journée, les notifications, les données de test.
 class ReglagesScreen extends StatefulWidget {
   final Base base;
 
@@ -37,6 +39,8 @@ class _ReglagesScreenState extends State<ReglagesScreen>
   int _reponsesTest = 0;
   NotifPrevue? _prochaine;
   int? _enAttente;
+  int _nbQuestions = 0;
+  String _creneaux = '';
 
   @override
   void initState() {
@@ -75,6 +79,8 @@ class _ReglagesScreenState extends State<ReglagesScreen>
     final journee = await Preferences.journee();
     final notifsPlanning = await Preferences.notifsPlanning();
     final reponsesTest = await widget.base.nombreReponsesTest();
+    final questions = await widget.base.questions();
+    final creneaux = await widget.base.creneaux();
     final maintenant = DateTime.now();
     final plan = planifie(
       questions: await widget.base.questions(),
@@ -93,6 +99,11 @@ class _ReglagesScreenState extends State<ReglagesScreen>
       _journee = journee;
       _notifsPlanning = notifsPlanning;
       _reponsesTest = reponsesTest;
+      _nbQuestions = questions.length;
+      _creneaux = [
+        for (final c in creneaux)
+          '${c.texte} ${heureFr(c.debut)} – ${heureFr(c.fin % (24 * 60))}',
+      ].join(' · ');
     });
   }
 
@@ -245,245 +256,283 @@ class _ReglagesScreenState extends State<ReglagesScreen>
     }
   }
 
+  void _ouvre(Widget ecran) => Navigator.push(
+    context,
+    MaterialPageRoute(builder: (_) => ecran),
+  ).then((_) => _verifie());
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final doux = TextStyle(color: Teintes.de(context).doux, height: 1.35);
-    Widget bloc(String titre, List<Widget> contenu) => Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: CarteRonde(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(titre, style: theme.textTheme.titleMedium),
-            const SizedBox(height: 8),
-            ...contenu,
-          ],
-        ),
-      ),
-    );
+    final t = Teintes.de(context);
+    final doux = TextStyle(color: t.doux, height: 1.35, fontSize: 13);
+    Switch interrupteur(String cle, bool valeur, ValueChanged<bool> f) =>
+        Switch(
+          key: ValueKey(cle),
+          value: valeur,
+          activeThumbColor: t.surAccent,
+          activeTrackColor: t.accent,
+          onChanged: f,
+        );
     return Scaffold(
       appBar: AppBar(title: const Text('Réglages')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(14, 8, 14, 32),
         children: [
-          bloc('Notifications', [
-            Text(switch (_autorisees) {
-              true => 'Autorisées.',
-              false => 'Bloquées : sans elles, tu ne reçois pas tes questions.',
-              null => 'Chaque question arrive en notification à son heure.',
-            }, style: doux),
-            const SizedBox(height: 14),
-            if (_autorisees != true) ...[
-              FilledButton(
-                onPressed: _autorise,
-                child: const Text('Autoriser les notifications'),
+          _Section('Ton appli', [
+            _Ligne(
+              titre: 'Mes questions',
+              valeur: '$_nbQuestions',
+              onTap: () => _ouvre(QuestionsScreen(base: widget.base)),
+            ),
+            _Ligne(
+              titre: 'Créneaux fixes',
+              sousTitre: _creneaux.isEmpty
+                  ? 'Ex. : enfants de 17 h à 23 h'
+                  : _creneaux,
+              onTap: () => _ouvre(CreneauxScreen(base: widget.base)),
+            ),
+            _Ligne(
+              cle: const ValueKey('debut-journee'),
+              titre: 'Début de journée',
+              valeur: heureFr(_journee.debut),
+              onTap: () => _choisitJournee(debut: true),
+            ),
+            _Ligne(
+              cle: const ValueKey('fin-journee'),
+              titre: 'Fin de journée',
+              valeur: heureFr(_journee.fin),
+              sousTitre: '« Caser pour moi » place ta to-do entre ces heures.',
+              onTap: () => _choisitJournee(debut: false),
+            ),
+          ]),
+          _Section('Notifications', [
+            _Ligne(
+              titre: switch (_autorisees) {
+                true => 'Autorisées',
+                false => 'Bloquées',
+                null => 'Notifications',
+              },
+              sousTitre: _autorisees == false
+                  ? 'Sans elles, tu ne reçois pas tes questions.'
+                  : null,
+              bas: _autorisees == true
+                  ? null
+                  : Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton(
+                        onPressed: _autorise,
+                        child: const Text('Autoriser les notifications'),
+                      ),
+                    ),
+            ),
+            if (_precise == false)
+              _Ligne(
+                titre:
+                    'Heure précise non autorisée : les questions peuvent '
+                    'arriver avec des heures de retard.',
+                bas: Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    onPressed: _autoriseHeurePrecise,
+                    child: const Text('Autoriser l\'heure précise'),
+                  ),
+                ),
               ),
-            ],
-            const SizedBox(height: 14),
-            Text(switch (_precise) {
-              true =>
-                'Heure précise autorisée : les questions arrivent à '
-                    'l\'heure.',
-              false =>
-                'Heure précise non autorisée : les questions peuvent arriver '
-                    'avec des heures de retard.',
-              null => '',
-            }, style: doux),
-            if (_precise == false) ...[
-              const SizedBox(height: 10),
-              FilledButton(
-                onPressed: _autoriseHeurePrecise,
-                child: const Text('Autoriser l\'heure précise'),
-              ),
-            ],
-            const SizedBox(height: 14),
-            Text(
-              _prochaine == null
+            _Ligne(
+              titre: _prochaine == null
                   ? 'Aucune question programmée.'
                   : 'Prochaine question : ${_prochaine!.question.texte} '
                         '${dateCourte(_prochaine!.quand).toLowerCase()} à '
                         // Espace insécable : « 9 h » ne se coupe pas.
-                        '${heureFr(_prochaine!.quand.hour * 60 + _prochaine!.quand.minute).replaceAll(' ', '\u00a0')}.',
-              style: doux.copyWith(
-                color: Teintes.de(context).texte,
-                fontWeight: FontWeight.w700,
-              ),
+                        '${heureFr(_prochaine!.quand.hour * 60 + _prochaine!.quand.minute).replaceAll(' ', ' ')}.',
+              sousTitre: _enAttente == null
+                  ? null
+                  : '$_enAttente notification${_enAttente! > 1 ? 's' : ''} '
+                        'programmée${_enAttente! > 1 ? 's' : ''} sur le téléphone.',
             ),
-            if (_enAttente != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                '$_enAttente notification${_enAttente! > 1 ? 's' : ''} '
-                'programmée${_enAttente! > 1 ? 's' : ''} sur le téléphone.',
-                style: doux,
-              ),
-            ],
-            const SizedBox(height: 4),
-            Text(
-              'Une question déjà répondue dans l\'appli n\'envoie pas de '
-              'notification ce jour-là.',
-              style: doux,
-            ),
-            const SizedBox(height: 14),
-            FilledButton(
-              onPressed: _essaie,
-              style: FilledButton.styleFrom(
-                backgroundColor: Teintes.de(context).accent,
-                foregroundColor: Teintes.de(context).surAccent,
-              ),
-              child: const Text('Essayer une notification'),
-            ),
-          ]),
-          bloc('Préparer demain', [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Chaque soir, un rappel pour préparer ta journée de '
-                    'demain, avec le point sur aujourd\'hui.',
-                    style: doux,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Switch(
-                  key: const ValueKey('interrupteur-rappel'),
-                  value: _rappelPlanning,
-                  activeThumbColor: Teintes.de(context).surAccent,
-                  activeTrackColor: Teintes.de(context).accent,
-                  onChanged: _changeRappelPlanning,
-                ),
-              ],
-            ),
-            if (_rappelPlanning) ...[
-              const SizedBox(height: 10),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: OutlinedButton.icon(
-                  onPressed: _choisitHeureRappel,
-                  icon: const Icon(Icons.schedule_rounded),
-                  label: Text('À ${heureFr(_heureRappel)}'),
+            _Ligne(titre: 'Essayer une notification', onTap: _essaie),
+            _Ligne(
+              titre: 'Pour une chose de ta journée',
+              bas: Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: ChoixPilules<NotifsPlanning>(
+                  options: const [
+                    (NotifsPlanning.debutEtFin, 'Début et fin'),
+                    (NotifsPlanning.debut, 'Début'),
+                    (NotifsPlanning.fin, 'Fin'),
+                  ],
+                  valeur: _notifsPlanning,
+                  onChoix: _changeNotifsPlanning,
                 ),
               ),
-            ],
-          ]),
-          bloc('Planning', [
-            Text(
-              'Ta journée : « Remplir ma journée » place ta liste entre ces '
-              'deux heures.',
-              style: doux,
             ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    key: const ValueKey('debut-journee'),
-                    onPressed: () => _choisitJournee(debut: true),
-                    child: Text('De ${heureFr(_journee.debut)}'),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: OutlinedButton(
-                    key: const ValueKey('fin-journee'),
-                    onPressed: () => _choisitJournee(debut: false),
-                    child: Text('À ${heureFr(_journee.fin)}'),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Notifications d\'une chose prévue : au début (« C\'est '
-              'l\'heure ») et à la fin (« C\'est fait ? »), ou une seule.',
-              style: doux,
-            ),
-            const SizedBox(height: 10),
-            ChoixPilules<NotifsPlanning>(
-              options: const [
-                (NotifsPlanning.debutEtFin, 'Les deux'),
-                (NotifsPlanning.debut, 'Début'),
-                (NotifsPlanning.fin, 'Fin'),
-              ],
-              valeur: _notifsPlanning,
-              onChoix: _changeNotifsPlanning,
-            ),
-          ]),
-          bloc('Bilan du dimanche', [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Le dimanche à 20 h, ta semaine en quelques lignes : '
-                    'tes réponses, ta meilleure série, ta découverte la '
-                    'plus forte et ton planning.',
-                    style: doux,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Switch(
-                  key: const ValueKey('interrupteur-bilan'),
-                  value: _bilan,
-                  activeThumbColor: Teintes.de(context).surAccent,
-                  activeTrackColor: Teintes.de(context).accent,
-                  onChanged: _changeBilan,
-                ),
-              ],
-            ),
-          ]),
-          bloc('Données de test', [
-            Text(
-              _reponsesTest == 0
-                  ? 'Pour essayer : 6 mois de réponses et de planning '
-                        'inventés, et une liste à faire, effaçables d\'un '
-                        'coup.'
-                  : '$_reponsesTest données de test en ce moment. Tes '
-                        'vraies réponses sont à part.',
-              style: doux,
-            ),
-            const SizedBox(height: 12),
-            FilledButton(
-              onPressed: _ajouteTest,
-              style: FilledButton.styleFrom(
-                backgroundColor: Teintes.de(context).accent,
-                foregroundColor: Teintes.de(context).surAccent,
+            _Ligne(
+              titre: 'Rappel du soir',
+              sousTitre: 'Pour préparer demain',
+              fin: interrupteur(
+                'interrupteur-rappel',
+                _rappelPlanning,
+                _changeRappelPlanning,
               ),
-              child: const Text('Ajouter 6 mois de test'),
             ),
-            if (_reponsesTest > 0) ...[
-              const SizedBox(height: 8),
-              OutlinedButton(
-                onPressed: _effaceTest,
-                child: const Text('Effacer les données de test'),
+            if (_rappelPlanning)
+              _Ligne(
+                titre: 'Heure du rappel',
+                valeur: heureFr(_heureRappel),
+                onTap: _choisitHeureRappel,
               ),
-            ],
-          ]),
-          bloc('Tes réponses', [
-            Text(
-              'Tout reste sur ce téléphone : pas de compte, pas de serveur, '
-              'aucun envoi. Si tu désinstalles l\'appli, tes réponses sont '
-              'effacées.',
-              style: doux,
+            _Ligne(
+              titre: 'Bilan du dimanche',
+              sousTitre: 'Le dimanche à 20 h, ta semaine en quelques lignes',
+              fin: interrupteur('interrupteur-bilan', _bilan, _changeBilan),
             ),
           ]),
-          bloc('À savoir', [
-            Text(
-              'Ouinon montre ce qui va souvent ensemble dans tes réponses. '
-              'Ce ne sont pas des causes, et l\'appli ne donne aucun conseil '
-              'de santé.',
-              style: doux,
+          _Section('Données de test', [
+            _Ligne(
+              titre: 'Ajouter 6 mois de test',
+              sousTitre: _reponsesTest == 0
+                  ? 'Réponses, planning et to-do inventés, pour essayer.'
+                  : '$_reponsesTest données de test en ce moment.',
+              onTap: _ajouteTest,
             ),
+            if (_reponsesTest > 0)
+              _Ligne(titre: 'Effacer les données de test', onTap: _effaceTest),
           ]),
           Padding(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
             child: Text(
-              versionLisible(),
+              'Tout reste sur ce téléphone : pas de compte, pas de serveur, '
+              'aucun envoi. Ouinon montre ce qui va souvent ensemble dans tes '
+              'réponses : ce ne sont pas des causes, et l\'appli ne donne '
+              'aucun conseil de santé.\n\n${versionLisible()}',
               textAlign: TextAlign.center,
               style: doux,
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Un groupe de réglages : un petit titre, puis des lignes séparées par
+/// un trait, dans une seule carte.
+class _Section extends StatelessWidget {
+  final String titre;
+  final List<Widget> lignes;
+
+  const _Section(this.titre, this.lignes);
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Teintes.de(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
+            child: Text(
+              titre,
+              style: TextStyle(
+                color: t.doux,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          Material(
+            color: t.carte,
+            borderRadius: BorderRadius.circular(22),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              children: [
+                for (final (i, l) in lignes.indexed) ...[
+                  if (i > 0)
+                    Divider(height: 1, thickness: 1, indent: 18, color: t.puce),
+                  l,
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Une ligne de réglage : titre, petit texte, valeur à droite ou
+/// interrupteur, et touchable si elle mène quelque part.
+class _Ligne extends StatelessWidget {
+  final String titre;
+  final String? sousTitre;
+  final String? valeur;
+  final Widget? fin;
+  final Widget? bas;
+  final VoidCallback? onTap;
+  final Key? cle;
+
+  const _Ligne({
+    required this.titre,
+    this.sousTitre,
+    this.valeur,
+    this.fin,
+    this.bas,
+    this.onTap,
+    this.cle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Teintes.de(context);
+    return InkWell(
+      key: cle,
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(18, 12, 12, 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        titre,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      if (sousTitre != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          sousTitre!,
+                          style: TextStyle(color: t.doux, fontSize: 13),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                if (valeur != null)
+                  Text(
+                    valeur!,
+                    style: TextStyle(
+                      color: t.doux,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ?fin,
+                if (onTap != null && fin == null)
+                  Icon(Icons.chevron_right_rounded, color: t.doux),
+              ],
+            ),
+            ?bas,
+          ],
+        ),
       ),
     );
   }

@@ -279,3 +279,39 @@ double? partTempsImportant(Iterable<Tache> taches) {
   }
   return total == 0 ? null : important / total;
 }
+
+/// Saisie rapide de la to-do : « Papiers 1 h », « Banque 30 min »,
+/// « Garage 1h30 » → le texte et la durée (nulle si rien n'est dit).
+({String texte, int? duree}) lisAjout(String saisie) {
+  final s = saisie.trim();
+  final heures = RegExp(
+    r'^(.*\S)\s+(\d{1,2})\s*h\s*(\d{1,2})?$',
+    caseSensitive: false,
+  ).firstMatch(s);
+  if (heures != null) {
+    final h = int.parse(heures.group(2)!);
+    final m = int.tryParse(heures.group(3) ?? '') ?? 0;
+    final duree = h * 60 + m;
+    if (duree > 0 && duree <= 12 * 60) {
+      return (texte: heures.group(1)!, duree: duree);
+    }
+  }
+  final minutes = RegExp(
+    r'^(.*\S)\s+(\d{1,3})\s*(min|mn|m)$',
+    caseSensitive: false,
+  ).firstMatch(s);
+  if (minutes != null) {
+    final m = int.parse(minutes.group(2)!);
+    if (m > 0 && m <= 12 * 60) return (texte: minutes.group(1)!, duree: m);
+  }
+  return (texte: s, duree: null);
+}
+
+/// Jauge de « Préparer demain » : ce qui est choisi face au temps libre.
+enum Remplissage { rentre, juste, tropPlein }
+
+Remplissage remplissage(int choisi, int libre) => choisi > libre
+    ? Remplissage.tropPlein
+    : choisi > libre * 0.85
+    ? Remplissage.juste
+    : Remplissage.rentre;

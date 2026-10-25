@@ -62,12 +62,27 @@ class Notifications {
 
   /// L'heure qu'il est (remplacée dans les tests).
   DateTime Function() horloge = DateTime.now;
+
+  /// Contenu caché du rappel du soir : le toucher ouvre « Préparer
+  /// demain ».
+  static const preparer = 'preparer';
+
+  /// Ce qu'une notification touchée demande d'ouvrir (lu par l'accueil).
+  final ouverture = ValueNotifier<String?>(null);
   Future<void>? _pret;
 
   /// Au démarrage (appli ou moteur d'arrière-plan) : module de
   /// notifications.
   Future<void> prepare() => _pret ??= () async {
     await _initialise(await _questionsSansErreur());
+    // Appli lancée en touchant le rappel du soir.
+    try {
+      final lancement = await _plugin.getNotificationAppLaunchDetails();
+      if (lancement?.didNotificationLaunchApp ?? false) {
+        final r = lancement!.notificationResponse;
+        if (r?.payload == preparer) ouverture.value = preparer;
+      }
+    } catch (_) {}
   }();
 
   Future<List<Question>> _questionsSansErreur() async {
@@ -178,6 +193,10 @@ class Notifications {
   Future<void> traiteReponse(NotificationResponse reponse) async {
     final action = reponse.actionId;
     final contenu = reponse.payload;
+    if (contenu == preparer) {
+      ouverture.value = preparer;
+      return;
+    }
     if (contenu != null && contenu.startsWith('t|')) {
       return _traiteTache(action, contenu);
     }
@@ -312,6 +331,7 @@ class Notifications {
       id: idRappelPlanning,
       title: 'Prépare ta journée de demain',
       body: texte,
+      payload: preparer,
       scheduledDate: _tz(quand),
       notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(

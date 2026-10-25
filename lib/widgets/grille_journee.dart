@@ -6,9 +6,8 @@ import '../models/creneau.dart';
 import '../models/tache.dart';
 import '../theme/app_theme.dart';
 import '../utils/date_fr.dart';
-import 'cases.dart';
 
-/// Hauteur d'une heure dans la journée.
+/// Hauteur d'une heure dans la journée, par défaut.
 const hauteurHeure = 52.0;
 
 /// Largeur de la colonne des heures, à gauche.
@@ -33,6 +32,9 @@ class GrilleJournee extends StatefulWidget {
   /// Minute actuelle si c'est aujourd'hui (trait « maintenant »).
   final int? maintenant;
 
+  /// Hauteur d'une heure (plus petite pour voir toute la journée).
+  final double heure;
+
   final void Function(AFaire a, int debut) onPoseAFaire;
   final void Function(Tache t, int debut) onDeplace;
   final void Function(Tache t, int duree) onDuree;
@@ -51,6 +53,7 @@ class GrilleJournee extends StatefulWidget {
     this.heureDebut = 8,
     this.heureFin = 23,
     this.maintenant,
+    this.heure = hauteurHeure,
     required this.onPoseAFaire,
     required this.onDeplace,
     required this.onDuree,
@@ -75,10 +78,10 @@ class _GrilleJourneeState extends State<GrilleJournee> {
   final _durees = <int, int>{};
 
   double _y(int minute) =>
-      (minute - widget.heureDebut * 60) / 60 * hauteurHeure;
+      (minute - widget.heureDebut * 60) / 60 * widget.heure;
 
   int _arrondi(double y) =>
-      widget.heureDebut * 60 + ((y / hauteurHeure * 60) / 15).round() * 15;
+      widget.heureDebut * 60 + ((y / widget.heure * 60) / 15).round() * 15;
 
   /// Début d'une chose déposée, d'après le haut de ce qu'on glisse.
   int _debutDepuis(Offset global, int duree) {
@@ -132,7 +135,7 @@ class _GrilleJourneeState extends State<GrilleJournee> {
   Widget build(BuildContext context) {
     final t = Teintes.de(context);
     final heures = widget.heureFin - widget.heureDebut + 1;
-    final hauteur = heures * hauteurHeure;
+    final hauteur = heures * widget.heure;
     return DragTarget<Object>(
       onWillAcceptWithDetails: (d) => d.data is AFaire || d.data is Tache,
       onMove: (d) {
@@ -177,7 +180,7 @@ class _GrilleJourneeState extends State<GrilleJournee> {
                     onTapUp: (d) {
                       final minute =
                           widget.heureDebut * 60 +
-                          (d.localPosition.dy / hauteurHeure * 2).floor() * 30;
+                          (d.localPosition.dy / widget.heure * 2).floor() * 30;
                       widget.onTapVide(minute);
                     },
                   ),
@@ -186,7 +189,7 @@ class _GrilleJourneeState extends State<GrilleJournee> {
                   Positioned(
                     left: 0,
                     right: 0,
-                    top: i * hauteurHeure,
+                    top: i * widget.heure,
                     child: IgnorePointer(
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -218,7 +221,7 @@ class _GrilleJourneeState extends State<GrilleJournee> {
                     left: _largeurHeures,
                     width: largeur,
                     top: _y(c.debut),
-                    height: (c.duree / 60 * hauteurHeure).clamp(
+                    height: (c.duree / 60 * widget.heure).clamp(
                       22.0,
                       double.infinity,
                     ),
@@ -234,7 +237,7 @@ class _GrilleJourneeState extends State<GrilleJournee> {
                     left: _largeurHeures,
                     width: largeur,
                     top: _y(a.debut),
-                    height: a.duree / 60 * hauteurHeure,
+                    height: a.duree / 60 * widget.heure,
                     child: IgnorePointer(
                       child: Container(
                         decoration: BoxDecoration(
@@ -302,7 +305,7 @@ class _GrilleJourneeState extends State<GrilleJournee> {
     final duree = _durees[tache.id] ?? tache.duree;
     final (col, nb) = colonne;
     final l = largeur / nb;
-    final hauteur = (duree / 60 * hauteurHeure).clamp(26.0, double.infinity);
+    final hauteur = (duree / 60 * widget.heure).clamp(26.0, double.infinity);
     final bloc = _BlocTacheGrille(tache: tache, duree: duree, hauteur: hauteur);
     return Positioned(
       left: _largeurHeures + col * l,
@@ -340,7 +343,7 @@ class _GrilleJourneeState extends State<GrilleJournee> {
                 onVerticalDragUpdate: (d) => setState(() {
                   final actuelle =
                       (_durees[tache.id] ?? tache.duree) +
-                      d.delta.dy / hauteurHeure * 60;
+                      d.delta.dy / widget.heure * 60;
                   _durees[tache.id!] = actuelle.round().clamp(15, 12 * 60);
                 }),
                 onVerticalDragEnd: (_) {
@@ -374,8 +377,8 @@ class _GrilleJourneeState extends State<GrilleJournee> {
   }
 }
 
-/// Un bloc de la journée : couleur de sa case (blanc pour un impératif),
-/// texte, horaire ; coché si fait, pâli si pas fait.
+/// Un bloc de la journée : citron (blanc pour un rendez-vous), texte,
+/// horaire ; coché si fait, pâli si pas fait.
 class _BlocTacheGrille extends StatelessWidget {
   final Tache tache;
   final int duree;
@@ -390,13 +393,9 @@ class _BlocTacheGrille extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Teintes.de(context);
-    final fond = switch (tache.quadrant) {
-      final int q => couleurCase(context, Case.values[q]),
-      null => t.texte,
-    };
-    final texte = tache.quadrant == Case.peutEtreJamais.index
-        ? t.texte
-        : t.fond;
+    // Une seule couleur pour la to-do (citron), blanc pour un rendez-vous.
+    final fond = tache.imperatif ? t.texte : t.accent;
+    final texte = t.fond;
     final plage =
         '${heureFr(tache.debut)} – ${heureFr((tache.debut + duree) % (24 * 60))}';
     final serre = hauteur < 44;

@@ -356,3 +356,4 @@ demain »).
   Ma journée) et un bouton Ascenseur bien visible ; l'Exécutant peut
   ajouter une chose ou changer une heure. Barrières entre les rôles :
   plus tard.
+- Envoyé dans l'APK n° 19 (1.0.0+19, 26/10/2026).

@@ -4,7 +4,7 @@ publish_to: 'none'
 
 # Version et numéro de compilation (x.y.z+n) : monter n avant chaque envoi
 # sur un store (il doit toujours augmenter).
-version: 1.0.0+18
+version: 1.0.0+19
 
 environment:
   sdk: ^3.13.5

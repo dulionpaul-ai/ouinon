@@ -63,7 +63,8 @@ fait, version par version : `docs/historique.md`.
    APK n° 17 : style « tableau » et « terminal sobre », onglets
    To-do · Aujourd'hui · Stats.
    APK n° 18 : le toi suit l'onglet, intro en 2 pages.
-   Prochain APK : `version: 1.0.0+19`, seulement avec l'accord de
+   APK n° 19 : deux rôles séparés, Ascenseur, Ajouter, Planifier.
+   Prochain APK : `version: 1.0.0+20`, seulement avec l'accord de
    Paul.
 9. [ ] Plus tard (critique du 23/10/2026) : sauvegarde dans un
    fichier, mode « expérience » (tester une habitude 14 jours), objectifs

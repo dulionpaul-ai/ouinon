@@ -5,7 +5,7 @@ Mis à jour le 26/10/2026.
 
 ## Reprendre ici (fin de session du 26/10/2026)
 
-- Dernier APK envoyé : **n° 19** (1.0.0+19, 26/10/2026) : deux rôles
+- Dernier APK envoyé : **n° 19** (1.0.0+20, 26/10/2026) : deux rôles
   séparés (Décideur : To-do · Planifier · Stats ; Exécutant : Ma
   journée), bouton Ascenseur, formulaire « Ajouter » avec heure imposée,
   onglet Planifier. **Attendre les retours de Paul.**
@@ -40,7 +40,7 @@ Mis à jour le 26/10/2026.
   envoyée en **APK n° 13** (1.0.0+13, 26/10/2026). **APK n° 14**
   (1.0.0+14, 26/10/2026) : **les deux toi** (intro, écran rétro le jour,
   ambre le soir, ascenseur, mots, compte rendu, nouveau logo ; voir
-  `docs/fonctionnement.md`). **APK n° 15** (1.0.0+15) : parcours de première ouverture. **APK n° 16** : changer de toi à la main, 8 h – 20 h. **APK n° 17** : nouveau style. **APK n° 18** : le toi suit l'onglet. **APK n° 19** : deux rôles séparés. Pour le
+  `docs/fonctionnement.md`). **APK n° 15** (1.0.0+15) : parcours de première ouverture. **APK n° 16** : changer de toi à la main, 8 h – 20 h. **APK n° 17** : nouveau style. **APK n° 18** : le toi suit l'onglet. **APK n° 20** : deux rôles séparés. Pour le
   prochain, passer `version` à 1.0.0+20 dans `pubspec.yaml` et `lib/utils/version.dart`.
   Toujours demander à Paul avant de fabriquer un APK. Les boutons de
   notification marchent appli fermée (confirmé par Paul).

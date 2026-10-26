@@ -514,7 +514,6 @@ class _ChoseCase extends StatelessWidget {
                 style: TextStyle(
                   color: kaseJamais ? t.doux : t.texte,
                   fontSize: 15,
-                  fontWeight: FontWeight.w600,
                 ),
               ),
               // La durée ne se coupe pas (« 1 h 30 »).

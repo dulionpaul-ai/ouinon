@@ -359,3 +359,4 @@ demain »).
 - Envoyé dans l'APK n° 19 (1.0.0+19, 26/10/2026).
 
 - 26/10/2026 (après l'APK n° 19) : intitulés des cases de la To-do en étiquettes (majuscules espacées, soulignées à leur couleur) pour bien les séparer du contenu (retour de Paul).
+- 26/10/2026 : noms des choses de la To-do en écriture normale (seuls les intitulés des cases restent en gras). APK n° 20 (1.0.0+20).

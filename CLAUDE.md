@@ -46,7 +46,7 @@ Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
   Codemagic pour l'iPhone.
 - Avant chaque APK : regarder les captures (`tool/captures_test.dart`).
 - Garder l'appli simple (demande de Paul du 25/10/2026) : trois onglets
-  (Aujourd'hui, To-do, Stats), des lignes plutôt que des cartes, pas de
+  (To-do, Aujourd'hui, Stats), des lignes plutôt que des cartes, pas de
   textes d'aide permanents, pas de nouveau bouton sans nécessité.
 
 ## Garde-fous (non négociables)
@@ -82,7 +82,10 @@ Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
   `AppTheme.soir`, to-do en 4 cases) ; le jour, l'Exécutant (Aujourd'hui
   calme, `AppTheme.jour`, accent bleu-vert, calendrier). Le terminal
   rétro (`AppTheme.retro`, `lib/widgets/retro.dart`) par petites touches
-  seulement : Paul le trouve fatigant en plein écran. Plages : début /
+  seulement : Paul le trouve fatigant en plein écran. Style « tableau »
+  pour le Décideur (moins rond, matrice en croix), « terminal sobre »
+  pour l'Exécutant (`Teintes.terminal`, `Teintes.rayon`), validés le
+  26/10/2026. Onglets : To-do, Aujourd'hui, Stats. Plages : début /
   fin de journée et rappel du soir → fin du soir. Rien de la série
   Severance (nom, logo, vocabulaire).
 - Identifiant de l'appli : `fr.ouinon.app`, nom affiché « Ouinon ».

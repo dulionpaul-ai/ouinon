@@ -108,7 +108,7 @@ class AppTheme {
             color: t.texte,
           ),
         );
-    final pilule = const StadiumBorder();
+    final pilule = t.forme;
     return ThemeData(
       colorScheme: scheme,
       extensions: [t],
@@ -134,7 +134,9 @@ class AppTheme {
         color: t.carte,
         elevation: 0,
         margin: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(t.rayon + 6),
+        ),
       ),
       dividerTheme: DividerThemeData(color: t.trait, space: 1, thickness: 1),
       filledButtonTheme: FilledButtonThemeData(
@@ -210,12 +212,12 @@ class AppTheme {
           vertical: 18,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(t.rayon),
           borderSide: BorderSide.none,
         ),
       ),
       chipTheme: ChipThemeData(
-        shape: const StadiumBorder(),
+        shape: pilule,
         side: BorderSide.none,
         backgroundColor: t.puce,
         selectedColor: t.accent,
@@ -253,7 +255,7 @@ class AppTheme {
           fontWeight: FontWeight.w600,
           color: t.fond,
         ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        shape: pilule,
       ),
       timePickerTheme: TimePickerThemeData(
         backgroundColor: t.carte,
@@ -302,8 +304,16 @@ class Teintes extends ThemeExtension<Teintes> {
   final Color moyenne;
   final Color moinsBonne;
 
-  /// Écran rétro (le toi qui exécute).
+  /// Écran rétro (le compte rendu).
   final bool estRetro;
+
+  /// L'Exécutant (revu le 26/10/2026) : boutons carrés, étiquettes et
+  /// heures en police de terminal, texte courant normal.
+  final bool terminal;
+
+  /// Arrondi des boutons et des champs : doux (14) partout, presque
+  /// carré (3) pour l'Exécutant. Paul trouvait les pilules trop rondes.
+  final double rayon;
 
   const Teintes({
     required this.fond,
@@ -320,7 +330,16 @@ class Teintes extends ThemeExtension<Teintes> {
     required this.moyenne,
     required this.moinsBonne,
     this.estRetro = false,
+    this.terminal = false,
+    this.rayon = 14,
   });
+
+  /// Arrondi des petites pastilles (réponses données, séries).
+  double get rayonPetit => terminal ? 3 : 8;
+
+  /// La forme des boutons.
+  OutlinedBorder get forme =>
+      RoundedRectangleBorder(borderRadius: BorderRadius.circular(rayon));
 
   static const sombre = Teintes(
     fond: Color(0xFF0F0F12),
@@ -355,21 +374,24 @@ class Teintes extends ThemeExtension<Teintes> {
     moinsBonne: Color(0xFFFF6B5E),
   );
 
-  /// Le jour, celui qui exécute : accent bleu-vert.
+  /// Le jour, celui qui exécute : terminal sobre, noir bleuté, accent
+  /// bleu-vert (maquette validée par Paul le 26/10/2026).
   static const jour = Teintes(
-    fond: Color(0xFF0F0F12),
-    carte: Color(0xFF1A1A1F),
-    puce: Color(0xFF26262C),
-    texte: Color(0xFFF5F5F2),
-    doux: Color(0xFFA3A3AD),
-    trait: Color(0xFF26262C),
+    fond: Color(0xFF07090A),
+    carte: Color(0xFF0D1312),
+    puce: Color(0xFF1D2B29),
+    texte: Color(0xFFE4EFEC),
+    doux: Color(0xFF7FA39C),
+    trait: Color(0xFF1D2B29),
     accent: AppTheme.bleuVert,
-    surAccent: Color(0xFF06201B),
-    barre: Color(0xFF2E2E36),
-    texteBarre: Color(0xFFC4C4CC),
+    surAccent: Color(0xFF07090A),
+    barre: Color(0xFF0D1312),
+    texteBarre: Color(0xFF7FA39C),
     meilleure: Color(0xFFD4FF3A),
     moyenne: Color(0xFFFFB547),
-    moinsBonne: Color(0xFFFF6B5E),
+    moinsBonne: Color(0xFFFF7A6B),
+    terminal: true,
+    rayon: 3,
   );
 
   /// Le compte rendu : vieux terminal, bleu-vert phosphore sur noir (celui qui
@@ -389,6 +411,7 @@ class Teintes extends ThemeExtension<Teintes> {
     moyenne: Color(0xFFE8D7B0),
     moinsBonne: Color(0xFFFF7A6B),
     estRetro: true,
+    rayon: 0,
   );
 
   static Teintes de(BuildContext context) =>

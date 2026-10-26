@@ -305,11 +305,10 @@ class _PageJourState extends State<_PageJour> {
     final t = Teintes.de(context);
     final faites = _questions.where((q) => _reponses.containsKey(q.id)).length;
     final aVenir = _decalage >= 0;
-    final section = TextStyle(
-      color: t.doux,
-      fontSize: 13,
-      fontWeight: FontWeight.w700,
-    );
+    // Chez l'Exécutant, les titres de section en police de terminal.
+    final section = t.terminal
+        ? styleMono(12, couleur: t.doux, poids: FontWeight.w600)
+        : TextStyle(color: t.doux, fontSize: 13, fontWeight: FontWeight.w700);
     // La journée : choses casées et créneaux fixes, dans l'ordre.
     final lignes = <(int, Widget)>[
       for (final tache in _taches)
@@ -353,6 +352,14 @@ class _PageJourState extends State<_PageJour> {
                 onBascule: widget.onBascule,
               ),
               GrandTitre(_titre),
+              if (_decalage == 0)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    'Ce que l\'Exécutant fait aujourd\'hui, et comment il va.',
+                    style: TextStyle(color: t.doux, fontSize: 15),
+                  ),
+                ),
               const SizedBox(height: 18),
               if (widget.moi == Moi.decideur) ..._soir(context),
             ],
@@ -447,7 +454,18 @@ class _PageJourState extends State<_PageJour> {
               const SizedBox(height: 22),
               OutlinedButton(
                 onPressed: _rapport,
-                child: const Text('Compte rendu de la journée'),
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  side: BorderSide(color: t.puce),
+                ),
+                child: Text(
+                  'COMPTE RENDU',
+                  style: styleMono(
+                    14,
+                    couleur: t.texte,
+                    poids: FontWeight.w600,
+                  ),
+                ),
               ),
             ],
           ],
@@ -474,6 +492,16 @@ class _PageJourState extends State<_PageJour> {
         ),
       ),
       const GrandTitre('Bonjour, Exécutant.'),
+      Arrivee(
+        rang: 1,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 6),
+          child: Text(
+            'Ce que l\'Exécutant fait aujourd\'hui, et comment il va.',
+            style: TextStyle(color: t.doux, fontSize: 14),
+          ),
+        ),
+      ),
       if (_mot != null)
         Arrivee(
           rang: 1,
@@ -610,68 +638,59 @@ class _EnCours extends StatelessWidget {
     final t = Teintes.de(context);
     final x = tache;
     final reste = x.fin - minutes;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          enCours ? 'Maintenant' : 'Ensuite',
-          style: TextStyle(
-            color: t.doux,
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        border: Border.all(color: t.accent),
+        borderRadius: BorderRadius.circular(t.rayon),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            '${enCours ? 'MAINTENANT' : 'ENSUITE'} · '
+            '${hhmm(x.debut)} → ${hhmm(x.fin)}',
+            style: styleMono(12, couleur: t.accent),
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          x.texte,
-          style: TextStyle(
-            fontFamily: AppTheme.policeTitre,
-            fontSize: 26,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -1,
-            height: 1.1,
-            color: t.texte,
+          const SizedBox(height: 6),
+          Text(x.texte.toUpperCase(), style: styleRetro(36, couleur: t.accent)),
+          const SizedBox(height: 4),
+          Text(
+            enCours
+                ? 'encore ${dureeFr(reste)}'
+                : 'dans ${dureeFr(x.debut - minutes)}',
+            style: TextStyle(color: t.doux, fontSize: 14),
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          enCours
-              ? 'Jusqu\'à ${heureFr(x.fin)} · encore ${dureeFr(reste)}'
-              : 'À ${heureFr(x.debut)} · dans ${dureeFr(x.debut - minutes)}',
-          style: TextStyle(
-            color: t.accent,
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _Bouton(
-                'Pas fait',
-                couleur: t.moinsBonne,
-                onTap: () => onRepond(Tache.pasFait),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _Bouton(
+                  'Pas fait',
+                  couleur: t.moinsBonne,
+                  onTap: () => onRepond(Tache.pasFait),
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(child: _Bouton('Reporter', onTap: onReporte)),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _Bouton(
-                'Fait',
-                plein: true,
-                onTap: () => onRepond(Tache.fait),
+              const SizedBox(width: 6),
+              Expanded(child: _Bouton('Reporter', onTap: onReporte)),
+              const SizedBox(width: 6),
+              Expanded(
+                child: _Bouton(
+                  'Fait',
+                  plein: true,
+                  onTap: () => onRepond(Tache.fait),
+                ),
               ),
-            ),
-          ],
-        ),
-      ],
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
 
-/// Pas fait · Reporter · Fait : pilules, Fait en plein.
+/// Pas fait · Reporter · Fait : touches carrées de terminal, Fait en
+/// plein.
 class _Bouton extends StatelessWidget {
   final String texte;
   final VoidCallback onTap;
@@ -688,15 +707,27 @@ class _Bouton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Teintes.de(context);
+    final c = plein ? t.surAccent : (couleur ?? t.texte);
     return FilledButton(
       onPressed: onTap,
       style: FilledButton.styleFrom(
-        backgroundColor: plein ? t.accent : t.puce,
-        foregroundColor: plein ? t.surAccent : (couleur ?? t.texte),
+        backgroundColor: plein ? t.accent : Colors.transparent,
+        foregroundColor: c,
         minimumSize: const Size.fromHeight(46),
         padding: const EdgeInsets.symmetric(horizontal: 6),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(t.rayon),
+          side: plein ? BorderSide.none : BorderSide(color: t.puce),
+        ),
       ),
-      child: FittedBox(fit: BoxFit.scaleDown, child: Text(texte, maxLines: 1)),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
+          texte.toUpperCase(),
+          maxLines: 1,
+          style: styleMono(13, couleur: c, poids: FontWeight.w700),
+        ),
+      ),
     );
   }
 }

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../utils/date_fr.dart';
 
-/// Carte blanche très arrondie (32), le bloc de base du style.
+/// Carte sombre arrondie, le bloc de base du style.
 class CarteRonde extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
@@ -21,7 +21,9 @@ class CarteRonde extends StatelessWidget {
     final t = Teintes.de(context);
     return Material(
       color: t.carte,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(t.rayon + 6),
+      ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
@@ -54,7 +56,9 @@ class Pastille extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: hauteur * 0.4),
       decoration: ShapeDecoration(
         color: fond ?? t.puce,
-        shape: const StadiumBorder(),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(t.rayonPetit),
+        ),
       ),
       child: Center(
         widthFactor: 1,
@@ -113,24 +117,38 @@ class GrandTitre extends StatelessWidget {
   const GrandTitre(this.texte, {super.key});
 
   /// Réduit plutôt que coupé en deux lignes (gros texte du téléphone).
+  /// Chez l'Exécutant, en majuscules de vieux terminal.
   @override
-  Widget build(BuildContext context) => FittedBox(
-    fit: BoxFit.scaleDown,
-    alignment: Alignment.centerLeft,
-    child: Text(
-      texte,
-      maxLines: 1,
-      softWrap: false,
-      style: TextStyle(
-        fontFamily: AppTheme.policeTitre,
-        fontSize: 30,
-        fontWeight: FontWeight.w700,
-        letterSpacing: -0.9,
-        height: 1.1,
-        color: Teintes.de(context).texte,
+  Widget build(BuildContext context) {
+    final t = Teintes.de(context);
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.centerLeft,
+      child: Text(
+        t.terminal ? texte.toUpperCase() : texte,
+        maxLines: 1,
+        softWrap: false,
+        style: t.terminal
+            ? TextStyle(
+                fontFamily: AppTheme.policeRetro,
+                fontSize: 42,
+                height: 1,
+                color: t.accent,
+                shadows: [
+                  Shadow(color: t.accent.withValues(alpha: 0.4), blurRadius: 8),
+                ],
+              )
+            : TextStyle(
+                fontFamily: AppTheme.policeTitre,
+                fontSize: 30,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.9,
+                height: 1.1,
+                color: t.texte,
+              ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 /// La barre d'onglets flottante, en pilule.
@@ -146,78 +164,99 @@ class BarreOnglets extends StatelessWidget {
     required this.onChoix,
   });
 
+  /// Revue le 26/10/2026 (moins rond) : posée en bas, des mots ; celui
+  /// choisi souligné à l'accent. Chez l'Exécutant, trois touches carrées
+  /// de terminal, la choisie pleine.
   @override
   Widget build(BuildContext context) {
     final t = Teintes.de(context);
-    return SafeArea(
-      top: false,
-      minimum: const EdgeInsets.only(bottom: 14),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: libelles.length > 3 ? 16 : 32,
-        ),
-        child: Container(
-          height: 64,
-          padding: const EdgeInsets.all(7),
-          decoration: ShapeDecoration(
-            color: t.barre,
-            shape: const StadiumBorder(),
-            shadows: const [
-              BoxShadow(
-                color: Color(0x1F000000),
-                blurRadius: 20,
-                offset: Offset(0, 6),
+    Widget onglet(int i, String libelle) {
+      final choisi = i == index;
+      final texte = Text(
+        t.terminal ? libelle.toUpperCase() : libelle,
+        maxLines: 1,
+        style: t.terminal
+            ? TextStyle(
+                fontFamily: AppTheme.policeMono,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5,
+                color: choisi ? t.surAccent : t.texteBarre,
+              )
+            : TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+                color: choisi ? t.accent : t.texteBarre,
               ),
-            ],
-          ),
-          child: Row(
-            children: [
-              for (final (i, libelle) in libelles.indexed)
-                Expanded(
-                  child: Semantics(
-                    button: true,
-                    selected: i == index,
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      curve: Curves.easeOut,
-                      decoration: ShapeDecoration(
-                        color: i == index ? t.accent : Colors.transparent,
-                        shape: const StadiumBorder(),
-                      ),
-                      child: Material(
-                        type: MaterialType.transparency,
-                        child: InkWell(
-                          customBorder: const StadiumBorder(),
-                          onTap: () => onChoix(i),
-                          child: Center(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 4,
-                              ),
-                              // Réduit plutôt que coupé (petit téléphone,
-                              // gros texte).
-                              child: FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: Text(
-                                  libelle,
-                                  maxLines: 1,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w800,
-                                    color: i == index
-                                        ? t.surAccent
-                                        : t.texteBarre,
-                                  ),
+      );
+      return Expanded(
+        child: Semantics(
+          button: true,
+          selected: choisi,
+          child: Material(
+            key: ValueKey('onglet-$i'),
+            color: t.terminal && choisi ? t.accent : Colors.transparent,
+            shape: t.terminal
+                ? RoundedRectangleBorder(
+                    side: choisi ? BorderSide.none : BorderSide(color: t.puce),
+                    borderRadius: BorderRadius.circular(t.rayon),
+                  )
+                : null,
+            child: InkWell(
+              onTap: () => onChoix(i),
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  // Réduit plutôt que coupé (petit téléphone, gros texte).
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: t.terminal
+                        ? texte
+                        : Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              texte,
+                              const SizedBox(height: 5),
+                              AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                width: 18,
+                                height: 3,
+                                decoration: BoxDecoration(
+                                  color: choisi ? t.accent : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(2),
                                 ),
                               ),
-                            ),
+                            ],
                           ),
-                        ),
-                      ),
-                    ),
                   ),
                 ),
-            ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: t.fond,
+        border: Border(top: BorderSide(color: t.puce)),
+      ),
+      child: SafeArea(
+        top: false,
+        minimum: const EdgeInsets.only(bottom: 8),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+          child: SizedBox(
+            height: 48,
+            child: Row(
+              children: [
+                for (final (i, libelle) in libelles.indexed) ...[
+                  if (i > 0 && t.terminal) const SizedBox(width: 6),
+                  onglet(i, libelle),
+                ],
+              ],
+            ),
           ),
         ),
       ),

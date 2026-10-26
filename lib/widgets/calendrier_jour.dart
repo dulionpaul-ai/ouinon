@@ -7,6 +7,7 @@ import '../models/tache.dart';
 import '../theme/app_theme.dart';
 import '../utils/date_fr.dart';
 import '../utils/planning.dart';
+import 'retro.dart';
 
 /// La journée de l'Exécutant en calendrier (demande de Paul du
 /// 26/10/2026) : les heures régulières sur le côté, les choses prévues en
@@ -66,12 +67,18 @@ class CalendrierJour extends StatelessWidget {
                     child: Transform.translate(
                       offset: const Offset(0, -8),
                       child: Text(
-                        '$h h',
-                        style: TextStyle(
-                          color: t.doux,
-                          fontSize: 12,
-                          fontFeatures: const [FontFeature.tabularFigures()],
-                        ),
+                        t.terminal
+                            ? '${h.toString().padLeft(2, '0')}:00'
+                            : '$h h',
+                        style: t.terminal
+                            ? styleMono(11, couleur: t.doux)
+                            : TextStyle(
+                                color: t.doux,
+                                fontSize: 12,
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
+                                ],
+                              ),
                       ),
                     ),
                   ),
@@ -157,7 +164,7 @@ class _Bloc extends StatelessWidget {
       opacity: fait ? 0.55 : 1,
       child: Material(
         color: couleur.withValues(alpha: enCours ? 0.30 : 0.14),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(math.min(8, t.rayon)),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,

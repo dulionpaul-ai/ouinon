@@ -18,8 +18,8 @@ import 'rapport_screen.dart';
 import 'stats_screen.dart';
 import 'todo_screen.dart';
 
-/// Écran principal : trois onglets (Aujourd'hui, To-do, Stats ; revue du
-/// 25/10/2026). Le rappel du soir ouvre « Préparer demain ».
+/// Écran principal : trois onglets (To-do, Aujourd'hui, Stats ; revue du
+/// 25/10/2026, ordre revu le 26/10/2026). Le rappel du soir ouvre « Préparer demain ».
 ///
 /// Les deux toi (26/10/2026) : pendant la journée, Aujourd'hui passe en
 /// écran rétro (celui qui exécute) ; le soir, l'appli prend l'accent ambre
@@ -44,7 +44,16 @@ class _AccueilScreenState extends State<AccueilScreen>
 
   Base? _base;
   Object? _erreur;
-  int _onglet = 0;
+  // Les onglets, dans l'ordre du chemin (Paul, 26/10/2026) : on liste,
+  // on fait, on regarde.
+  static const _todo = 0;
+  static const _aujourdhui = 1;
+
+  int _onglet = _todo;
+
+  /// L'onglet de départ suit qui est là, une fois ; ensuite, celui qu'on
+  /// a choisi.
+  bool _ongletPose = false;
   Timer? _attente;
   Moi _moi = Moi.repos;
   Timer? _horloge;
@@ -120,7 +129,16 @@ class _AccueilScreenState extends State<AccueilScreen>
     if (!mounted) return;
     final jour = jourDe(now);
     if (moi != Moi.executant || await DeuxMoi.reveilVu(jour)) {
-      if (moi != _moi && mounted) setState(() => _moi = moi);
+      if (!mounted) return;
+      if (moi != _moi || !_ongletPose) {
+        setState(() {
+          _moi = moi;
+          if (!_ongletPose) {
+            _onglet = moi == Moi.executant ? _aujourdhui : _todo;
+          }
+          _ongletPose = true;
+        });
+      }
       return;
     }
     // Premier passage de la journée : l'ascenseur descend chez
@@ -132,7 +150,8 @@ class _AccueilScreenState extends State<AccueilScreen>
       versLeSoir: false,
       auMilieu: () => setState(() {
         _moi = moi;
-        _onglet = 0;
+        _onglet = _aujourdhui;
+        _ongletPose = true;
       }),
     );
   }
@@ -147,7 +166,7 @@ class _AccueilScreenState extends State<AccueilScreen>
       auMilieu: () => setState(() {
         _force = vers;
         _moi = vers;
-        _onglet = vers == Moi.decideur ? 1 : 0;
+        _onglet = vers == Moi.decideur ? _todo : _aujourdhui;
       }),
     );
   }
@@ -171,7 +190,7 @@ class _AccueilScreenState extends State<AccueilScreen>
     }
     if (ouverture != Notifications.preparer) return;
     Notifications.instance.ouverture.value = null;
-    setState(() => _onglet = 1);
+    setState(() => _onglet = _todo);
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -238,7 +257,8 @@ class _AccueilScreenState extends State<AccueilScreen>
         _actifs = true;
         _force = Moi.decideur;
         _moi = Moi.decideur;
-        _onglet = 1;
+        _onglet = _todo;
+        _ongletPose = true;
       }),
     );
   }
@@ -303,18 +323,18 @@ class _AccueilScreenState extends State<AccueilScreen>
         ),
       );
     }
-    final executant = _moi == Moi.executant && _onglet == 0;
+    final executant = _moi == Moi.executant && _onglet == _aujourdhui;
     final ecran = Scaffold(
       body: IndexedStack(
         index: _onglet,
         children: [
-          AujourdhuiScreen(
+          TodoScreen(
             base: base,
             moi: _moi,
             onBascule: _actifs ? _bascule : null,
             maintenant: widget.maintenant,
           ),
-          TodoScreen(
+          AujourdhuiScreen(
             base: base,
             moi: _moi,
             onBascule: _actifs ? _bascule : null,
@@ -326,8 +346,11 @@ class _AccueilScreenState extends State<AccueilScreen>
       extendBody: true,
       bottomNavigationBar: BarreOnglets(
         index: _onglet,
-        libelles: const ['Aujourd\'hui', 'To-do', 'Stats'],
-        onChoix: (i) => setState(() => _onglet = i),
+        libelles: const ['To-do', 'Aujourd\'hui', 'Stats'],
+        onChoix: (i) => setState(() {
+          _onglet = i;
+          _ongletPose = true;
+        }),
       ),
     );
     // Même arbre dans tous les modes : changer de toi ou d'onglet ne fait

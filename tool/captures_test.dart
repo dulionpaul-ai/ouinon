@@ -107,7 +107,7 @@ void main() {
     extendBody: true,
     bottomNavigationBar: BarreOnglets(
       index: index,
-      libelles: const ['Aujourd\'hui', 'To-do', 'Stats'],
+      libelles: const ['To-do', 'Aujourd\'hui', 'Stats'],
       onChoix: (_) {},
     ),
   );
@@ -246,7 +246,7 @@ void main() {
       await capture(
         tester,
         '12-todo-$suffixe',
-        avecOnglets(TodoScreen(base: base, maintenant: () => maintenant), 1),
+        avecOnglets(TodoScreen(base: base, maintenant: () => maintenant), 0),
         mode,
       );
     });
@@ -327,7 +327,7 @@ void main() {
         '16-jour-prevu-$suffixe',
         avecOnglets(
           AujourdhuiScreen(base: base, maintenant: () => maintenant),
-          0,
+          1,
         ),
         mode,
         hauteur: 1000,
@@ -396,7 +396,7 @@ void main() {
     await capture(
       tester,
       '15-petit-todo',
-      avecOnglets(TodoScreen(base: base, maintenant: () => maintenant), 1),
+      avecOnglets(TodoScreen(base: base, maintenant: () => maintenant), 0),
       ThemeMode.dark,
       largeur: 360,
       hauteur: 900,
@@ -516,7 +516,7 @@ void main() {
     await capture(
       tester,
       '28-decideur-vide',
-      avecOnglets(TodoScreen(base: base, moi: Moi.decideur), 1),
+      avecOnglets(TodoScreen(base: base, moi: Moi.decideur), 0),
       ThemeMode.dark,
     );
   });
@@ -528,10 +528,6 @@ void main() {
       '29-decideur',
       AccueilScreen(maintenant: () => DateTime(2026, 10, 22, 21, 45)),
       ThemeMode.dark,
-      avant: (tester) async {
-        await tester.tap(find.text('To-do'));
-        await tester.pumpAndSettle();
-      },
     );
   });
 
@@ -554,6 +550,10 @@ void main() {
       AccueilScreen(maintenant: () => DateTime(2026, 10, 22, 21, 45)),
       ThemeMode.dark,
       hauteur: 1000,
+      avant: (tester) async {
+        await tester.tap(find.byKey(const ValueKey('onglet-1')));
+        await tester.pumpAndSettle();
+      },
     );
   });
 }

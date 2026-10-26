@@ -153,9 +153,22 @@ class _StatsScreenState extends State<StatsScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(14, 12, 14, 120),
           children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(6, 22, 6, 18),
-              child: GrandTitre('Stats'),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(6, 22, 6, 18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const GrandTitre('Stats'),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Ce que le Décideur apprend de l\'Exécutant.',
+                    style: TextStyle(
+                      color: Teintes.de(context).doux,
+                      fontSize: 15,
+                    ),
+                  ),
+                ],
+              ),
             ),
             const _Section('Découvertes'),
             if (_decouvertes.isEmpty)

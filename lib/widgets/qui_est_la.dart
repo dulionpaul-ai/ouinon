@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 import '../utils/deux_moi.dart';
+import 'retro.dart';
 
 /// En haut à gauche, toujours au même endroit : qui est là (revue du
 /// 26/10/2026). Le demi-rond et le nom, ambre pour le Décideur (moitié
@@ -41,17 +42,19 @@ class QuiEstLa extends StatelessWidget {
           )
         : Text(
             decideur ? 'DÉCIDEUR' : 'EXÉCUTANT',
-            style: TextStyle(
-              color: couleur,
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1.6,
-            ),
+            style: t.terminal
+                ? styleMono(12, couleur: couleur, poids: FontWeight.w600)
+                : TextStyle(
+                    color: couleur,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.6,
+                  ),
           );
-    final qui = Row(
+    final ligne = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (moi != Moi.repos) ...[
+        if (moi != Moi.repos && !t.terminal) ...[
           Container(
             width: 8,
             height: 16,
@@ -71,6 +74,18 @@ class QuiEstLa extends StatelessWidget {
         ],
       ],
     );
+    // Chez l'Exécutant : dans un petit cadre, comme une étiquette de
+    // terminal.
+    final qui = t.terminal
+        ? Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              border: Border.all(color: couleur),
+              borderRadius: BorderRadius.circular(t.rayon),
+            ),
+            child: ligne,
+          )
+        : ligne;
     return SizedBox(
       height: 40,
       child: Row(
@@ -103,11 +118,13 @@ class QuiEstLa extends StatelessWidget {
               textAlign: onBascule == null && moi == Moi.repos
                   ? TextAlign.start
                   : TextAlign.end,
-              style: TextStyle(
-                color: t.doux,
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-              ),
+              style: t.terminal
+                  ? styleMono(12, couleur: t.doux)
+                  : TextStyle(
+                      color: t.doux,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                    ),
             ),
           ),
           ?fin,

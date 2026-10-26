@@ -159,7 +159,6 @@ class _TodoScreenState extends State<TodoScreen> {
   Widget build(BuildContext context) {
     final t = Teintes.de(context);
     final liste = ordreDePlacement(_liste, _aujourdhui, avecJamais: true);
-    final minutes = liste.fold(0, (s, a) => s + a.duree);
     final bas = MediaQuery.paddingOf(context).bottom;
     final decideur = widget.moi == Moi.decideur;
     final bonjour = decideur && (_bonjour || liste.isEmpty);
@@ -174,34 +173,34 @@ class _TodoScreenState extends State<TodoScreen> {
           ),
         ),
         GrandTitre(bonjour ? 'Bonjour, Décideur.' : 'To-do'),
-        if (liste.isEmpty)
-          Arrivee(
-            rang: 1,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text.rich(
-                TextSpan(
-                  children: [
+        Arrivee(
+          rang: 1,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: bonjour
+                ? Text.rich(
                     TextSpan(
-                      text: decideur
-                          ? 'Ici, tu ne fais rien : tu décides.\n'
-                          : 'Note ici tout ce que tu as à faire.\n',
+                      children: [
+                        const TextSpan(
+                          text: 'Ici, tu ne fais rien : tu décides.\n',
+                        ),
+                        TextSpan(
+                          text: 'Écris ce que tu veux, l\'exécutant le fera.',
+                          style: TextStyle(color: t.doux),
+                        ),
+                      ],
                     ),
-                    TextSpan(
-                      text: decideur
-                          ? 'Écris ce que tu veux, l\'exécutant le fera.'
-                          : 'Avec le temps que ça prend : « Papiers 1 h ».',
-                      style: TextStyle(color: t.doux),
-                    ),
-                  ],
-                ),
-                style: const TextStyle(fontSize: 16, height: 1.4),
-              ),
-            ),
+                    style: const TextStyle(fontSize: 16, height: 1.4),
+                  )
+                : Text(
+                    'Ce que l\'Exécutant devra faire, un jour ou l\'autre.',
+                    style: TextStyle(color: t.doux, fontSize: 15),
+                  ),
           ),
+        ),
         const SizedBox(height: 14),
         Arrivee(rang: 2, child: _barreAjout(t)),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         Arrivee(
           rang: 3,
           child: Row(
@@ -212,7 +211,7 @@ class _TodoScreenState extends State<TodoScreen> {
                 actif: _important,
                 onTap: () => setState(() => _important = !_important),
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 18),
               _Bascule(
                 texte: 'Urgent',
                 couleur: t.moinsBonne,
@@ -222,32 +221,7 @@ class _TodoScreenState extends State<TodoScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 16),
-        Arrivee(
-          rang: 4,
-          child: Row(
-            children: [
-              const Expanded(
-                child: Text(
-                  'Ma to-do',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
-                ),
-              ),
-              Text(
-                liste.isEmpty
-                    ? 'vide'
-                    : '${liste.length} chose${liste.length > 1 ? 's' : ''}'
-                          ' · ${dureeFr(minutes)}',
-                style: TextStyle(
-                  color: t.doux,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 18),
         Expanded(
           child: Arrivee(
             rang: 5,
@@ -310,11 +284,9 @@ class _TodoScreenState extends State<TodoScreen> {
   Widget _barreAjout(Teintes t) => Container(
     height: 52,
     padding: const EdgeInsets.fromLTRB(18, 0, 5, 0),
-    decoration: ShapeDecoration(
+    decoration: BoxDecoration(
       color: t.carte,
-      shape: StadiumBorder(
-        side: BorderSide(color: t.accent.withValues(alpha: 0.55)),
-      ),
+      borderRadius: BorderRadius.circular(t.rayon),
     ),
     child: Row(
       children: [
@@ -345,6 +317,9 @@ class _TodoScreenState extends State<TodoScreen> {
             backgroundColor: t.accent,
             foregroundColor: t.surAccent,
             fixedSize: const Size(42, 42),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(t.rayon - 4),
+            ),
           ),
           icon: const Icon(Icons.add_rounded),
         ),
@@ -353,7 +328,8 @@ class _TodoScreenState extends State<TodoScreen> {
   );
 }
 
-/// Important ou Urgent, à cocher avant d'ajouter.
+/// Important ou Urgent, à cocher avant d'ajouter : un rond vide ou
+/// plein et le mot, sans cadre (style « tableau », 26/10/2026).
 class _Bascule extends StatelessWidget {
   final String texte;
   final Color couleur;
@@ -370,29 +346,38 @@ class _Bascule extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Teintes.de(context);
+    final c = actif ? couleur : t.doux;
     return Semantics(
       button: true,
       toggled: actif,
-      child: GestureDetector(
+      child: InkWell(
         onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          height: 32,
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          alignment: Alignment.center,
-          decoration: ShapeDecoration(
-            color: actif ? couleur.withValues(alpha: 0.14) : null,
-            shape: StadiumBorder(
-              side: BorderSide(color: actif ? couleur : t.puce),
-            ),
-          ),
-          child: Text(
-            texte,
-            style: TextStyle(
-              color: actif ? couleur : t.doux,
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-            ),
+        borderRadius: BorderRadius.circular(6),
+        child: SizedBox(
+          height: 36,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                width: 11,
+                height: 11,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: actif ? couleur : Colors.transparent,
+                  border: Border.all(color: c, width: 1.6),
+                ),
+              ),
+              const SizedBox(width: 7),
+              Text(
+                texte,
+                style: TextStyle(
+                  color: c,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -400,9 +385,10 @@ class _Bascule extends StatelessWidget {
   }
 }
 
-/// Les 4 cases d'Eisenhower, deux par deux : D'abord, À planifier, Vite
-/// fait, Peut-être jamais. Teintes transparentes de l'accent, plus fortes
-/// pour « D'abord ».
+/// Les 4 cases d'Eisenhower, dessinées comme sur le tableau blanc de
+/// Paul : une croix qui coupe l'espace en quatre, sans cadres (style
+/// « tableau » choisi le 26/10/2026). D'abord, À planifier, Vite fait,
+/// Peut-être jamais.
 class _Matrice extends StatelessWidget {
   final List<AFaire> liste;
   final DateTime aujourdhui;
@@ -420,17 +406,29 @@ class _Matrice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget kase(Case c) => Expanded(
-      child: _Case(
-        kase: c,
-        choses: [
-          for (final a in liste)
-            if (a.caseLe(aujourdhui) == c) a,
-        ],
-        aujourdhui: aujourdhui,
-        casees: casees,
-        onTap: onTap,
-        onFaite: onFaite,
+    final t = Teintes.de(context);
+    Widget kase(Case c, EdgeInsets marge) => Expanded(
+      child: Padding(
+        padding: marge,
+        child: _Case(
+          kase: c,
+          choses: [
+            for (final a in liste)
+              if (a.caseLe(aujourdhui) == c) a,
+          ],
+          aujourdhui: aujourdhui,
+          casees: casees,
+          onTap: onTap,
+          onFaite: onFaite,
+        ),
+      ),
+    );
+    Widget trait({required bool vertical}) => Container(
+      width: vertical ? 2 : null,
+      height: vertical ? null : 2,
+      decoration: BoxDecoration(
+        color: t.puce,
+        borderRadius: BorderRadius.circular(1),
       ),
     );
     return Column(
@@ -439,20 +437,23 @@ class _Matrice extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              kase(Case.dabord),
-              const SizedBox(width: 6),
-              kase(Case.aPlanifier),
+              kase(Case.dabord, const EdgeInsets.fromLTRB(0, 0, 14, 12)),
+              trait(vertical: true),
+              kase(Case.aPlanifier, const EdgeInsets.fromLTRB(16, 0, 0, 12)),
             ],
           ),
         ),
-        const SizedBox(height: 6),
+        trait(vertical: false),
         Expanded(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              kase(Case.viteFait),
-              const SizedBox(width: 6),
-              kase(Case.peutEtreJamais),
+              kase(Case.viteFait, const EdgeInsets.fromLTRB(0, 14, 14, 0)),
+              trait(vertical: true),
+              kase(
+                Case.peutEtreJamais,
+                const EdgeInsets.fromLTRB(16, 14, 0, 0),
+              ),
             ],
           ),
         ),
@@ -481,36 +482,13 @@ class _Case extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Teintes.de(context);
-    final (fond, bord, titre) = switch (kase) {
-      Case.dabord => (
-        t.accent.withValues(alpha: 0.16),
-        t.accent.withValues(alpha: 0.35),
-        t.accent,
-      ),
-      Case.aPlanifier => (
-        t.accent.withValues(alpha: 0.07),
-        Colors.transparent,
-        t.texte,
-      ),
-      Case.viteFait => (
-        t.texte.withValues(alpha: 0.05),
-        Colors.transparent,
-        t.texte,
-      ),
-      Case.peutEtreJamais => (
-        t.texte.withValues(alpha: 0.025),
-        Colors.transparent,
-        t.doux,
-      ),
+    final titre = switch (kase) {
+      Case.dabord => t.accent,
+      Case.peutEtreJamais => t.doux,
+      _ => t.texte,
     };
-    return Container(
+    return KeyedSubtree(
       key: ValueKey('case-${kase.name}'),
-      padding: const EdgeInsets.fromLTRB(10, 9, 10, 0),
-      decoration: BoxDecoration(
-        color: fond,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: bord),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -523,7 +501,7 @@ class _Case extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: titre,
-                    fontSize: 13,
+                    fontSize: 15,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -552,6 +530,7 @@ class _Case extends StatelessWidget {
                       for (final a in choses)
                         _ChoseCase(
                           key: ValueKey('todo-${a.id}'),
+                          kaseJamais: kase == Case.peutEtreJamais,
                           aFaire: a,
                           aujourdhui: aujourdhui,
                           casee: casees[a.id],
@@ -567,8 +546,9 @@ class _Case extends StatelessWidget {
   }
 }
 
-/// Une chose dans sa case : son nom, sa durée (et « demain 14 h » si elle
-/// est casée). Toucher l'ouvre ; appui long : fait.
+/// Une chose dans sa case : son nom puis sa durée, sur la même ligne (et
+/// « demain 14 h » si elle est casée). Toucher l'ouvre ; appui long :
+/// fait.
 class _ChoseCase extends StatelessWidget {
   final AFaire aFaire;
   final DateTime aujourdhui;
@@ -576,8 +556,12 @@ class _ChoseCase extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onFaite;
 
+  /// Dans « Peut-être jamais » : en gris.
+  final bool kaseJamais;
+
   const _ChoseCase({
     super.key,
+    this.kaseJamais = false,
     required this.aFaire,
     required this.aujourdhui,
     required this.casee,
@@ -594,45 +578,42 @@ class _ChoseCase extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       onLongPress: onFaite,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        decoration: BoxDecoration(
-          border: Border(
-            top: BorderSide(color: t.texte.withValues(alpha: 0.06)),
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              a.texte,
-              style: const TextStyle(
-                fontSize: 14,
-                height: 1.2,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            Text.rich(
+      borderRadius: BorderRadius.circular(6),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 5),
+        child: Text.rich(
+          TextSpan(
+            children: [
               TextSpan(
-                children: [
-                  TextSpan(text: dureeFr(a.duree)),
-                  if (enRetard)
-                    TextSpan(
-                      text: ' · en retard',
-                      style: TextStyle(color: t.moinsBonne),
-                    ),
-                  if (c != null)
-                    TextSpan(
-                      text:
-                          ' · ${c.jour == aujourdhui ? 'aujourd\'hui' : 'demain'}'
-                          ' ${heureFr(c.debut)}',
-                      style: TextStyle(color: t.accent),
-                    ),
-                ],
+                text: a.texte,
+                style: TextStyle(
+                  color: kaseJamais ? t.doux : t.texte,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-              style: TextStyle(color: t.doux, fontSize: 12),
-            ),
-          ],
+              // La durée ne se coupe pas (« 1 h 30 »).
+              TextSpan(text: '  ${dureeFr(a.duree).replaceAll(' ', '\u00a0')}'),
+              if (enRetard)
+                TextSpan(
+                  text: ' · en retard',
+                  style: TextStyle(color: t.moinsBonne),
+                ),
+              if (c != null)
+                TextSpan(
+                  text:
+                      ' · ${c.jour == aujourdhui ? 'aujourd\'hui' : 'demain'}'
+                      ' ${heureFr(c.debut)}',
+                  style: TextStyle(color: t.accent),
+                ),
+            ],
+          ),
+          style: TextStyle(
+            color: t.doux,
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            height: 1.3,
+          ),
         ),
       ),
     );

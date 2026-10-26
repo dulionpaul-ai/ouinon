@@ -71,11 +71,14 @@ class _Pilule extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         curve: Curves.easeOut,
         height: 44,
-        decoration: ShapeDecoration(color: fond, shape: const StadiumBorder()),
+        decoration: ShapeDecoration(
+          color: fond,
+          shape: Teintes.de(context).forme,
+        ),
         child: Material(
           type: MaterialType.transparency,
           child: InkWell(
-            customBorder: const StadiumBorder(),
+            customBorder: Teintes.de(context).forme,
             onTap: () {
               HapticFeedback.selectionClick();
               onTap();

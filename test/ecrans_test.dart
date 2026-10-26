@@ -422,7 +422,7 @@ void main() {
       expect(
         find.descendant(
           of: find.byKey(const ValueKey('case-dabord')),
-          matching: find.text('Papiers'),
+          matching: find.textContaining('Papiers', findRichText: true),
         ),
         findsOneWidget,
       );
@@ -745,25 +745,46 @@ void main() {
       final tache = await impots(tester);
       await ouvre(tester, AccueilScreen(maintenant: dixHeures));
       await attends(tester);
-      expect(find.text('Bonjour, Exécutant.'), findsOneWidget);
+      expect(find.text('BONJOUR, EXÉCUTANT.'), findsOneWidget);
       expect(find.text('EXÉCUTANT'), findsOneWidget);
       expect(
         find.textContaining('Les impôts d\'abord', findRichText: true),
         findsOneWidget,
       );
-      expect(find.text('Maintenant'), findsOneWidget);
-      expect(find.text('Déclarer les impôts'), findsWidgets);
-      expect(find.text('Jusqu\'à 11 h 30 · encore 1 h'), findsOneWidget);
+      expect(find.text('MAINTENANT · 10:00 → 11:30'), findsOneWidget);
+      expect(find.text('DÉCLARER LES IMPÔTS'), findsOneWidget);
+      expect(find.text('encore 1 h'), findsOneWidget);
+      final journee = find
+          .descendant(
+            of: find.byType(AujourdhuiScreen),
+            matching: find.byType(Scrollable),
+          )
+          .last;
+      await tester.scrollUntilVisible(
+        find.byKey(ValueKey('calendrier-${tache.id}')),
+        300,
+        scrollable: journee,
+      );
       expect(find.byKey(ValueKey('calendrier-${tache.id}')), findsOneWidget);
-      await tester.tap(find.text('Fait'));
+      await tester.scrollUntilVisible(
+        find.text('FAIT'),
+        -300,
+        scrollable: journee,
+      );
+      await tester.tap(find.text('FAIT'));
       await attends(tester);
       final apres = (await tester.runAsync(() => base.tache(tache.id!)))!;
       expect(apres.etat, Tache.fait);
+      await tester.scrollUntilVisible(
+        find.text('Plus rien à faire aujourd\'hui.'),
+        -300,
+        scrollable: journee,
+      );
       expect(find.text('Plus rien à faire aujourd\'hui.'), findsOneWidget);
       // L'onglet To-do n'est pas l'écran de l'Exécutant.
-      await tester.tap(find.text('To-do'));
+      await tester.tap(find.byKey(const ValueKey('onglet-0')));
       await tester.pumpAndSettle();
-      expect(find.text('Bonjour, Exécutant.'), findsNothing);
+      expect(find.text('BONJOUR, EXÉCUTANT.'), findsNothing);
     });
 
     testWidgets('changer de toi à la main : ascenseur vers le Décideur', (
@@ -775,7 +796,7 @@ void main() {
       });
       await ouvre(tester, AccueilScreen(maintenant: dixHeures));
       await attends(tester);
-      expect(find.text('Bonjour, Exécutant.'), findsOneWidget);
+      expect(find.text('BONJOUR, EXÉCUTANT.'), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('bascule')));
       await tester.pump();
       expect(find.byType(PassageScreen), findsOneWidget);
@@ -787,7 +808,7 @@ void main() {
       await tester.pump();
       await ascenseur(tester);
       await tester.pumpAndSettle();
-      expect(find.text('Bonjour, Exécutant.'), findsOneWidget);
+      expect(find.text('BONJOUR, EXÉCUTANT.'), findsOneWidget);
     });
 
     testWidgets('le matin : l\'ascenseur, une fois par jour', (tester) async {
@@ -803,7 +824,7 @@ void main() {
       await ascenseur(tester);
       await tester.pumpAndSettle();
       expect(find.byType(PassageScreen), findsNothing);
-      expect(find.text('Bonjour, Exécutant.'), findsOneWidget);
+      expect(find.text('BONJOUR, EXÉCUTANT.'), findsOneWidget);
       final prefs = (await tester.runAsync(SharedPreferences.getInstance))!;
       expect(prefs.getString('reveil_vu'), '2026-10-22');
     });
@@ -815,6 +836,11 @@ void main() {
       await impots(tester);
       await ouvre(tester, AccueilScreen(maintenant: vingtDeux));
       await attends(tester);
+      // Le soir, on arrive sur la to-do ; le compte rendu est dans
+      // Aujourd'hui.
+      expect(find.text('To-do'), findsWidgets);
+      await tester.tap(find.byKey(const ValueKey('onglet-1')));
+      await tester.pumpAndSettle();
       expect(find.text('Ce que ton toi du jour te remonte'), findsOneWidget);
       expect(find.text('Préparer demain'), findsWidgets);
       await tester.tap(find.byKey(const ValueKey('remonte')));

@@ -318,3 +318,14 @@ demain »).
   qui font le lien, chacune à son heure. Maquette de l'anneau des
   plages à glisser, sans repos, et noms pour le bouton de fin d'intro :
   https://claude.ai/artifact/RCSH1LPmay7wUhQSqPLGZs (en attente de Paul).
+- Style revu avec Paul (26/10/2026) : « trop rond ». Maquettes
+  (https://claude.ai/artifact/XGcBHpYKyiyNqGoHAdsPE6) : Paul refuse les
+  styles trop carrés pour le Décideur (plan, pupitre ambre, carnet) et
+  choisit **D · Le tableau** : la to-do dessinée comme sur son tableau
+  blanc (une croix, sans cases), arrondis doux (14), Important / Urgent
+  en petits ronds. L'Exécutant passe en **terminal sobre** (il aime le
+  mélange texte rond et touches d'ordinateur) : noir bleuté, étiquettes
+  et heures en police de terminal, chose en cours en gros caractères de
+  vieil écran, touches carrées. Onglets dans l'ordre To-do · Aujourd'hui
+  · Stats (on liste, on fait, on regarde), en bas, sans pilule ; une
+  petite phrase sous chaque titre.

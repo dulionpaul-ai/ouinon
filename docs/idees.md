@@ -61,6 +61,10 @@ compte rendu), mais sans réponse ni historique. À prévoir :
   4. Pistes : choix multiple (cocher Cardio et/ou Musculation, la
   meilleure = les deux), ou deux questions liées (« Cardio ? »,
   « Muscu ? ») regroupées dans les stats comme les dents.
+- Piste B choisie par Paul (26/10/2026). Maquette :
+  https://claude.ai/artifact/7AA8c9nmPZHsdxDbMbmWX9 (créer le groupe,
+  notifications, Aujourd'hui, stats : aucune · une sur deux · les deux,
+  détail par question, calendrier à cases coupées en deux).
 
 ## Ailleurs dans l'appli
 

@@ -402,32 +402,47 @@ class _Case extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  kase.nom,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: titre,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                  ),
+          // L'intitulé en étiquette (majuscules espacées, souligné à sa
+          // couleur), bien à part des choses en dessous (retour de Paul du
+          // 26/10/2026).
+          Container(
+            padding: const EdgeInsets.only(bottom: 6),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: titre.withValues(alpha: 0.5),
+                  width: 1.5,
                 ),
               ),
-              if (choses.isNotEmpty)
-                Text(
-                  '${choses.length}',
-                  style: TextStyle(
-                    color: t.doux,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    kase.nom.toUpperCase(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: titre,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.4,
+                    ),
                   ),
                 ),
-            ],
+                if (choses.isNotEmpty)
+                  Text(
+                    '${choses.length}',
+                    style: TextStyle(
+                      color: titre,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+              ],
+            ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 6),
           Expanded(
             child: choses.isEmpty
                 ? Text(

@@ -357,3 +357,5 @@ demain »).
   ajouter une chose ou changer une heure. Barrières entre les rôles :
   plus tard.
 - Envoyé dans l'APK n° 19 (1.0.0+19, 26/10/2026).
+
+- 26/10/2026 (après l'APK n° 19) : intitulés des cases de la To-do en étiquettes (majuscules espacées, soulignées à leur couleur) pour bien les séparer du contenu (retour de Paul).

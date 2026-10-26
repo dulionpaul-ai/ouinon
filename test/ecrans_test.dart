@@ -319,15 +319,12 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.textContaining('Il y a ', findRichText: true), findsOneWidget);
-    await tester.tap(find.text('Répartir les rôles'));
+    await tester.tap(find.text('Qui fait quoi ?'));
     await tester.pumpAndSettle();
-    expect(find.text('Qui est là, et quand ?'), findsOneWidget);
-    // L'anneau : la journée à l'Exécutant, tout le reste au Décideur.
-    expect(find.byKey(const ValueKey('anneau')), findsOneWidget);
-    expect(find.text('20:00 – 08:00'), findsOneWidget);
-    expect(find.text('08:00 – 20:00'), findsOneWidget);
-    await tester.tap(find.text('C\'est ça'));
-    await tester.pumpAndSettle();
+    expect(
+      find.textContaining('dans la To-do', findRichText: true),
+      findsOneWidget,
+    );
     await tester.tap(find.text('Autoriser les notifications'));
     await attends(tester);
     // Puis l'ascenseur monte chez le Décideur, sur sa to-do.
@@ -789,7 +786,7 @@ void main() {
       expect(find.text('BONJOUR, EXÉCUTANT.'), findsNothing);
     });
 
-    testWidgets('changer de toi à la main : ascenseur vers le Décideur', (
+    testWidgets('le toi suit l\'onglet : ascenseur une fois par jour', (
       tester,
     ) async {
       SharedPreferences.setMockInitialValues({
@@ -799,18 +796,56 @@ void main() {
       await ouvre(tester, AccueilScreen(maintenant: dixHeures));
       await attends(tester);
       expect(find.text('BONJOUR, EXÉCUTANT.'), findsOneWidget);
-      await tester.tap(find.byKey(const ValueKey('bascule')));
+      // Vers la To-do : le Décideur, en ascenseur la première fois.
+      await tester.tap(find.byKey(const ValueKey('onglet-0')));
+      await attends(tester);
       await tester.pump();
       expect(find.byType(PassageScreen), findsOneWidget);
       await ascenseur(tester);
       await tester.pumpAndSettle();
-      expect(find.text('Bonjour, Décideur.'), findsOneWidget);
-      // Et retour.
-      await tester.tap(find.byKey(const ValueKey('bascule')).first);
-      await tester.pump();
-      await ascenseur(tester);
+      expect(find.text('DÉCIDEUR'), findsWidgets);
+      expect(find.text('BONJOUR, EXÉCUTANT.'), findsNothing);
+      // Retour à Aujourd'hui, puis de nouveau la To-do : sans ascenseur.
+      await tester.tap(find.byKey(const ValueKey('onglet-1')));
+      await attends(tester);
       await tester.pumpAndSettle();
+      expect(find.byType(PassageScreen), findsNothing);
       expect(find.text('BONJOUR, EXÉCUTANT.'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('onglet-0')));
+      await attends(tester);
+      await tester.pumpAndSettle();
+      expect(find.byType(PassageScreen), findsNothing);
+      expect(find.text('DÉCIDEUR'), findsWidgets);
+    });
+
+    testWidgets('chez l\'Exécutant, Modifier monte chez le Décideur', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues({
+        ...deuxMoiVus,
+        'reveil_vu': '2026-10-22',
+      });
+      await impots(tester);
+      await ouvre(tester, AccueilScreen(maintenant: dixHeures));
+      await attends(tester);
+      final modifier = find.text('Modifier');
+      final journee = find
+          .descendant(
+            of: find.byType(AujourdhuiScreen),
+            matching: find.byType(Scrollable),
+          )
+          .last;
+      await tester.scrollUntilVisible(modifier, 300, scrollable: journee);
+      // Au milieu de l'écran, loin de la barre d'onglets.
+      Scrollable.ensureVisible(tester.element(modifier), alignment: 0.5);
+      await tester.pumpAndSettle();
+      await tester.tap(modifier);
+      await tester.pump();
+      expect(find.byType(PassageScreen), findsOneWidget);
+      await ascenseur(tester);
+      await attends(tester);
+      await tester.pumpAndSettle();
+      expect(find.byType(PreparerScreen), findsOneWidget);
     });
 
     testWidgets('le matin : l\'ascenseur, une fois par jour', (tester) async {
@@ -838,13 +873,15 @@ void main() {
       await impots(tester);
       await ouvre(tester, AccueilScreen(maintenant: vingtDeux));
       await attends(tester);
-      // Le soir, on arrive sur la to-do ; le compte rendu est dans
-      // Aujourd'hui.
-      expect(find.text('To-do'), findsWidgets);
-      await tester.tap(find.byKey(const ValueKey('onglet-1')));
+      // Le soir, on arrive sur la to-do du Décideur (en ascenseur, la
+      // première fois de la journée), avec ce que l'Exécutant remonte.
+      await ascenseur(tester);
       await tester.pumpAndSettle();
-      expect(find.text('Ce que ton toi du jour te remonte'), findsOneWidget);
-      expect(find.text('Préparer demain'), findsWidgets);
+      expect(find.text('DÉCIDEUR'), findsWidgets);
+      expect(
+        find.textContaining('0 SUR 1 · COMPTE RENDU', findRichText: true),
+        findsOneWidget,
+      );
       await tester.tap(find.byKey(const ValueKey('remonte')));
       await tester.pumpAndSettle();
       await attends(tester);

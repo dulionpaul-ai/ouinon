@@ -338,3 +338,12 @@ demain »).
   glisse les deux ronds. Dans l'intro et dans les Réglages (« Répartir
   les rôles »). La « fin du soir » disparaît ; « Heure du rappel du
   soir » reste réglable.
+- Paul : « à quoi sert l'anneau ? » Répartition des fonctions refaite
+  avec lui : le Décideur planifie et regarde (To-do, Préparer demain,
+  créneaux, questions, Stats, compte rendu remonté) ; l'Exécutant fait
+  et répond (Aujourd'hui, questions du jour, compte rendu de fin de
+  journée). Décision : **le toi suit l'onglet**, ascenseur au premier
+  passage de la journée dans chaque sens ; plus d'anneau ni de bouton
+  ⇅ ; « Modifier » chez l'Exécutant monte chez le Décideur ; intro en
+  2 pages (bouton « Qui fait quoi ? ») ; Réglages : début et fin de la
+  journée. Envoyé dans l'APK n° 18 (1.0.0+18).

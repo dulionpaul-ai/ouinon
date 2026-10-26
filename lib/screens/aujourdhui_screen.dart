@@ -19,6 +19,7 @@ import '../widgets/qui_est_la.dart';
 import '../widgets/retro.dart';
 import '../widgets/rond.dart';
 import 'edition_tache_screen.dart';
+import 'passage_screen.dart';
 import 'preparer_screen.dart';
 import 'rapport_screen.dart';
 import 'reglages_screen.dart';
@@ -39,9 +40,6 @@ class AujourdhuiScreen extends StatefulWidget {
   /// Qui est là (choisi par l'accueil).
   final Moi moi;
 
-  /// Passer à l'autre toi (nul tant que l'intro n'a pas été vue).
-  final VoidCallback? onBascule;
-
   /// Moment présent imposé (tests).
   final DateTime Function() maintenant;
 
@@ -50,7 +48,6 @@ class AujourdhuiScreen extends StatefulWidget {
     required this.base,
     this.maintenant = DateTime.now,
     this.moi = Moi.repos,
-    this.onBascule,
   });
 
   @override
@@ -83,7 +80,6 @@ class _AujourdhuiScreenState extends State<AujourdhuiScreen> {
         maintenant: widget.maintenant,
         decalage: -page,
         moi: page == 0 ? widget.moi : Moi.repos,
-        onBascule: page == 0 ? widget.onBascule : null,
       ),
     );
   }
@@ -96,10 +92,7 @@ class _PageJour extends StatefulWidget {
   /// Décalage par rapport à aujourd'hui (0 = aujourd'hui, −1 = hier…).
   final int decalage;
   final Moi moi;
-  final VoidCallback? onBascule;
-
   const _PageJour({
-    this.onBascule,
     super.key,
     required this.base,
     required this.maintenant,
@@ -121,8 +114,6 @@ class _PageJourState extends State<_PageJour> {
 
   /// Mot laissé hier soir pour ce jour ; mot laissé ce jour pour le soir.
   String? _mot;
-  String? _motSoir;
-  int _demain = 0;
 
   DateTime get _jour => ajouteJours(jourDe(widget.maintenant()), _decalage);
 
@@ -150,8 +141,6 @@ class _PageJourState extends State<_PageJour> {
     final taches = await widget.base.tachesDu(jour);
     final creneaux = await widget.base.creneauxDu(jour);
     final mot = await DeuxMoi.motPour(jour);
-    final motSoir = await DeuxMoi.motDuJour(jour);
-    final demain = (await widget.base.tachesDu(ajouteJours(jour, 1))).length;
     if (!mounted || jour != _jour) return;
     setState(() {
       _questions = [
@@ -162,8 +151,6 @@ class _PageJourState extends State<_PageJour> {
       _taches = taches;
       _creneaux = creneaux;
       _mot = mot;
-      _motSoir = motSoir;
-      _demain = demain;
       _series = {
         for (final q in _questions)
           q.id!: serie(q, toutes[q.id] ?? const {}, jour).actuelle,
@@ -214,19 +201,23 @@ class _PageJourState extends State<_PageJour> {
   /// Questions dont on a rouvert les boutons après avoir répondu.
   final _rouvertes = <int>{};
 
-  void _prepare({int dans = 0}) => Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => Theme(
-        data: AppTheme.soir(),
-        child: PreparerScreen(
-          base: widget.base,
-          jour: ajouteJours(_jour, dans),
-          maintenant: widget.maintenant,
-        ),
+  /// Préparer (ou modifier) une journée : c'est le travail du Décideur.
+  /// Chez l'Exécutant, on y monte en ascenseur (répartition du 26/10/2026).
+  void _prepare({int dans = 0}) {
+    final ecran = Theme(
+      data: AppTheme.soir(),
+      child: PreparerScreen(
+        base: widget.base,
+        jour: ajouteJours(_jour, dans),
+        maintenant: widget.maintenant,
       ),
-    ),
-  );
+    );
+    if (widget.moi == Moi.executant) {
+      PassageScreen.joue(context, versLeSoir: true, destination: ecran);
+    } else {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => ecran));
+    }
+  }
 
   void _rapport() => Navigator.push(
     context,
@@ -345,12 +336,7 @@ class _PageJourState extends State<_PageJour> {
             if (executant)
               ..._enTeteExecutant(context, reglages)
             else ...[
-              QuiEstLa(
-                moi: widget.moi,
-                date: dateCourte(_jour),
-                fin: reglages,
-                onBascule: widget.onBascule,
-              ),
+              QuiEstLa(moi: widget.moi, date: dateCourte(_jour), fin: reglages),
               GrandTitre(_titre),
               if (_decalage == 0)
                 Padding(
@@ -361,7 +347,6 @@ class _PageJourState extends State<_PageJour> {
                   ),
                 ),
               const SizedBox(height: 18),
-              if (widget.moi == Moi.decideur) ..._soir(context),
             ],
             if (_questions.isNotEmpty)
               Arrivee(
@@ -488,7 +473,6 @@ class _PageJourState extends State<_PageJour> {
           moi: Moi.executant,
           date: '${dateCourte(_jour)} · ${hhmm(minutes)}',
           fin: reglages,
-          onBascule: widget.onBascule,
         ),
       ),
       const GrandTitre('Bonjour, Exécutant.'),
@@ -551,67 +535,6 @@ class _PageJourState extends State<_PageJour> {
           ),
         ),
       const SizedBox(height: 24),
-    ];
-  }
-
-  /// Le soir : ce que le toi du jour a remonté, et « Préparer demain ».
-  List<Widget> _soir(BuildContext context) {
-    final t = Teintes.de(context);
-    final retro = Teintes.retro;
-    return [
-      if (_taches.isNotEmpty) ...[
-        Text(
-          'Ce que ton toi du jour te remonte',
-          style: TextStyle(
-            color: t.doux,
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Material(
-          color: retro.fond,
-          borderRadius: BorderRadius.circular(14),
-          child: InkWell(
-            key: const ValueKey('remonte'),
-            borderRadius: BorderRadius.circular(14),
-            onTap: _rapport,
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${scoreJournee(_taches).toUpperCase()} · '
-                    'COMPTE RENDU ›',
-                    style: styleMono(14, couleur: retro.texte),
-                  ),
-                  if (_motSoir != null)
-                    Text(
-                      '› « $_motSoir »',
-                      style: styleMono(14, couleur: retro.moyenne),
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-      ],
-      FilledButton(
-        key: const ValueKey('preparer-demain'),
-        style: FilledButton.styleFrom(
-          backgroundColor: t.accent,
-          foregroundColor: t.surAccent,
-        ),
-        onPressed: () => _prepare(dans: 1),
-        child: Text(
-          _demain == 0
-              ? 'Préparer demain'
-              : 'Demain : $_demain chose${_demain > 1 ? 's' : ''} · modifier',
-        ),
-      ),
-      const SizedBox(height: 22),
     ];
   }
 }

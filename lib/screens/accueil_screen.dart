@@ -8,6 +8,7 @@ import '../data/notifications.dart';
 import '../data/preferences.dart';
 import '../theme/app_theme.dart';
 import '../utils/deux_moi.dart';
+import '../widgets/arrivee.dart';
 import '../widgets/rond.dart';
 import 'aujourdhui_screen.dart';
 import '../utils/jour.dart';
@@ -51,19 +52,23 @@ class _AccueilScreenState extends State<AccueilScreen>
 
   int _onglet = _todo;
 
-  /// L'onglet de départ suit qui est là, une fois ; ensuite, celui qu'on
-  /// a choisi.
+  /// L'onglet de départ est posé une fois, à l'ouverture ; ensuite, c'est
+  /// celui qu'on choisit.
   bool _ongletPose = false;
   Timer? _attente;
-  Moi _moi = Moi.repos;
-  Timer? _horloge;
-
-  /// Après l'intro, ou quand on change de toi à la main : ce toi-là,
-  /// quelle que soit l'heure, jusqu'à ce qu'on quitte l'appli.
-  Moi? _force;
 
   /// Les deux toi sont actifs (intro vue).
   bool _actifs = false;
+
+  /// Le toi suit l'onglet (Paul, 26/10/2026) : Aujourd'hui, l'Exécutant ;
+  /// To-do et Stats, le Décideur.
+  static Moi _moiDe(int onglet, bool actifs) => !actifs
+      ? Moi.repos
+      : onglet == _aujourdhui
+      ? Moi.executant
+      : Moi.decideur;
+
+  Moi get _moi => _moiDe(_onglet, _actifs);
 
   @override
   void initState() {
@@ -82,8 +87,7 @@ class _AccueilScreenState extends State<AccueilScreen>
       WidgetsBinding.instance.addPostFrameCallback((_) => _ouvreDepuisNotif());
       unawaited(_replanifie());
       WidgetsBinding.instance.addPostFrameCallback((_) => _bienvenue());
-      // Qui est là : revu chaque minute.
-      _horloge = Timer.periodic(const Duration(minutes: 1), (_) => _majMoi());
+      arriveeAscenseur.addListener(_arrivee);
     } catch (e) {
       if (mounted) setState(() => _erreur = e);
     }
@@ -94,73 +98,81 @@ class _AccueilScreenState extends State<AccueilScreen>
     WidgetsBinding.instance.removeObserver(this);
     _base?.changements.removeListener(_aChange);
     Notifications.instance.ouverture.removeListener(_ouvreDepuisNotif);
+    arriveeAscenseur.removeListener(_arrivee);
     _attente?.cancel();
-    _horloge?.cancel();
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState etat) {
-    if (etat == AppLifecycleState.paused) _force = null;
     if (etat != AppLifecycleState.resumed) return;
     // Des réponses ont pu arriver par les notifications.
     _base?.signaleChangement();
-    _majMoi();
   }
 
-  /// Qui est là maintenant (les deux toi actifs une fois l'intro vue) ;
-  /// au premier passage de la journée dans l'appli, l'ascenseur.
-  Future<void> _majMoi() async {
-    final base = _base;
-    if (base == null) return;
-    final now = widget.maintenant();
+  /// À l'ouverture : l'onglet de départ suit l'heure (pendant la journée,
+  /// Aujourd'hui ; sinon, la To-do), avec l'ascenseur au premier passage
+  /// de la journée.
+  Future<void> _premierOnglet() async {
     final actifs = await DeuxMoi.actifs();
     if (!mounted) return;
-    if (actifs != _actifs) setState(() => _actifs = actifs);
-    final moi =
-        _force ??
-        (_actifs ? moiA(now, jour: await Preferences.journee()) : Moi.repos);
+    final jour = await Preferences.journee();
     if (!mounted) return;
-    final jour = jourDe(now);
-    if (moi != Moi.executant || await DeuxMoi.reveilVu(jour)) {
-      if (!mounted) return;
-      if (moi != _moi || !_ongletPose) {
+    final now = widget.maintenant();
+    final m = now.hour * 60 + now.minute;
+    final onglet = actifs && dansPlage(m, jour) ? _aujourdhui : _todo;
+    setState(() => _actifs = actifs);
+    if (!_ongletPose) await _vaVers(onglet);
+  }
+
+  /// Toute arrivée d'ascenseur (fin de service, « Modifier ma journée »)
+  /// met l'onglet du toi d'arrivée : la To-do chez le Décideur, Aujourd'hui
+  /// chez l'Exécutant.
+  void _arrivee() {
+    if (!_actifs || !mounted) return;
+    final versLeSoir = arriveeAscenseur.value.versLeSoir;
+    unawaited(
+      DeuxMoi.marquePassage(
+        jourDe(widget.maintenant()),
+        versLeSoir: versLeSoir,
+      ),
+    );
+    final onglet = versLeSoir ? _todo : _aujourdhui;
+    if ((_moi == Moi.decideur) != versLeSoir) {
+      setState(() {
+        _onglet = onglet;
+        _ongletPose = true;
+      });
+    }
+  }
+
+  /// Change d'onglet ; si le toi change et que c'est la première fois de
+  /// la journée dans ce sens, en ascenseur (le nouvel onglet apparaît
+  /// portes fermées).
+  Future<void> _vaVers(int onglet) async {
+    final avant = _ongletPose ? _moi : null;
+    final apres = _moiDe(onglet, _actifs);
+    final jour = jourDe(widget.maintenant());
+    final versLeSoir = apres == Moi.decideur;
+    if (!_actifs ||
+        apres == avant ||
+        await DeuxMoi.passageVu(jour, versLeSoir: versLeSoir)) {
+      if (mounted) {
         setState(() {
-          _moi = moi;
-          if (!_ongletPose) {
-            _onglet = moi == Moi.executant ? _aujourdhui : _todo;
-          }
+          _onglet = onglet;
           _ongletPose = true;
         });
       }
       return;
     }
-    // Premier passage de la journée : l'ascenseur descend chez
-    // l'Exécutant, qui apparaît portes fermées.
-    await DeuxMoi.marqueReveil(jour);
+    await DeuxMoi.marquePassage(jour, versLeSoir: versLeSoir);
     if (!mounted) return;
     await PassageScreen.joue(
       context,
-      versLeSoir: false,
+      versLeSoir: versLeSoir,
       auMilieu: () => setState(() {
-        _moi = moi;
-        _onglet = _aujourdhui;
+        _onglet = onglet;
         _ongletPose = true;
-      }),
-    );
-  }
-
-  /// Changer de toi à la main (demande de Paul du 26/10/2026) : de
-  /// l'Exécutant au Décideur, sinon vers l'Exécutant ; en ascenseur.
-  Future<void> _bascule() async {
-    final vers = _moi == Moi.executant ? Moi.decideur : Moi.executant;
-    await PassageScreen.joue(
-      context,
-      versLeSoir: vers == Moi.decideur,
-      auMilieu: () => setState(() {
-        _force = vers;
-        _moi = vers;
-        _onglet = vers == Moi.decideur ? _todo : _aujourdhui;
       }),
     );
   }
@@ -222,7 +234,7 @@ class _AccueilScreenState extends State<AccueilScreen>
     final prefs = await SharedPreferences.getInstance();
     if (await DeuxMoi.actifs()) {
       await _heurePrecise(prefs);
-      await _majMoi();
+      await _premierOnglet();
       return;
     }
     if (!mounted) return;
@@ -242,15 +254,14 @@ class _AccueilScreenState extends State<AccueilScreen>
     }
     // Puis l'ascenseur monte chez le Décideur, sur sa to-do : il n'y a
     // encore rien à exécuter.
-    await DeuxMoi.marqueReveil(jourDe(widget.maintenant()));
+    final aujourdhui = jourDe(widget.maintenant());
+    await DeuxMoi.marquePassage(aujourdhui, versLeSoir: true);
     if (!mounted) return;
     await PassageScreen.joue(
       context,
       versLeSoir: true,
       auMilieu: () => setState(() {
         _actifs = true;
-        _force = Moi.decideur;
-        _moi = Moi.decideur;
         _onglet = _todo;
         _ongletPose = true;
       }),
@@ -324,14 +335,12 @@ class _AccueilScreenState extends State<AccueilScreen>
         children: [
           TodoScreen(
             base: base,
-            moi: _moi,
-            onBascule: _actifs ? _bascule : null,
+            moi: _moiDe(_todo, _actifs),
             maintenant: widget.maintenant,
           ),
           AujourdhuiScreen(
             base: base,
-            moi: _moi,
-            onBascule: _actifs ? _bascule : null,
+            moi: _moiDe(_aujourdhui, _actifs),
             maintenant: widget.maintenant,
           ),
           StatsScreen(base: base),
@@ -341,10 +350,7 @@ class _AccueilScreenState extends State<AccueilScreen>
       bottomNavigationBar: BarreOnglets(
         index: _onglet,
         libelles: const ['To-do', 'Aujourd\'hui', 'Stats'],
-        onChoix: (i) => setState(() {
-          _onglet = i;
-          _ongletPose = true;
-        }),
+        onChoix: _vaVers,
       ),
     );
     // Même arbre dans tous les modes : changer de toi ou d'onglet ne fait

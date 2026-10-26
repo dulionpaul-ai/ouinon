@@ -26,13 +26,6 @@ bool dansPlage(int minutes, ({int debut, int fin}) plage) {
   return d < f ? minutes >= d && minutes < f : minutes >= d || minutes < f;
 }
 
-/// Qui est là à `maintenant` (anneau toujours plein, 26/10/2026) :
-/// l'Exécutant pendant la journée, le Décideur tout le reste du temps.
-Moi moiA(DateTime maintenant, {required ({int debut, int fin}) jour}) {
-  final m = maintenant.hour * 60 + maintenant.minute;
-  return dansPlage(m, jour) ? Moi.executant : Moi.decideur;
-}
-
 /// La chose en cours à `minutes`, sinon la prochaine sans réponse ; nulle
 /// s'il n'y a plus rien à faire.
 ({Tache tache, bool enCours})? enCours(List<Tache> taches, int minutes) {

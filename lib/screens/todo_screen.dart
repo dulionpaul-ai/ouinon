@@ -8,12 +8,16 @@ import '../utils/date_fr.dart';
 import '../utils/jour.dart';
 import '../utils/planning.dart';
 import '../utils/remplissage.dart';
+import '../data/preferences.dart';
 import '../utils/deux_moi.dart';
 import '../widgets/arrivee.dart';
+import '../widgets/retro.dart';
 import '../widgets/qui_est_la.dart';
 import '../widgets/rond.dart';
 import 'edition_a_faire_screen.dart';
 import 'preparer_screen.dart';
+import 'rapport_screen.dart';
+import 'reglages_screen.dart';
 
 /// La to-do (revue du 25/10/2026, refaite avec Paul le 26/10/2026) : en
 /// haut, « Ajouter… » (« Papiers 1 h ») avec Important et Urgent ; en
@@ -29,9 +33,6 @@ class TodoScreen extends StatefulWidget {
   /// Qui est là (choisi par l'accueil).
   final Moi moi;
 
-  /// Passer à l'autre toi (nul tant que l'intro n'a pas été vue).
-  final VoidCallback? onBascule;
-
   /// Moment présent imposé (tests).
   final DateTime Function() maintenant;
 
@@ -39,7 +40,6 @@ class TodoScreen extends StatefulWidget {
     super.key,
     required this.base,
     this.moi = Moi.repos,
-    this.onBascule,
     this.maintenant = DateTime.now,
   });
 
@@ -87,13 +87,35 @@ class _TodoScreenState extends State<TodoScreen> {
     final liste = await widget.base.liste();
     final casees = await widget.base.placees(_aujourdhui);
     final demain = await widget.base.tachesDu(ajouteJours(_aujourdhui, 1));
+    final duJour = await widget.base.tachesDu(_aujourdhui);
+    final motSoir = await DeuxMoi.motDuJour(_aujourdhui);
+    final journee = await Preferences.journee();
     if (!mounted) return;
+    final now = widget.maintenant();
     setState(() {
       _liste = liste;
       _casees = casees;
       _demainCasees = demain.length;
+      // Ce que l'Exécutant remonte : après sa journée, ou s'il a laissé
+      // un mot.
+      _remonte =
+          duJour.isNotEmpty &&
+              (motSoir != null || now.hour * 60 + now.minute >= journee.fin)
+          ? (score: scoreJournee(duJour), mot: motSoir)
+          : null;
     });
   }
+
+  /// Le compte rendu de l'Exécutant, à lire par le Décideur (répartition
+  /// du 26/10/2026) : le score du jour et son mot.
+  ({String score, String? mot})? _remonte;
+
+  void _rapport() => Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => RapportScreen(base: widget.base, jour: _aujourdhui),
+    ),
+  );
 
   Future<void> _ajoute() async {
     final lu = lisAjout(_saisie.text);
@@ -169,7 +191,17 @@ class _TodoScreenState extends State<TodoScreen> {
           child: QuiEstLa(
             moi: widget.moi,
             date: dateCourte(_aujourdhui),
-            onBascule: widget.onBascule,
+            // Les Réglages, communs aux deux toi.
+            fin: IconButton(
+              tooltip: 'Réglages',
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ReglagesScreen(base: widget.base),
+                ),
+              ),
+              icon: Icon(Icons.settings_outlined, color: t.doux),
+            ),
           ),
         ),
         GrandTitre(bonjour ? 'Bonjour, Décideur.' : 'To-do'),
@@ -198,6 +230,48 @@ class _TodoScreenState extends State<TodoScreen> {
                   ),
           ),
         ),
+        if (_remonte case final r? when widget.moi == Moi.decideur)
+          Arrivee(
+            rang: 1,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Material(
+                color: Teintes.jour.fond,
+                borderRadius: BorderRadius.circular(t.rayon),
+                child: InkWell(
+                  key: const ValueKey('remonte'),
+                  borderRadius: BorderRadius.circular(t.rayon),
+                  onTap: _rapport,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    child: Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text:
+                                'L\'EXÉCUTANT : ${r.score.toUpperCase()} · '
+                                'COMPTE RENDU ›',
+                          ),
+                          if (r.mot != null)
+                            TextSpan(
+                              text: '\n« ${r.mot} »',
+                              style: styleMono(
+                                13,
+                                couleur: const Color(0xFFE9DCC0),
+                              ),
+                            ),
+                        ],
+                      ),
+                      style: styleMono(13),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
         const SizedBox(height: 14),
         Arrivee(rang: 2, child: _barreAjout(t)),
         const SizedBox(height: 10),

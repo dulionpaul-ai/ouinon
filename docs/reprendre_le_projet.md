@@ -5,24 +5,19 @@ Mis à jour le 26/10/2026.
 
 ## Reprendre ici (fin de session du 26/10/2026)
 
-- Dernier APK envoyé : **n° 17** (1.0.0+17, 26/10/2026) : style
-  « tableau » (Décideur) et « terminal sobre » (Exécutant), onglets
-  To-do · Aujourd'hui · Stats, page 3 de l'intro. Avant, n° 16 : le parcours de
-  première ouverture (n° 15 : intro dramatique, ascenseur, Décideur en 4
-  cases, Exécutant calme avec calendrier), plus changer de toi à la main
-  et journée 8 h – 20 h. **Attendre les retours de Paul**
-  (captures) et les traiter en premier.
-- Tout est sur `main`, 89 tests verts, rien en cours.
-- Depuis l'APK n° 17 (pas encore dans un APK) : bouton « Répartir les
-  rôles », anneau des rôles à glisser (plus de repos). En attente de
-  Paul : le choix « Une fois · Chaque jour » dans la To-do.
+- Dernier APK envoyé : **n° 18** (1.0.0+18, 26/10/2026) : le toi suit
+  l'onglet (To-do et Stats : Décideur ; Aujourd'hui : Exécutant),
+  ascenseur au premier passage de la journée, intro en 2 pages, style
+  « tableau » / « terminal sobre ». **Attendre les retours de Paul.**
+- En attente de Paul : le choix « Une fois · Chaque jour » dans la
+  To-do (créer des questions qui reviennent).
 - Maquette du parcours : https://claude.ai/artifact/6uwN74rtwMFmdVsCiuppJ7
   (Paul a validé intro, ascenseur, Décideur, Exécutant le 26/10/2026).
 - Idées pour plus tard notées dans `docs/idees.md` : intro qui raconte
   le pourquoi (style ascenseur), notes échangées avec soi-même (avec
   réponse et fil des échanges), et les idées en réserve. Rien n'est à
   coder sans l'accord de Paul ; maquettes d'abord.
-- Prochain APK : 1.0.0+18, **toujours demander à Paul avant**.
+- Prochain APK : 1.0.0+19, **toujours demander à Paul avant**.
 
 ## En une minute
 
@@ -45,8 +40,8 @@ Mis à jour le 26/10/2026.
   envoyée en **APK n° 13** (1.0.0+13, 26/10/2026). **APK n° 14**
   (1.0.0+14, 26/10/2026) : **les deux toi** (intro, écran rétro le jour,
   ambre le soir, ascenseur, mots, compte rendu, nouveau logo ; voir
-  `docs/fonctionnement.md`). **APK n° 15** (1.0.0+15) : parcours de première ouverture. **APK n° 16** : changer de toi à la main, 8 h – 20 h. **APK n° 17** : nouveau style. Pour le
-  prochain, passer `version` à 1.0.0+18 dans `pubspec.yaml` et `lib/utils/version.dart`.
+  `docs/fonctionnement.md`). **APK n° 15** (1.0.0+15) : parcours de première ouverture. **APK n° 16** : changer de toi à la main, 8 h – 20 h. **APK n° 17** : nouveau style. **APK n° 18** : le toi suit l'onglet. Pour le
+  prochain, passer `version` à 1.0.0+19 dans `pubspec.yaml` et `lib/utils/version.dart`.
   Toujours demander à Paul avant de fabriquer un APK. Les boutons de
   notification marchent appli fermée (confirmé par Paul).
 - **Le code est sur `main`** du dépôt `dulionpaul-ai/ouinon` (voir

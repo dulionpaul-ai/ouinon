@@ -72,6 +72,7 @@ void main() {
       'bienvenue_vue': true,
       'intro_deux_moi_vue': true,
       'reveil_vu': '2026-10-22',
+      'retour_vu': '2026-10-22',
       'mot_2026-10-22': 'Appelle maman avant le garage.',
       'mot_soir_2026-10-22': 'La banque était fermée.',
     });
@@ -440,7 +441,7 @@ void main() {
       const IntroScreen(),
       ThemeMode.dark,
       avant: (tester) async {
-        await tester.tap(find.text('Répartir les rôles'));
+        await tester.tap(find.text('Qui fait quoi ?'));
         await tester.pumpAndSettle();
       },
     );
@@ -456,40 +457,7 @@ void main() {
       hauteur: 760,
       texte: 1.3,
       avant: (tester) async {
-        await tester.tap(find.text('Répartir les rôles'));
-        await tester.pumpAndSettle();
-      },
-    );
-  });
-
-  testWidgets('intro, page 3, petit téléphone', (tester) async {
-    await capture(
-      tester,
-      '22b-petit-intro-3',
-      const IntroScreen(),
-      ThemeMode.dark,
-      largeur: 360,
-      hauteur: 760,
-      texte: 1.3,
-      avant: (tester) async {
-        await tester.tap(find.text('Répartir les rôles'));
-        await tester.pumpAndSettle();
-        await tester.tap(find.text('C\'est ça'));
-        await tester.pumpAndSettle();
-      },
-    );
-  });
-
-  testWidgets('intro, page 3', (tester) async {
-    await capture(
-      tester,
-      '22-intro-3',
-      const IntroScreen(),
-      ThemeMode.dark,
-      avant: (tester) async {
-        await tester.tap(find.text('Répartir les rôles'));
-        await tester.pumpAndSettle();
-        await tester.tap(find.text('C\'est ça'));
+        await tester.tap(find.text('Qui fait quoi ?'));
         await tester.pumpAndSettle();
       },
     );

@@ -82,11 +82,12 @@ class Preferences {
       );
 }
 
-/// Les deux toi (idée de Paul du 26/10/2026) : le jour (`journee`), celui
-/// qui exécute ; tout le reste du temps, celui qui décide.
+/// Les deux toi (idée de Paul du 26/10/2026) : le toi suit l'onglet
+/// (To-do et Stats : celui qui décide ; Aujourd'hui : celui qui exécute).
 abstract final class DeuxMoi {
   static const _cleIntro = 'intro_deux_moi_vue';
   static const _cleReveil = 'reveil_vu';
+  static const _cleRetour = 'retour_vu';
 
   /// L'intro des deux toi a été vue : les deux modes sont actifs.
   static Future<bool> actifs() async =>
@@ -121,16 +122,24 @@ abstract final class DeuxMoi {
     }
   }
 
-  /// L'arrivée du matin (l'ascenseur) a déjà été jouée ce jour-là.
-  static Future<bool> reveilVu(DateTime jour) async =>
-      (await SharedPreferences.getInstance()).getString(_cleReveil) ==
+  /// L'ascenseur a déjà été joué ce jour-là dans ce sens (vers
+  /// l'Exécutant : « le réveil » ; vers le Décideur : « le retour »).
+  static Future<bool> passageVu(
+    DateTime jour, {
+    required bool versLeSoir,
+  }) async =>
+      (await SharedPreferences.getInstance()).getString(
+        versLeSoir ? _cleRetour : _cleReveil,
+      ) ==
       cleJour(jour);
 
-  static Future<void> marqueReveil(DateTime jour) async =>
-      (await SharedPreferences.getInstance()).setString(
-        _cleReveil,
-        cleJour(jour),
-      );
+  static Future<void> marquePassage(
+    DateTime jour, {
+    required bool versLeSoir,
+  }) async => (await SharedPreferences.getInstance()).setString(
+    versLeSoir ? _cleRetour : _cleReveil,
+    cleJour(jour),
+  );
 }
 
 /// Au début : rappel (« C'est l'heure »), avec « Reporter ». À la fin :

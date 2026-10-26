@@ -243,16 +243,21 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 
 ## Les deux toi (26/10/2026)
 
-- **Qui est là** : une fois l'intro vue, l'accueil regarde l'heure
-  (chaque minute et au retour dans l'appli). L'anneau des 24 heures est
-  toujours plein (Paul, 26/10/2026) : pendant la journée (début / fin,
-  8 h – 20 h par défaut), l'Exécutant ; tout le reste du temps, le
-  Décideur. `Moi.repos` ne sert plus qu'avant l'intro. L'anneau
-  (`widgets/anneau_roles.dart` : `AnneauRoles`, `RepartitionRoles`) se
-  règle en glissant ses deux ronds, par quarts d'heure, une heure au
-  moins pour chacun, sans passer minuit ; dans l'intro (page 2) et dans
-  les Réglages (« Répartir les rôles », `screens/roles_screen.dart`).
-  L'heure du rappel du soir reste un réglage à part.
+- **Qui est là : le toi suit l'onglet** (Paul, 26/10/2026, à la place
+  des plages horaires et de l'anneau) : To-do et Stats, le Décideur
+  (ambre) ; Aujourd'hui, l'Exécutant (terminal sobre). Changer d'onglet
+  fait changer de toi ; au premier passage de la journée dans un sens,
+  en ascenseur (`DeuxMoi.passageVu` / `marquePassage` : `reveil_vu`
+  vers l'Exécutant, `retour_vu` vers le Décideur). À l'ouverture,
+  l'onglet suit l'heure : pendant la journée (Réglages, 8 h – 20 h),
+  Aujourd'hui ; sinon la To-do. `Moi.repos` : avant l'intro seulement.
+  Toute arrivée d'ascenseur (fin de service, « Modifier ») met l'onglet
+  du toi d'arrivée.
+- **Zones grises** : chez l'Exécutant, « Modifier » (sa journée) monte
+  chez le Décideur en ascenseur et s'ouvre sur Préparer
+  (`PassageScreen.joue(destination:)`). Le compte rendu remonté
+  (score, mot) se lit dans la To-do du Décideur (après la journée, ou
+  s'il y a un mot). Les Réglages sont accessibles des deux côtés.
 - **Le jour** (revu le 26/10/2026, le terminal était trop chargé) :
   l'onglet Aujourd'hui seul devient l'écran de l'Exécutant, thème
   `AppTheme.jour` (style habituel, accent bleu-vert ; même arbre de
@@ -268,9 +273,9 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 - **To-do du Décideur** : « Bonjour, Décideur. » à l'arrivée de
   l'ascenseur et tant que la to-do est vide (avec « Ici, tu ne fais
   rien : tu décides… »), sinon « To-do ».
-- **Première ouverture** : intro (le pourquoi, le rond qui se brise,
-  « l'exécutant… s'exécute. », bouton « Répartir les rôles »), heures,
-  notifications, puis l'ascenseur monte chez le Décideur, sur la to-do,
+- **Première ouverture** : intro en 2 pages (le pourquoi, le rond qui
+  se brise, « l'exécutant… s'exécute. », bouton « Qui fait quoi ? » ;
+  puis qui fait quoi et où, et les notifications), puis l'ascenseur monte chez le Décideur, sur la to-do,
   quelle que soit l'heure, jusqu'à ce qu'on quitte l'appli.
 - **Changer de toi à la main** : toucher le nom en haut à gauche
   (Aujourd'hui ou To-do). De l'Exécutant vers le Décideur, sinon vers

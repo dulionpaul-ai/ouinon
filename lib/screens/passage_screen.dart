@@ -25,11 +25,17 @@ class PassageScreen extends StatefulWidget {
   /// Portes fermées : retire aussi l'écran d'où l'on part (compte rendu).
   final bool retireDessous;
 
+  /// Un écran sur lequel les portes s'ouvrent (« Modifier ma journée »
+  /// chez l'Exécutant ouvre Préparer chez le Décideur). L'ascenseur reste
+  /// alors à sa place sous cet écran : en revenir ramène d'où l'on vient.
+  final Widget? destination;
+
   const PassageScreen({
     super.key,
     required this.versLeSoir,
     this.auMilieu,
     this.retireDessous = false,
+    this.destination,
   });
 
   /// Durée totale du passage.
@@ -41,6 +47,7 @@ class PassageScreen extends StatefulWidget {
     required bool versLeSoir,
     VoidCallback? auMilieu,
     bool retireDessous = false,
+    Widget? destination,
   }) => Navigator.of(context).push(
     PageRouteBuilder<void>(
       opaque: false,
@@ -50,6 +57,7 @@ class PassageScreen extends StatefulWidget {
         versLeSoir: versLeSoir,
         auMilieu: auMilieu,
         retireDessous: retireDessous,
+        destination: destination,
       ),
     ),
   );
@@ -80,7 +88,9 @@ class _PassageScreenState extends State<PassageScreen>
     _anim
       ..addListener(_avance)
       ..addStatusListener((etat) {
-        if (etat == AnimationStatus.completed) _quitte();
+        if (etat == AnimationStatus.completed && widget.destination == null) {
+          _quitte();
+        }
       })
       ..forward();
   }
@@ -94,6 +104,7 @@ class _PassageScreenState extends State<PassageScreen>
       HapticFeedback.lightImpact();
     }
     if (!_change && v >= _milieu) {
+      if (widget.destination != null) setState(() {});
       _change = true;
       HapticFeedback.mediumImpact();
       if (widget.retireDessous) {
@@ -127,9 +138,15 @@ class _PassageScreenState extends State<PassageScreen>
 
   @override
   Widget build(BuildContext context) {
+    final destination = widget.destination;
     return AnimatedBuilder(
       animation: _anim,
-      builder: (context, _) {
+      // Construit dès le début (ses données se chargent pendant le
+      // trajet), montré portes fermées.
+      child: destination == null
+          ? null
+          : Offstage(offstage: !_change, child: destination),
+      builder: (context, dessous) {
         final v = _anim.value;
         final fermeture =
             Curves.easeInOut.transform(_entre(v, 0, _fermees)) -
@@ -146,6 +163,7 @@ class _PassageScreenState extends State<PassageScreen>
                 children: [
                   // Rien ne passe à travers pendant le trajet.
                   const ModalBarrier(dismissible: false),
+                  ?dessous,
                   Positioned(
                     top: 0,
                     bottom: 0,
@@ -164,16 +182,18 @@ class _PassageScreenState extends State<PassageScreen>
                     top: MediaQuery.paddingOf(context).top + 24,
                     left: 0,
                     right: 0,
-                    child: Center(
-                      child: Opacity(
-                        opacity: afficheur.clamp(0.0, 1.0),
-                        child: Afficheur(
-                          versLeSoir: widget.versLeSoir,
-                          avancee: Curves.easeInOutCubic.transform(
-                            _entre(v, _defile.$1, _defile.$2),
+                    child: IgnorePointer(
+                      child: Center(
+                        child: Opacity(
+                          opacity: afficheur.clamp(0.0, 1.0),
+                          child: Afficheur(
+                            versLeSoir: widget.versLeSoir,
+                            avancee: Curves.easeInOutCubic.transform(
+                              _entre(v, _defile.$1, _defile.$2),
+                            ),
+                            bouge: v > _fermees + 0.04 && v < _defile.$2 + 0.02,
+                            clignote: (v * 16).floor().isEven,
                           ),
-                          bouge: v > _fermees + 0.04 && v < _defile.$2 + 0.02,
-                          clignote: (v * 16).floor().isEven,
                         ),
                       ),
                     ),

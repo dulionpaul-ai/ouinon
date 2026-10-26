@@ -62,7 +62,8 @@ fait, version par version : `docs/historique.md`.
    rendu. APK n° 16 : changer de toi à la main, journée 8 h – 20 h.
    APK n° 17 : style « tableau » et « terminal sobre », onglets
    To-do · Aujourd'hui · Stats.
-   Prochain APK : `version: 1.0.0+18`, seulement avec l'accord de
+   APK n° 18 : le toi suit l'onglet, intro en 2 pages.
+   Prochain APK : `version: 1.0.0+19`, seulement avec l'accord de
    Paul.
 9. [ ] Plus tard (critique du 23/10/2026) : sauvegarde dans un
    fichier, mode « expérience » (tester une habitude 14 jours), objectifs

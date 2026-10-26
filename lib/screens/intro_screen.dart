@@ -4,14 +4,13 @@ import 'package:flutter/material.dart';
 
 import '../data/preferences.dart';
 import '../theme/app_theme.dart';
-import '../widgets/anneau_roles.dart';
 import '../widgets/retro.dart';
 
 /// L'intro des deux toi (idée de Paul du 26/10/2026), en trois pages :
 /// 1. le pourquoi, puis « Il y a deux toi » : le rond entier tremble, se
 ///    brise et se sépare en deux couleurs (revu avec Paul le 26/10/2026) ;
-/// 2. « Qui est là, et quand ? » : l'anneau des heures de chacun ;
-/// 3. les notifications, par lesquelles ils se parlent.
+/// 2. qui fait quoi, et où (To-do et Stats : le Décideur ; Aujourd'hui :
+///    l'Exécutant), et les notifications qui font le lien.
 ///
 /// Renvoie vrai si la personne a demandé les notifications.
 class IntroScreen extends StatefulWidget {
@@ -74,7 +73,6 @@ class _IntroScreenState extends State<IntroScreen>
   );
 
   Future<void> _termine(bool notifications) async {
-    await Preferences.changeJournee(debut: _jour.debut, fin: _jour.fin);
     await DeuxMoi.active(true);
     if (mounted) Navigator.pop(context, notifications);
   }
@@ -82,11 +80,7 @@ class _IntroScreenState extends State<IntroScreen>
   @override
   Widget build(BuildContext context) {
     final t = Teintes.de(context);
-    final pages = [
-      _pageDeuxToi(context),
-      _pageHeures(context),
-      _pageNotifs(context),
-    ];
+    final pages = [_pageDeuxToi(context), _pageNotifs(context)];
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -117,7 +111,7 @@ class _IntroScreenState extends State<IntroScreen>
                 ],
               ),
               const SizedBox(height: 18),
-              if (_page < 2)
+              if (_page < 1)
                 AnimatedBuilder(
                   animation: _logo,
                   builder: (context, enfant) => Opacity(
@@ -136,9 +130,7 @@ class _IntroScreenState extends State<IntroScreen>
                           _suivante();
                         }
                       },
-                      child: Text(
-                        _page == 0 ? 'Répartir les rôles' : 'C\'est ça',
-                      ),
+                      child: Text('Qui fait quoi ?'),
                     ),
                   ),
                 )
@@ -409,39 +401,9 @@ class _IntroScreenState extends State<IntroScreen>
     );
   }
 
-  /// Page 2 : l'anneau des 24 heures, toujours plein (revu avec Paul le
-  /// 26/10/2026) : la journée à l'Exécutant, le reste au Décideur.
-  Widget _pageHeures(BuildContext context) {
-    final t = Teintes.de(context);
-    return ListView(
-      children: [
-        const SizedBox(height: 24),
-        Text(
-          'Qui est là, et quand ?',
-          style: TextStyle(
-            fontFamily: AppTheme.policeTitre,
-            fontSize: 26,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -0.8,
-            color: t.texte,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          'Glisse les ronds pour changer les heures.',
-          style: TextStyle(color: t.doux, fontSize: 15),
-        ),
-        const SizedBox(height: 22),
-        RepartitionRoles(
-          journee: _jour,
-          onChange: (j) => setState(() => _jour = j),
-        ),
-      ],
-    );
-  }
-
-  /// Page 3 (revue avec Paul le 26/10/2026) : les deux toi ne se parlent
-  /// pas ; seules les notifications font le lien, chacune à son heure.
+  /// Page 2 (revue avec Paul le 26/10/2026) : qui fait quoi, et où (le
+  /// toi suit l'onglet) ; les deux toi ne se parlent pas, seules les
+  /// notifications font le lien, chacune à son heure.
   Widget _pageNotifs(BuildContext context) {
     final t = Teintes.de(context);
     const texte = TextStyle(fontSize: 17, height: 1.4);
@@ -551,7 +513,7 @@ class _IntroScreenState extends State<IntroScreen>
                         fontWeight: FontWeight.w800,
                       ),
                     ),
-                    TextSpan(text: ' planifie. Chaque matin, '),
+                    TextSpan(text: ' planifie, dans la To-do. Chaque matin, '),
                     TextSpan(
                       text: 'l\'Exécutant',
                       style: TextStyle(
@@ -561,8 +523,8 @@ class _IntroScreenState extends State<IntroScreen>
                     ),
                     TextSpan(
                       text:
-                          ' reçoit ses ordres. Entre eux, rien que '
-                          'des notifications :',
+                          ' reçoit ses ordres, dans Aujourd\'hui. Entre '
+                          'eux, rien que des notifications :',
                     ),
                   ],
                 ),

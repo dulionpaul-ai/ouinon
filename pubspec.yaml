@@ -4,7 +4,7 @@ publish_to: 'none'
 
 # Version et numéro de compilation (x.y.z+n) : monter n avant chaque envoi
 # sur un store (il doit toujours augmenter).
-version: 1.0.0+13
+version: 1.0.0+14
 
 environment:
   sdk: ^3.13.5
@@ -30,7 +30,8 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # Unbounded (titres) et Figtree (texte), licence OFL : assets/fonts/OFL-*.txt.
+  # Unbounded (titres) et Figtree (texte), VT323 et IBM Plex Mono (écran
+  # rétro du jour), licence OFL : assets/fonts/OFL-*.txt.
   fonts:
     - family: Unbounded
       fonts:
@@ -48,3 +49,12 @@ flutter:
           weight: 700
         - asset: assets/fonts/Figtree-800.ttf
           weight: 800
+    - family: VT323
+      fonts:
+        - asset: assets/fonts/VT323-400.ttf
+    - family: IBMPlexMono
+      fonts:
+        - asset: assets/fonts/IBMPlexMono-500.ttf
+          weight: 500
+        - asset: assets/fonts/IBMPlexMono-700.ttf
+          weight: 700

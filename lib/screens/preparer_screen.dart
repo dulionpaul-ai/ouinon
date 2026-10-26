@@ -9,11 +9,14 @@ import '../models/creneau.dart';
 import '../models/tache.dart';
 import '../theme/app_theme.dart';
 import '../utils/date_fr.dart';
+import '../utils/deux_moi.dart';
 import '../utils/jour.dart';
 import '../utils/planning.dart';
 import '../utils/remplissage.dart';
 import '../widgets/grille_journee.dart';
+import '../widgets/retro.dart';
 import 'edition_tache_screen.dart';
+import 'passage_screen.dart';
 
 /// « Préparer demain », en deux étapes (revue du 25/10/2026, sur le modèle
 /// des rituels de planification des applis du moment) :
@@ -205,7 +208,100 @@ class _PreparerScreenState extends State<PreparerScreen> {
         ),
       );
     }
-    if (mounted) Navigator.pop(context);
+    if (!mounted) return;
+    // Les deux toi : un mot pour le toi de demain, puis l'ascenseur.
+    final demain = widget.jour.isAfter(jourDe(widget.maintenant()));
+    if (!demain || !await DeuxMoi.actifs()) {
+      if (mounted) Navigator.pop(context);
+      return;
+    }
+    final mot = await _demandeMot();
+    if (!mounted || mot == null) return;
+    await DeuxMoi.changeMotPour(widget.jour, mot);
+    final taches = await widget.base.tachesDu(widget.jour);
+    if (!mounted) return;
+    final premiere = enCours(taches, 0);
+    Navigator.pushReplacement(
+      context,
+      PassageScreen.route(
+        PassageScreen(
+          versJour: true,
+          titreSoir: 'Transmis.',
+          sousTitreSoir: taches.isEmpty
+              ? null
+              : 'Demain : ${resumeJournee(taches)}.',
+          lignesJour: [
+            'TRANSMIS AU TOI DE DEMAIN.',
+            if (taches.isNotEmpty)
+              '${taches.length} TÂCHE${taches.length > 1 ? 'S' : ''}.',
+            if (premiere != null)
+              'PREMIÈRE : ${hhmm(premiere.tache.debut)} '
+                  '${premiere.tache.texte.toUpperCase()}',
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// « Un mot pour toi, demain ? » : nul si on revient en arrière, vide
+  /// si on transmet sans mot.
+  Future<String?> _demandeMot() async {
+    final champ = TextEditingController(
+      text: await DeuxMoi.motPour(widget.jour) ?? '',
+    );
+    if (!mounted) return null;
+    final mot = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) => Padding(
+        padding: EdgeInsets.fromLTRB(
+          20,
+          0,
+          20,
+          20 + MediaQuery.viewInsetsOf(context).bottom,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Un mot pour toi, demain ?',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Facultatif. Tu le liras demain matin.',
+              style: TextStyle(color: Teintes.de(context).doux),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              key: const ValueKey('mot-demain'),
+              controller: champ,
+              maxLength: 120,
+              textCapitalization: TextCapitalization.sentences,
+              decoration: const InputDecoration(
+                hintText: 'Ex. : les impôts d\'abord',
+                counterText: '',
+              ),
+              onSubmitted: (texte) => Navigator.pop(context, texte),
+            ),
+            const SizedBox(height: 14),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: Teintes.de(context).accent,
+                foregroundColor: Teintes.de(context).surAccent,
+              ),
+              onPressed: () => Navigator.pop(context, champ.text),
+              child: const Text('Transmettre'),
+            ),
+          ],
+        ),
+      ),
+    );
+    // Le champ n'est pas libéré ici : la feuille est encore en train de
+    // se fermer.
+    return mot;
   }
 
   void _rendezVousA({int? debut, Tache? tache}) => Navigator.push(

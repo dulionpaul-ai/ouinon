@@ -5,19 +5,34 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/base.dart';
 import '../data/notifications.dart';
+import '../data/preferences.dart';
+import '../theme/app_theme.dart';
+import '../utils/deux_moi.dart';
+import '../widgets/retro.dart';
 import '../widgets/rond.dart';
 import 'aujourdhui_screen.dart';
 import '../utils/jour.dart';
+import 'intro_screen.dart';
+import 'passage_screen.dart';
 import 'preparer_screen.dart';
+import 'rapport_screen.dart';
 import 'stats_screen.dart';
 import 'todo_screen.dart';
 
 /// Écran principal : trois onglets (Aujourd'hui, To-do, Stats ; revue du
 /// 25/10/2026). Le rappel du soir ouvre « Préparer demain ».
+///
+/// Les deux toi (26/10/2026) : pendant la journée, Aujourd'hui passe en
+/// écran rétro (celui qui exécute) ; le soir, l'appli prend l'accent ambre
+/// (celui qui décide). Le premier passage de la journée se fait en
+/// ascenseur.
 /// Reprogramme les notifications à l'ouverture, au retour dans l'appli et
 /// après chaque modification.
 class AccueilScreen extends StatefulWidget {
-  const AccueilScreen({super.key});
+  /// Moment présent imposé (tests).
+  final DateTime Function() maintenant;
+
+  const AccueilScreen({super.key, this.maintenant = DateTime.now});
 
   @override
   State<AccueilScreen> createState() => _AccueilScreenState();
@@ -32,6 +47,8 @@ class _AccueilScreenState extends State<AccueilScreen>
   Object? _erreur;
   int _onglet = 0;
   Timer? _attente;
+  Moi _moi = Moi.repos;
+  Timer? _horloge;
 
   @override
   void initState() {
@@ -50,6 +67,8 @@ class _AccueilScreenState extends State<AccueilScreen>
       WidgetsBinding.instance.addPostFrameCallback((_) => _ouvreDepuisNotif());
       unawaited(_replanifie());
       WidgetsBinding.instance.addPostFrameCallback((_) => _bienvenue());
+      // Qui est là : revu chaque minute.
+      _horloge = Timer.periodic(const Duration(minutes: 1), (_) => _majMoi());
     } catch (e) {
       if (mounted) setState(() => _erreur = e);
     }
@@ -61,6 +80,7 @@ class _AccueilScreenState extends State<AccueilScreen>
     _base?.changements.removeListener(_aChange);
     Notifications.instance.ouverture.removeListener(_ouvreDepuisNotif);
     _attente?.cancel();
+    _horloge?.cancel();
     super.dispose();
   }
 
@@ -69,23 +89,85 @@ class _AccueilScreenState extends State<AccueilScreen>
     if (etat != AppLifecycleState.resumed) return;
     // Des réponses ont pu arriver par les notifications.
     _base?.signaleChangement();
+    _majMoi();
   }
 
-  /// Rappel du soir touché : « Préparer demain ».
+  /// Qui est là maintenant (les deux toi actifs une fois l'intro vue) ;
+  /// au premier passage de la journée dans l'appli, l'ascenseur.
+  Future<void> _majMoi() async {
+    final base = _base;
+    if (base == null) return;
+    final now = widget.maintenant();
+    final moi = await DeuxMoi.actifs()
+        ? moiA(
+            now,
+            jour: await Preferences.journee(),
+            soir: await DeuxMoi.soir(),
+          )
+        : Moi.repos;
+    if (!mounted) return;
+    if (moi != _moi) setState(() => _moi = moi);
+    final jour = jourDe(now);
+    if (moi != Moi.executant || await DeuxMoi.reveilVu(jour)) return;
+    await DeuxMoi.marqueReveil(jour);
+    final taches = await base.tachesDu(jour);
+    final mot = await DeuxMoi.motPour(jour);
+    if (!mounted) return;
+    final premiere = enCours(taches, now.hour * 60 + now.minute);
+    await Navigator.push(
+      context,
+      PassageScreen.route(
+        PassageScreen(
+          versJour: true,
+          titreSoir: 'Hier soir, tu as décidé.',
+          sousTitreSoir: mot == null ? null : '« $mot »',
+          lignesJour: [
+            'BONJOUR.',
+            if (taches.isEmpty)
+              'RIEN DE PRÉVU PAR LE DÉCIDEUR.'
+            else
+              '${taches.length} TÂCHE${taches.length > 1 ? 'S' : ''} '
+                  'REÇUE${taches.length > 1 ? 'S' : ''}.',
+            if (premiere != null)
+              '${premiere.enCours ? 'EN COURS' : 'ENSUITE'} : '
+                  '${hhmm(premiere.tache.debut)} '
+                  '${premiere.tache.texte.toUpperCase()}',
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Rappel du soir touché : « Préparer demain » ; compte rendu touché :
+  /// le compte rendu du jour.
   void _ouvreDepuisNotif() {
     final base = _base;
     if (base == null || !mounted) return;
-    if (Notifications.instance.ouverture.value != Notifications.preparer) {
+    final ouverture = Notifications.instance.ouverture.value;
+    if (ouverture == Notifications.rapport) {
+      Notifications.instance.ouverture.value = null;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) =>
+              RapportScreen(base: base, jour: jourDe(widget.maintenant())),
+        ),
+      );
       return;
     }
+    if (ouverture != Notifications.preparer) return;
     Notifications.instance.ouverture.value = null;
     setState(() => _onglet = 1);
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => PreparerScreen(
-          base: base,
-          jour: ajouteJours(jourDe(DateTime.now()), 1),
+        builder: (_) => Theme(
+          data: AppTheme.soir(),
+          child: PreparerScreen(
+            base: base,
+            jour: ajouteJours(jourDe(widget.maintenant()), 1),
+            maintenant: widget.maintenant,
+          ),
         ),
       ),
     );
@@ -107,36 +189,19 @@ class _AccueilScreenState extends State<AccueilScreen>
     }
   }
 
+  /// Premier lancement, ou première ouverture depuis les deux toi :
+  /// l'intro, puis les notifications.
   Future<void> _bienvenue() async {
     final prefs = await SharedPreferences.getInstance();
-    if (prefs.getBool(_cleBienvenue) ?? false) {
+    if (await DeuxMoi.actifs()) {
       await _heurePrecise(prefs);
+      await _majMoi();
       return;
     }
     if (!mounted) return;
-    final autoriser = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Text('Bienvenue dans Ouinon'),
-        content: const Text(
-          'Chaque question arrive en notification, à son heure. Tu réponds '
-          'directement avec les boutons, sans ouvrir l\'appli.\n\n'
-          'Pour commencer, 4 questions sont prêtes : tu peux les changer '
-          'dans l\'onglet Questions.\n\n'
-          'Tout reste sur ton téléphone.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Plus tard'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Autoriser les notifications'),
-          ),
-        ],
-      ),
+    final autoriser = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => const IntroScreen()),
     );
     await prefs.setBool(_cleBienvenue, true);
     if (autoriser ?? false) {
@@ -145,7 +210,10 @@ class _AccueilScreenState extends State<AccueilScreen>
       } catch (_) {}
       await _replanifie();
       await _heurePrecise(prefs);
+    } else {
+      await _replanifie();
     }
+    await _majMoi();
   }
 
   /// Une seule fois : proposer l'heure précise (« Alarmes et rappels »).
@@ -208,11 +276,16 @@ class _AccueilScreenState extends State<AccueilScreen>
         ),
       );
     }
-    return Scaffold(
+    final retro = _moi == Moi.executant && _onglet == 0;
+    final ecran = Scaffold(
       body: IndexedStack(
         index: _onglet,
         children: [
-          AujourdhuiScreen(base: base),
+          AujourdhuiScreen(
+            base: base,
+            moi: _moi,
+            maintenant: widget.maintenant,
+          ),
           TodoScreen(base: base),
           StatsScreen(base: base),
         ],
@@ -223,6 +296,16 @@ class _AccueilScreenState extends State<AccueilScreen>
         libelles: const ['Aujourd\'hui', 'To-do', 'Stats'],
         onChoix: (i) => setState(() => _onglet = i),
       ),
+    );
+    // Même arbre dans tous les modes : changer de toi ou d'onglet ne fait
+    // rien perdre (pages, saisie en cours).
+    return Theme(
+      data: retro
+          ? AppTheme.retro()
+          : _moi == Moi.decideur
+          ? AppTheme.soir()
+          : AppTheme.sombre(),
+      child: FondRetro(actif: retro, child: ecran),
     );
   }
 }

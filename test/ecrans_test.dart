@@ -14,12 +14,15 @@ import 'package:ouinon/screens/accueil_screen.dart';
 import 'package:ouinon/screens/aujourdhui_screen.dart';
 import 'package:ouinon/screens/edition_question_screen.dart';
 import 'package:ouinon/screens/edition_tache_screen.dart';
+import 'package:ouinon/screens/passage_screen.dart';
 import 'package:ouinon/screens/preparer_screen.dart';
+import 'package:ouinon/screens/rapport_screen.dart';
 import 'package:ouinon/screens/todo_screen.dart';
 import 'package:ouinon/screens/reglages_screen.dart';
 import 'package:ouinon/screens/stats_screen.dart';
 import 'package:ouinon/widgets/graphiques.dart';
 import 'package:ouinon/widgets/grille_journee.dart';
+import 'package:ouinon/widgets/retro.dart';
 import 'package:ouinon/widgets/rond.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -30,8 +33,13 @@ void main() {
   late FaussesNotifications notifs;
   // Jeudi 22 octobre 2026, 12 h.
   DateTime midi() => DateTime(2026, 10, 22, 12);
+  // Le même jour, 20 h : ni le jour (9 h – 19 h) ni le soir (21 h 30 –
+  // 23 h) : repos, style habituel.
+  DateTime soir20h() => DateTime(2026, 10, 22, 20);
+  const deuxMoiVus = {'bienvenue_vue': true, 'intro_deux_moi_vue': true};
 
   setUp(() async {
+    Curseur.clignote = false;
     SharedPreferences.setMockInitialValues({});
     base = await ouvreBase();
     Base.remplace(base);
@@ -300,25 +308,39 @@ void main() {
     expect(find.byType(CarteChaleur), findsOneWidget);
   });
 
-  testWidgets('premier lancement : bienvenue puis notifications', (
+  testWidgets('premier lancement : l\'intro des deux toi, puis notifications', (
     tester,
   ) async {
     SharedPreferences.setMockInitialValues({});
-    await ouvre(tester, const AccueilScreen());
-    expect(find.text('Bienvenue dans Ouinon'), findsOneWidget);
+    await ouvre(
+      tester,
+      AccueilScreen(maintenant: () => DateTime(2026, 10, 22, 20)),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Il y a deux toi.'), findsOneWidget);
+    await tester.tap(find.text('Faire connaissance'));
+    await tester.pumpAndSettle();
+    expect(find.text('Qui est là, et quand ?'), findsOneWidget);
+    expect(find.text('21:30 – 23:00'), findsOneWidget);
+    expect(find.text('09:00 – 19:00'), findsOneWidget);
+    await tester.tap(find.text('C\'est ça'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Autoriser les notifications'));
     await attends(tester);
-    expect(find.text('Bienvenue dans Ouinon'), findsNothing);
+    await tester.pumpAndSettle();
+    expect(find.text('Il y a deux toi.'), findsNothing);
     expect(notifs.replanifications, greaterThan(0));
     expect(find.text('To-do'), findsOneWidget);
+    final prefs = (await tester.runAsync(SharedPreferences.getInstance))!;
+    expect(prefs.getBool('intro_deux_moi_vue'), isTrue);
   });
 
   testWidgets('heure précise non autorisée : demandée une seule fois', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({'bienvenue_vue': true});
+    SharedPreferences.setMockInitialValues(deuxMoiVus);
     notifs.precise = false;
-    await ouvre(tester, const AccueilScreen());
+    await ouvre(tester, AccueilScreen(maintenant: soir20h));
     expect(find.text('Questions à l\'heure pile'), findsOneWidget);
     await tester.tap(find.text('Autoriser'));
     await attends(tester);
@@ -326,7 +348,7 @@ void main() {
 
     // Deuxième ouverture : plus de fenêtre.
     await tester.pumpWidget(const SizedBox());
-    await ouvre(tester, const AccueilScreen());
+    await ouvre(tester, AccueilScreen(maintenant: soir20h));
     expect(find.text('Questions à l\'heure pile'), findsNothing);
   });
 
@@ -353,7 +375,7 @@ void main() {
       200,
       scrollable: find.byType(Scrollable).first,
     );
-    await tester.drag(find.byType(Scrollable).first, const Offset(0, -200));
+    await tester.ensureVisible(interrupteur);
     await tester.pumpAndSettle();
     expect(tester.widget<Switch>(interrupteur).value, isTrue);
     await tester.tap(interrupteur);
@@ -593,8 +615,8 @@ void main() {
     });
 
     testWidgets('le rappel du soir ouvre « Préparer demain »', (tester) async {
-      SharedPreferences.setMockInitialValues({'bienvenue_vue': true});
-      await ouvre(tester, const AccueilScreen());
+      SharedPreferences.setMockInitialValues(deuxMoiVus);
+      await ouvre(tester, AccueilScreen(maintenant: soir20h));
       notifs.ouverture.value = Notifications.preparer;
       await tester.pumpAndSettle();
       await attends(tester);
@@ -647,6 +669,178 @@ void main() {
         scrollable: find.byType(Scrollable).first,
       );
       expect(find.text('Selon le moment'), findsOneWidget);
+    });
+  });
+
+  group('les deux toi', () {
+    final jeudi = DateTime(2026, 10, 22);
+    final vendredi = DateTime(2026, 10, 23);
+    DateTime dixHeures() => DateTime(2026, 10, 22, 10, 30);
+    DateTime vingtDeux() => DateTime(2026, 10, 22, 22);
+
+    /// Laisse l'ascenseur aller au bout, image par image.
+    Future<void> ascenseur(WidgetTester tester) async {
+      for (var i = 0; i < 40; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    }
+
+    Future<Tache> impots(WidgetTester tester) async => (await tester.runAsync(
+      () => base.enregistreTache(
+        Tache(
+          jour: jeudi,
+          debut: 10 * 60,
+          duree: 90,
+          texte: 'Déclarer les impôts',
+        ),
+      ),
+    ))!;
+
+    testWidgets('le jour : écran rétro, la chose en cours, Fait', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues({
+        ...deuxMoiVus,
+        'reveil_vu': '2026-10-22',
+        'mot_2026-10-22': 'Les impôts d\'abord',
+      });
+      final tache = await impots(tester);
+      await ouvre(tester, AccueilScreen(maintenant: dixHeures));
+      await attends(tester);
+      expect(find.text('OUINON · EXÉCUTANT'), findsOneWidget);
+      expect(find.text('10:30'), findsOneWidget);
+      expect(
+        find.textContaining('Les impôts d\'abord', findRichText: true),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('> DÉCLARER LES IMPÔTS', findRichText: true),
+        findsOneWidget,
+      );
+      expect(find.textContaining('EN COURS · 10:00 → 11:30'), findsOneWidget);
+      await tester.tap(find.text('FAIT'));
+      await attends(tester);
+      final apres = (await tester.runAsync(() => base.tache(tache.id!)))!;
+      expect(apres.etat, Tache.fait);
+      expect(find.text('PLUS RIEN À FAIRE AUJOURD\'HUI.'), findsOneWidget);
+      // L'onglet To-do garde le style habituel.
+      await tester.tap(find.text('To-do'));
+      await tester.pumpAndSettle();
+      expect(find.text('OUINON · EXÉCUTANT'), findsNothing);
+    });
+
+    testWidgets('le matin : l\'ascenseur, une fois par jour', (tester) async {
+      SharedPreferences.setMockInitialValues(deuxMoiVus);
+      await impots(tester);
+      await ouvre(tester, AccueilScreen(maintenant: dixHeures));
+      await attends(tester);
+      expect(find.byType(PassageScreen), findsOneWidget);
+      for (var i = 0; i < 25; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(
+        find.textContaining('BONJOUR.', findRichText: true),
+        findsOneWidget,
+      );
+      await ascenseur(tester);
+      await tester.pumpAndSettle();
+      expect(find.byType(PassageScreen), findsNothing);
+      final prefs = (await tester.runAsync(SharedPreferences.getInstance))!;
+      expect(prefs.getString('reveil_vu'), '2026-10-22');
+    });
+
+    testWidgets('le soir : le compte rendu, un mot, fin de service', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues(deuxMoiVus);
+      await impots(tester);
+      await ouvre(tester, AccueilScreen(maintenant: vingtDeux));
+      await attends(tester);
+      expect(find.text('Ce que ton toi du jour te remonte'), findsOneWidget);
+      expect(find.text('Préparer demain'), findsWidgets);
+      await tester.tap(find.byKey(const ValueKey('remonte')));
+      await tester.pumpAndSettle();
+      await attends(tester);
+      expect(find.byType(RapportScreen), findsOneWidget);
+      expect(find.text('0 SUR 1'), findsOneWidget);
+      expect(find.textContaining('REVIENT DANS LA TO-DO'), findsNothing);
+      await tester.enterText(
+        find.byKey(const ValueKey('mot-soir')),
+        'Trop de papiers',
+      );
+      await tester.ensureVisible(find.text('[ FIN DE SERVICE ]'));
+      await tester.tap(find.text('[ FIN DE SERVICE ]'));
+      await attends(tester);
+      expect(find.byType(PassageScreen), findsOneWidget);
+      for (var i = 0; i < 25; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(find.text('Bonsoir.'), findsOneWidget);
+      await ascenseur(tester);
+      await tester.pumpAndSettle();
+      expect(find.byType(PassageScreen), findsNothing);
+      final prefs = (await tester.runAsync(SharedPreferences.getInstance))!;
+      expect(prefs.getString('mot_soir_2026-10-22'), 'Trop de papiers');
+    });
+
+    testWidgets('préparer demain : un mot pour demain, puis l\'ascenseur', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues(deuxMoiVus);
+      await tester.runAsync(
+        () => base.enregistreAFaire(
+          AFaire(
+            texte: 'Papiers',
+            duree: 60,
+            creeLe: jeudi,
+            choisiePour: vendredi,
+          ),
+        ),
+      );
+      await ouvre(
+        tester,
+        Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => PreparerScreen(
+                    base: base,
+                    jour: vendredi,
+                    maintenant: vingtDeux,
+                  ),
+                ),
+              ),
+              child: const Text('ouvrir'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('ouvrir'));
+      await tester.pumpAndSettle();
+      await attends(tester);
+      await tester.tap(find.text('Suivant : caser dans la journée'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Terminer'));
+      await attends(tester);
+      await tester.pumpAndSettle();
+      expect(find.text('Un mot pour toi, demain ?'), findsOneWidget);
+      await tester.enterText(
+        find.byKey(const ValueKey('mot-demain')),
+        'Les papiers d\'abord',
+      );
+      await tester.tap(find.text('Transmettre'));
+      await attends(tester);
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byType(PassageScreen), findsOneWidget);
+      expect(find.text('Transmis.'), findsOneWidget);
+      await ascenseur(tester);
+      await tester.pumpAndSettle();
+      expect(find.byType(PassageScreen), findsNothing);
+      expect(find.text('ouvrir'), findsOneWidget);
+      final prefs = (await tester.runAsync(SharedPreferences.getInstance))!;
+      expect(prefs.getString('mot_2026-10-23'), 'Les papiers d\'abord');
     });
   });
 }

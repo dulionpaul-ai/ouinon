@@ -5,6 +5,7 @@ import 'package:timezone/timezone.dart' as tz;
 import '../models/question.dart';
 import '../models/tache.dart';
 import '../utils/courbes.dart';
+import '../utils/deux_moi.dart';
 import '../utils/jour.dart';
 import '../utils/planification.dart';
 import '../utils/planning.dart';
@@ -67,6 +68,14 @@ class Notifications {
   /// demain ».
   static const preparer = 'preparer';
 
+  /// Contenu caché du compte rendu de fin de journée : le toucher ouvre le
+  /// compte rendu.
+  static const rapport = 'rapport';
+
+  /// Identifiants de la notification du matin et du compte rendu.
+  static const idMatin = 4;
+  static const idRapport = 5;
+
   /// Ce qu'une notification touchée demande d'ouvrir (lu par l'accueil).
   final ouverture = ValueNotifier<String?>(null);
   Future<void>? _pret;
@@ -80,7 +89,9 @@ class Notifications {
       final lancement = await _plugin.getNotificationAppLaunchDetails();
       if (lancement?.didNotificationLaunchApp ?? false) {
         final r = lancement!.notificationResponse;
-        if (r?.payload == preparer) ouverture.value = preparer;
+        if (r?.payload == preparer || r?.payload == rapport) {
+          ouverture.value = r!.payload;
+        }
       }
     } catch (_) {}
   }();
@@ -193,8 +204,8 @@ class Notifications {
   Future<void> traiteReponse(NotificationResponse reponse) async {
     final action = reponse.actionId;
     final contenu = reponse.payload;
-    if (contenu == preparer) {
-      ouverture.value = preparer;
+    if (contenu == preparer || contenu == rapport) {
+      ouverture.value = contenu;
       return;
     }
     if (contenu != null && contenu.startsWith('t|')) {
@@ -247,11 +258,11 @@ class Notifications {
       questions: questions,
       repondues: await base.reponduesDepuis(jourDe(now)),
       maintenant: now,
-      // iPhone : 64 notifications programmées au plus (trois gardées pour
-      // le rappel « continuer », le bilan et le rappel du soir, plus le
-      // planning). Android : 500 alarmes.
+      // iPhone : 64 notifications programmées au plus (cinq gardées pour
+      // le rappel « continuer », le bilan, le rappel du soir, le matin et
+      // le compte rendu, plus le planning). Android : 500 alarmes.
       maxNotifs:
-          (defaultTargetPlatform == TargetPlatform.iOS ? 61 : 400) -
+          (defaultTargetPlatform == TargetPlatform.iOS ? 59 : 400) -
           taches.length,
     );
     if (defaultTargetPlatform == TargetPlatform.iOS) {
@@ -300,6 +311,68 @@ class Notifications {
     }
     await _programmeRappelPlanning(base, now, mode);
     await _programmeBilan(base, questions, now, mode);
+    await _programmeDeuxMoi(base, now, mode);
+  }
+
+  /// Les deux toi (si l'intro a été vue) : au début de la journée, « Ta
+  /// journée t'attend » avec ce que le toi du soir a prévu et son mot ; à
+  /// la fin, le compte rendu. Rien si rien n'est prévu ce jour-là.
+  Future<void> _programmeDeuxMoi(
+    Base base,
+    DateTime maintenant,
+    AndroidScheduleMode mode,
+  ) async {
+    if (!await DeuxMoi.actifs()) return;
+    final journee = await Preferences.journee();
+    const details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'deux_moi',
+        'Matin et compte rendu',
+        channelDescription:
+            'Le matin, ta journée prévue ; le soir, le compte rendu.',
+        icon: '@drawable/ic_stat_ouinon',
+      ),
+      iOS: DarwinNotificationDetails(),
+    );
+    final matin = prochainRappelPlanning(maintenant, journee.debut);
+    final jourMatin = jourDe(matin);
+    final texteDuMatin = texteMatin(
+      await base.tachesDu(jourMatin),
+      await DeuxMoi.motPour(jourMatin),
+    );
+    if (texteDuMatin != null) {
+      await _plugin.zonedSchedule(
+        id: idMatin,
+        title: 'Ta journée t\'attend',
+        body: texteDuMatin,
+        scheduledDate: _tz(matin),
+        notificationDetails: NotificationDetails(
+          android: AndroidNotificationDetails(
+            'deux_moi',
+            'Matin et compte rendu',
+            channelDescription:
+                'Le matin, ta journée prévue ; le soir, le compte rendu.',
+            icon: '@drawable/ic_stat_ouinon',
+            styleInformation: BigTextStyleInformation(texteDuMatin),
+          ),
+          iOS: const DarwinNotificationDetails(),
+        ),
+        androidScheduleMode: mode,
+      );
+    }
+    final fin = prochainRappelPlanning(maintenant, journee.fin);
+    final texteDeFin = texteRapport(await base.tachesDu(jourDe(fin)));
+    if (texteDeFin != null) {
+      await _plugin.zonedSchedule(
+        id: idRapport,
+        title: 'Fin de service',
+        body: texteDeFin,
+        payload: rapport,
+        scheduledDate: _tz(fin),
+        notificationDetails: details,
+        androidScheduleMode: mode,
+      );
+    }
   }
 
   /// Rappel du soir (si activé) : « Prépare ta journée de demain », avec
@@ -329,7 +402,9 @@ class Notifications {
     );
     await _plugin.zonedSchedule(
       id: idRappelPlanning,
-      title: 'Prépare ta journée de demain',
+      title: await DeuxMoi.actifs()
+          ? 'Et demain, tu fais quoi ?'
+          : 'Prépare ta journée de demain',
       body: texte,
       payload: preparer,
       scheduledDate: _tz(quand),

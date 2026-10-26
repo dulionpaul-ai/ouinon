@@ -11,6 +11,7 @@ import '../utils/planification.dart';
 import '../utils/version.dart';
 import '../widgets/rond.dart';
 import 'creneaux_screen.dart';
+import 'intro_screen.dart';
 import 'questions_screen.dart';
 
 /// Réglages, en lignes simples (revue du 25/10/2026) : tes questions, tes
@@ -31,6 +32,7 @@ class _ReglagesScreenState extends State<ReglagesScreen>
   bool _bilan = true;
   bool _rappelPlanning = true;
   int _heureRappel = Preferences.heureRappelPlanningParDefaut;
+  int _finSoir = DeuxMoi.finSoirParDefaut;
   ({int debut, int fin}) _journee = (
     debut: Preferences.debutJourneeParDefaut,
     fin: Preferences.finJourneeParDefaut,
@@ -77,6 +79,7 @@ class _ReglagesScreenState extends State<ReglagesScreen>
     final rappelPlanning = await Preferences.rappelPlanning();
     final heureRappel = await Preferences.heureRappelPlanning();
     final journee = await Preferences.journee();
+    final soir = await DeuxMoi.soir();
     final notifsPlanning = await Preferences.notifsPlanning();
     final reponsesTest = await widget.base.nombreReponsesTest();
     final questions = await widget.base.questions();
@@ -96,6 +99,7 @@ class _ReglagesScreenState extends State<ReglagesScreen>
       _bilan = bilan;
       _rappelPlanning = rappelPlanning;
       _heureRappel = heureRappel;
+      _finSoir = soir.fin;
       _journee = journee;
       _notifsPlanning = notifsPlanning;
       _reponsesTest = reponsesTest;
@@ -212,6 +216,13 @@ class _ReglagesScreenState extends State<ReglagesScreen>
     } catch (_) {}
   }
 
+  Future<void> _choisitFinSoir() async {
+    final minutes = await _heure(_finSoir);
+    if (minutes == null || !mounted) return;
+    setState(() => _finSoir = minutes);
+    await DeuxMoi.changeSoir(fin: minutes);
+  }
+
   Future<void> _autoriseHeurePrecise() async {
     try {
       await Notifications.instance.demandeHeurePrecise();
@@ -291,19 +302,6 @@ class _ReglagesScreenState extends State<ReglagesScreen>
                   : _creneaux,
               onTap: () => _ouvre(CreneauxScreen(base: widget.base)),
             ),
-            _Ligne(
-              cle: const ValueKey('debut-journee'),
-              titre: 'Début de journée',
-              valeur: heureFr(_journee.debut),
-              onTap: () => _choisitJournee(debut: true),
-            ),
-            _Ligne(
-              cle: const ValueKey('fin-journee'),
-              titre: 'Fin de journée',
-              valeur: heureFr(_journee.fin),
-              sousTitre: '« Caser pour moi » place ta to-do entre ces heures.',
-              onTap: () => _choisitJournee(debut: false),
-            ),
           ]),
           _Section('Notifications', [
             _Ligne(
@@ -375,16 +373,42 @@ class _ReglagesScreenState extends State<ReglagesScreen>
                 _changeRappelPlanning,
               ),
             ),
-            if (_rappelPlanning)
-              _Ligne(
-                titre: 'Heure du rappel',
-                valeur: heureFr(_heureRappel),
-                onTap: _choisitHeureRappel,
-              ),
             _Ligne(
               titre: 'Bilan du dimanche',
               sousTitre: 'Le dimanche à 20 h, ta semaine en quelques lignes',
               fin: interrupteur('interrupteur-bilan', _bilan, _changeBilan),
+            ),
+          ]),
+          _Section('Les deux toi', [
+            _Ligne(
+              cle: const ValueKey('debut-journee'),
+              titre: 'Toi qui exécutes : début',
+              valeur: heureFr(_journee.debut),
+              onTap: () => _choisitJournee(debut: true),
+            ),
+            _Ligne(
+              cle: const ValueKey('fin-journee'),
+              titre: 'Toi qui exécutes : fin',
+              valeur: heureFr(_journee.fin),
+              sousTitre: '« Caser pour moi » place ta to-do entre ces heures.',
+              onTap: () => _choisitJournee(debut: false),
+            ),
+            _Ligne(
+              cle: const ValueKey('debut-soir'),
+              titre: 'Toi qui décides : début',
+              valeur: heureFr(_heureRappel),
+              sousTitre: 'Le rappel du soir arrive à cette heure.',
+              onTap: _choisitHeureRappel,
+            ),
+            _Ligne(
+              cle: const ValueKey('fin-soir'),
+              titre: 'Toi qui décides : fin',
+              valeur: heureFr(_finSoir),
+              onTap: _choisitFinSoir,
+            ),
+            _Ligne(
+              titre: 'Revoir l\'intro',
+              onTap: () => _ouvre(const IntroScreen()),
             ),
           ]),
           _Section('Données de test', [

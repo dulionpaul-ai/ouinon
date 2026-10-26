@@ -51,6 +51,14 @@ fait, version par version : `docs/historique.md`.
    « Remettre demain », stats du planning (et liens avec les
    questions). Seulement aujourd'hui et demain pour l'instant ; un autre
    jour de la semaine viendra peut-être ensuite. Reste : avis de Paul.
+8b. [ ] Les deux toi (26/10/2026, APK n° 14) : intro, mode exécutant
+   rétro le jour, mode décideur ambre le soir, ascenseur, mots entre les
+   deux, compte rendu, nouveau logo. Reste : avis de Paul après son test
+   du 27/10. Idées en réserve : plan verrouillé le jour (appui long pour
+   « remonter »), écran « Hors service » la nuit, stat « tu prévois
+   20 % de trop » qui ajuste la jauge, numéro de journée dans le compte
+   rendu. Prochain APK : `version: 1.0.0+15`, seulement avec l'accord de
+   Paul.
 9. [ ] Plus tard (critique du 23/10/2026) : sauvegarde dans un
    fichier, mode « expérience » (tester une habitude 14 jours), objectifs
    tout prêts au démarrage (« Mieux dormir »…), planning sur toute la

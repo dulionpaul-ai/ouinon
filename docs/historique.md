@@ -229,3 +229,34 @@ Fabriqué à la demande de Paul le 26/10/2026.
   to-do). Le rappel du soir ouvre « Préparer demain ». Supprimés : la
   matrice en 4 cases, le bac, « Piocher », « En fond », les blocs en
   cartes et les textes d'aide permanents. Version 1.0.0+13 prête.
+
+## APK n° 14 (1.0.0+14) : les deux toi
+
+Fabriqué à la demande de Paul le 26/10/2026 (« je teste ça pour
+demain »).
+
+- Idée de Paul, inspirée de la série « Severance » : « je décide le soir
+  ce que le moi de demain va faire, deux personnes distinctes ». Puis :
+  une intro, l'ascenseur, une animation au passage de décideur à
+  exécutant, les plages horaires de chacun, un compte rendu en fin de
+  journée, le style informatique à l'ancienne pour l'exécutant.
+  Maquettes (pages « Thème v2 » et « Les deux toi ») : Paul « adore le
+  concept ». On garde l'idée, rien de la série (ni nom, ni logo).
+- Codé : intro en 3 pages (« Il y a deux toi », les heures de chacun sur
+  un cadran de 24 h, les notifications), montrée une fois, y compris à
+  ceux qui avaient déjà vu l'ancienne bienvenue. Le jour (plage de
+  l'exécutant = début / fin de journée), Aujourd'hui passe en terminal
+  rétro (VT323 + IBM Plex Mono, bleu-vert sur noir, lignes de balayage,
+  curseur) : la chose en cours en grand avec Pas fait · Reporter · Fait,
+  le mot d'hier soir, les « ordres du jour », « [ COMPTE RENDU ] ». Le
+  soir (rappel du soir → fin du soir, 23 h par défaut), accent ambre :
+  ce que le toi du jour remonte, « Préparer demain ». Préparer demain se
+  termine par « Un mot pour toi, demain ? » puis l'ascenseur (SOIR ↓
+  JOUR). Premier passage de la journée dans l'appli : l'ascenseur et
+  « BONJOUR. 4 TÂCHES REÇUES. » Compte rendu : score, ce qui revient
+  dans la to-do, un mot pour le décideur, « [ FIN DE SERVICE ] » (ascenseur
+  vers le soir). Notifications : le matin « Ta journée t'attend », en fin
+  de journée « Fin de service », le soir « Et demain, tu fais quoi ? ».
+  Logo : le « rond dissocié » (ambre en haut à gauche, bleu-vert en bas
+  à droite). Réglages : section « Les deux toi ». 89 tests.
+

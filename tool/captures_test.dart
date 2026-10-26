@@ -20,11 +20,15 @@ import 'package:ouinon/screens/edition_a_faire_screen.dart';
 import 'package:ouinon/screens/edition_tache_screen.dart';
 import 'package:ouinon/screens/edition_question_screen.dart';
 import 'package:ouinon/screens/fiche_question_screen.dart';
+import 'package:ouinon/screens/intro_screen.dart';
+import 'package:ouinon/screens/passage_screen.dart';
+import 'package:ouinon/screens/rapport_screen.dart';
 import 'package:ouinon/screens/preparer_screen.dart';
 import 'package:ouinon/screens/todo_screen.dart';
 import 'package:ouinon/screens/questions_screen.dart';
 import 'package:ouinon/screens/reglages_screen.dart';
 import 'package:ouinon/screens/stats_screen.dart';
+import 'package:ouinon/widgets/retro.dart';
 import 'package:ouinon/widgets/rond.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -48,6 +52,11 @@ void main() {
     await _police('Figtree', [
       for (final w in [500, 600, 700, 800]) 'assets/fonts/Figtree-$w.ttf',
     ]);
+    await _police('VT323', ['assets/fonts/VT323-400.ttf']);
+    await _police('IBMPlexMono', [
+      'assets/fonts/IBMPlexMono-500.ttf',
+      'assets/fonts/IBMPlexMono-700.ttf',
+    ]);
     final sdk = File(Platform.resolvedExecutable).parent.parent.parent.path;
     await _police('MaterialIcons', [
       '$sdk/material_fonts/MaterialIcons-Regular.otf',
@@ -58,7 +67,14 @@ void main() {
   final maintenant = DateTime(2026, 10, 22, 12);
 
   setUp(() async {
-    SharedPreferences.setMockInitialValues({'bienvenue_vue': true});
+    Curseur.clignote = false;
+    SharedPreferences.setMockInitialValues({
+      'bienvenue_vue': true,
+      'intro_deux_moi_vue': true,
+      'reveil_vu': '2026-10-22',
+      'mot_2026-10-22': 'Appelle maman avant le garage.',
+      'mot_soir_2026-10-22': 'La banque était fermée.',
+    });
     base = await ouvreBase();
     Base.remplace(base);
     Notifications.instance = FaussesNotifications();
@@ -317,7 +333,7 @@ void main() {
     await capture(
       tester,
       '7-petit-jour',
-      const AccueilScreen(),
+      AccueilScreen(maintenant: () => maintenant),
       ThemeMode.dark,
       largeur: 360,
       hauteur: 760,
@@ -377,6 +393,96 @@ void main() {
       largeur: 360,
       hauteur: 900,
       texte: 1.3,
+    );
+  });
+
+  // Les deux toi (26/10/2026).
+  testWidgets('intro, page 1', (tester) async {
+    await capture(tester, '20-intro-1', const IntroScreen(), ThemeMode.dark);
+  });
+
+  testWidgets('intro, page 2', (tester) async {
+    await capture(
+      tester,
+      '21-intro-2',
+      const IntroScreen(),
+      ThemeMode.dark,
+      avant: (tester) async {
+        await tester.tap(find.text('Faire connaissance'));
+        await tester.pumpAndSettle();
+      },
+    );
+  });
+
+  testWidgets('intro, page 3', (tester) async {
+    await capture(
+      tester,
+      '22-intro-3',
+      const IntroScreen(),
+      ThemeMode.dark,
+      avant: (tester) async {
+        await tester.tap(find.text('Faire connaissance'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('C\'est ça'));
+        await tester.pumpAndSettle();
+      },
+    );
+  });
+
+  for (final (nom, largeur, texte) in [
+    ('23-executant', 390.0, 1.0),
+    ('24-petit-executant', 360.0, 1.3),
+  ]) {
+    testWidgets('le jour, écran rétro ($nom)', (tester) async {
+      await remplit(tester);
+      await capture(
+        tester,
+        nom,
+        AccueilScreen(maintenant: () => DateTime(2026, 10, 22, 12, 35)),
+        ThemeMode.dark,
+        largeur: largeur,
+        hauteur: 1000,
+        texte: texte,
+      );
+    });
+  }
+
+  testWidgets('l\'ascenseur, arrivée', (tester) async {
+    await capture(
+      tester,
+      '25-ascenseur',
+      const PassageScreen(
+        versJour: true,
+        titreSoir: 'Hier soir, tu as décidé.',
+        lignesJour: [
+          'BONJOUR.',
+          '5 TÂCHES REÇUES.',
+          'ENSUITE : 12:30 APPELER MAMAN',
+        ],
+      ),
+      ThemeMode.dark,
+    );
+  });
+
+  testWidgets('le compte rendu', (tester) async {
+    await remplit(tester);
+    await capture(
+      tester,
+      '26-compte-rendu',
+      RapportScreen(base: base, jour: DateTime(2026, 10, 22)),
+      ThemeMode.dark,
+      hauteur: 1000,
+    );
+  });
+
+  testWidgets('le soir', (tester) async {
+    await remplit(tester);
+    await capture(
+      tester,
+      '27-soir',
+      AccueilScreen(maintenant: () => DateTime(2026, 10, 22, 21, 45)),
+      ThemeMode.dark,
+      hauteur: 1000,
     );
   });
 }

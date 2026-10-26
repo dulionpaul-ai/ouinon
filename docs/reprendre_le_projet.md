@@ -1,7 +1,7 @@
 # Reprendre le projet Ouinon
 
 À lire en premier dans une nouvelle session Claude (avec `CLAUDE.md`).
-Mis à jour le 22/10/2026.
+Mis à jour le 26/10/2026.
 
 ## En une minute
 
@@ -21,9 +21,11 @@ Mis à jour le 22/10/2026.
   onglet « À faire » calqué sur le tableau blanc de Paul. Depuis, dans le
   code : **grande simplification** (3 onglets Aujourd'hui · To-do ·
   Stats, « Préparer demain » en 2 étapes ; voir `docs/historique.md`),
-  envoyée en **APK n° 13** (1.0.0+13, 26/10/2026). Pour le prochain,
-  passer `version` à 1.0.0+14 dans `pubspec.yaml` et
-  `lib/utils/version.dart`.
+  envoyée en **APK n° 13** (1.0.0+13, 26/10/2026). **APK n° 14**
+  (1.0.0+14, 26/10/2026) : **les deux toi** (intro, écran rétro le jour,
+  ambre le soir, ascenseur, mots, compte rendu, nouveau logo ; voir
+  `docs/fonctionnement.md`). Pour le prochain, passer `version` à
+  1.0.0+15 dans `pubspec.yaml` et `lib/utils/version.dart`.
   Toujours demander à Paul avant de fabriquer un APK. Les boutons de
   notification marchent appli fermée (confirmé par Paul).
 - **Le code est sur `main`** du dépôt `dulionpaul-ai/ouinon` (voir
@@ -54,7 +56,11 @@ Détail dans `docs/revue_produit.md`. Les plus importants :
 - **Ordre des réponses de gauche à droite : la moins bonne à gauche, la
   meilleure à droite**, partout (notification, boutons, barres). Dans
   les listes verticales, la meilleure en haut.
-- Logo n° 3 : rond coupé en deux, moitié citron, moitié corail.
+- Logo n° 3 : rond coupé en deux ; depuis le 26/10/2026, « rond
+  dissocié » ambre (soir) et bleu-vert (jour), moitiés décalées.
+- **Les deux toi** (26/10/2026, « j'adore le concept ») : le soir celui
+  qui décide (ambre), le jour celui qui exécute (écran rétro de vieux
+  terminal). Rien repris de la série Severance (ni nom, ni logo).
 - Pas de relance de notification ; pas d'objectifs ni de note écrite
   pour l'instant ; sauvegarde plus tard. Séries oui (23/10/2026).
 - Stats en **graphiques** (23/10/2026) : l'appli trouve les liens toute

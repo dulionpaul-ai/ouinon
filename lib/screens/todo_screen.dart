@@ -106,10 +106,13 @@ class _TodoScreenState extends State<TodoScreen> {
   void _prepare() => Navigator.push(
     context,
     MaterialPageRoute(
-      builder: (_) => PreparerScreen(
-        base: widget.base,
-        jour: ajouteJours(_aujourdhui, 1),
-        maintenant: widget.maintenant,
+      builder: (_) => Theme(
+        data: AppTheme.soir(),
+        child: PreparerScreen(
+          base: widget.base,
+          jour: ajouteJours(_aujourdhui, 1),
+          maintenant: widget.maintenant,
+        ),
       ),
     ),
   );

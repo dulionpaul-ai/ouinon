@@ -18,8 +18,13 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 | `models/creneau.dart` | Un créneau fixe qui revient chaque semaine (texte, début, fin, jours). |
 | `widgets/grille_journee.dart` | La journée heure par heure (52 px par heure, 8 h – 23 h, élargie si besoin) : blocs à leur vraie taille (couleur de leur case, blanc pour un impératif), créneaux hachurés, trait « maintenant » ; dépôt d'une chose du bac ou d'un bloc (au quart d'heure, d'après le haut de ce qu'on glisse), durée en tirant le bas, toucher une heure vide. |
 | `screens/edition_creneau_screen.dart` | Ajout ou modification d'un créneau fixe. |
+| `utils/deux_moi.dart` | Les deux toi (testé) : qui est là (`moiA` : exécutant, décideur, repos ; plages qui passent minuit), chose en cours (`enCours`), textes du matin et du compte rendu. |
+| `screens/intro_screen.dart` | Intro en 3 pages, cadran des heures, logo animé (`RondDissocie`). |
+| `screens/passage_screen.dart` | L'ascenseur : portes, étage SOIR ↓ JOUR, lignes du terminal qui s'écrivent ; 2,4 s puis se ferme seul, un appui le passe. |
+| `screens/rapport_screen.dart` | Compte rendu de fin de journée (rétro), mot pour le soir, « Fin de service ». |
+| `widgets/retro.dart` | Briques rétro : fond à lignes de balayage, curseur (`Curseur.clignote` coupé dans les tests), bouton rectangulaire, barre « [████░░] », heures « 09:05 ». |
 | `data/base.dart` | Base `ouinon.sqlite` (version 4 : colonne `choisie_pour` de `liste` et table `creneaux`) : tables `questions` (rendues dans l'ordre de la journée : heure, puis création), `reponses` (une réponse par question et par jour, effacée avec sa question), `planning` (version 2 ; colonnes `liste_id` et `quadrant` en version 3) et `liste` (version 3), par mise à jour de la base. « Fait » sur une chose tirée de la liste la marque faite dans la liste (`repondTache`) ; `placees` dit ce qui est déjà placé. Reporter une chose (`reporteTache`), raccourcis (`habitudes`). Changement du nombre de réponses avec conversion de l'historique (`enregistreAvecNombre`). |
-| `data/preferences.dart` | Choix gardés sur le téléphone : bilan du dimanche, rappel du soir et son heure (activés par défaut, 21 h 30), heures de la journée (9 h – 19 h), notifications du planning (début et fin par défaut). |
+| `data/preferences.dart` | Choix gardés sur le téléphone : bilan du dimanche, rappel du soir et son heure (activés par défaut, 21 h 30), heures de la journée (9 h – 19 h), notifications du planning (début et fin par défaut). `DeuxMoi` : intro vue (= modes actifs), fin du soir (23 h), mots (`mot_2026-10-23` pour le toi du jour, `mot_soir_…` pour le soir), ascenseur du matin déjà joué. |
 | `data/suggestions.dart` | Suggestions de réponses de l'écran Nouvelle question (« Oui / Non », « Bien / Moyen / Pas bien » au départ), créées, modifiées ou supprimées par la personne, gardées dans les préférences du téléphone. |
 | `data/notifications.dart` | Programmation des notifications (questions, choses prévues, rappel du soir, bilan), boutons, réponse depuis la notification (`reponseNotifArrierePlan`). |
 | `utils/remplissage.dart` | « Remplir ma journée » (testé) : ordre de placement, premier créneau libre, proposition, temps libre. |
@@ -38,13 +43,15 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 
 ## Icône
 
-- Logo n° 3 (choix de Paul du 22/10/2026) : rond coupé en deux, moitié
-  citron, moitié corail, sur fond sombre. `tool/icones.py` (Python +
+- Logo n° 3 (choix de Paul du 22/10/2026) devenu le « rond dissocié »
+  (26/10/2026) : rond coupé en deux, moitié gauche ambre plus haute,
+  moitié droite bleu-vert plus basse, sur fond sombre. `tool/icones.py` (Python +
   Pillow) écrit toutes les icônes : Android classiques, adaptatives
   (avec monochrome pour Android 13) et iPhone. Taille du logo réglée par
   `TAILLE` (0,95 : réduit de 5 % à la demande de Paul).
 - Petite icône des notifications : `drawable/ic_stat_ouinon.xml`, en
-  blanc : moitié gauche pleine (oui), moitié droite en contour (non),
+  blanc : moitié gauche pleine plus haute, moitié droite en contour plus
+  basse,
   gardée par `raw/keep.xml`. Pas de couleur de notification (Samsung
   assombrissait le citron en vert olive). Écran de démarrage sombre.
 
@@ -229,6 +236,28 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
   plus choisi et reste dans la to-do.
 - **Après le jour** : une chose casée pas faite reste dans la to-do
   (« Fait » seul l'en sort).
+
+## Les deux toi (26/10/2026)
+
+- **Qui est là** : une fois l'intro vue, l'accueil regarde l'heure
+  (chaque minute et au retour dans l'appli). Plage de l'exécutant = début
+  et fin de journée ; plage du décideur = heure du rappel du soir → fin
+  du soir. Le jour l'emporte si elles se croisent ; ailleurs, repos
+  (style habituel).
+- **Le jour** : l'onglet Aujourd'hui seul passe en rétro (même arbre de
+  widgets dans tous les modes : rien n'est perdu en changeant). En haut,
+  la chose en cours ou la prochaine sans réponse, avec Pas fait ·
+  Reporter · Fait ; le mot du soir ; « [ COMPTE RENDU ] ».
+- **Le soir** : accent ambre partout ; en haut d'Aujourd'hui, le score
+  du jour et le mot remonté, puis « Préparer demain ». Préparer s'ouvre
+  toujours en ambre. Préparer demain (pour un jour à venir) finit par le
+  mot pour demain, puis l'ascenseur vers le jour.
+- **Ascenseur du matin** : la première fois que l'appli est ouverte dans
+  la plage du jour (une fois par jour).
+- **Notifications** (si l'intro a été vue, et seulement si quelque chose
+  est prévu) : id 4 au début de la journée, « Ta journée t'attend » ;
+  id 5 à la fin, « Fin de service » (contenu caché `rapport` : ouvre le
+  compte rendu). Le rappel du soir devient « Et demain, tu fais quoi ? ».
 
 ## Vérifications et compilation
 

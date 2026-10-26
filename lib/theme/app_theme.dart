@@ -12,9 +12,38 @@ class AppTheme {
   static const courbeB = Color(0xFFA594FF);
   static const policeTexte = 'Figtree';
 
+  /// Écran rétro du toi qui exécute (vieux terminal, 26/10/2026) : VT323
+  /// pour les titres, IBM Plex Mono pour le texte (licence OFL).
+  static const policeRetro = 'VT323';
+  static const policeMono = 'IBMPlexMono';
+
+  /// Couleurs des deux toi : ambre le soir, bleu-vert le jour.
+  static const ambre = Color(0xFFF2A541);
+  static const bleuVert = Color(0xFF5FE0C9);
+
   static ThemeData sombre() => _theme(Teintes.sombre, Brightness.dark);
 
-  static ThemeData _theme(Teintes t, Brightness luminosite) {
+  /// Le soir, celui qui décide : accent ambre.
+  static ThemeData soir() => _theme(Teintes.soir, Brightness.dark);
+
+  /// Le jour, celui qui exécute : vieux terminal bleu-vert sur noir.
+  static ThemeData retro() => _theme(
+    Teintes.retro,
+    Brightness.dark,
+    texte: policeMono,
+    titre: policeRetro,
+    tailleTitre: 1.4,
+  );
+
+  static ThemeData _theme(
+    Teintes t,
+    Brightness luminosite, {
+    String texte = policeTexte,
+    String titre = policeTitre,
+    double tailleTitre = 1,
+  }) {
+    final policeTexte = texte;
+    final policeTitre = titre;
     final scheme =
         ColorScheme.fromSeed(
           seedColor: t.accent,
@@ -41,7 +70,7 @@ class AppTheme {
               : const Color(0xFFC0392B),
         );
     final base = ThemeData(brightness: luminosite).textTheme;
-    final texte = base
+    final styles = base
         .apply(
           fontFamily: policeTexte,
           bodyColor: t.texte,
@@ -50,7 +79,7 @@ class AppTheme {
         .copyWith(
           titleLarge: TextStyle(
             fontFamily: policeTitre,
-            fontSize: 20,
+            fontSize: 20 * tailleTitre,
             fontWeight: FontWeight.w700,
             letterSpacing: -0.4,
             color: t.texte,
@@ -79,7 +108,7 @@ class AppTheme {
       colorScheme: scheme,
       extensions: [t],
       fontFamily: policeTexte,
-      textTheme: texte,
+      textTheme: styles,
       scaffoldBackgroundColor: t.fond,
       splashFactory: InkSparkle.splashFactory,
       appBarTheme: AppBarTheme(
@@ -90,7 +119,7 @@ class AppTheme {
         scrolledUnderElevation: 0,
         titleTextStyle: TextStyle(
           fontFamily: policeTitre,
-          fontSize: 20,
+          fontSize: 20 * tailleTitre,
           fontWeight: FontWeight.w700,
           letterSpacing: -0.4,
           color: t.texte,
@@ -109,7 +138,7 @@ class AppTheme {
           shape: pilule,
           backgroundColor: t.texte,
           foregroundColor: t.fond,
-          textStyle: const TextStyle(
+          textStyle: TextStyle(
             fontFamily: policeTexte,
             fontSize: 16,
             fontWeight: FontWeight.w800,
@@ -123,7 +152,7 @@ class AppTheme {
           foregroundColor: t.texte,
           backgroundColor: t.carte,
           side: BorderSide.none,
-          textStyle: const TextStyle(
+          textStyle: TextStyle(
             fontFamily: policeTexte,
             fontSize: 16,
             fontWeight: FontWeight.w700,
@@ -134,7 +163,7 @@ class AppTheme {
         style: TextButton.styleFrom(
           foregroundColor: t.texte,
           shape: pilule,
-          textStyle: const TextStyle(
+          textStyle: TextStyle(
             fontFamily: policeTexte,
             fontSize: 15,
             fontWeight: FontWeight.w700,
@@ -150,7 +179,7 @@ class AppTheme {
           side: BorderSide.none,
           shape: pilule,
           minimumSize: const Size(0, 48),
-          textStyle: const TextStyle(
+          textStyle: TextStyle(
             fontFamily: policeTexte,
             fontWeight: FontWeight.w700,
           ),
@@ -162,7 +191,7 @@ class AppTheme {
         elevation: 0,
         highlightElevation: 0,
         shape: pilule,
-        extendedTextStyle: const TextStyle(
+        extendedTextStyle: TextStyle(
           fontFamily: policeTexte,
           fontSize: 16,
           fontWeight: FontWeight.w800,
@@ -268,6 +297,9 @@ class Teintes extends ThemeExtension<Teintes> {
   final Color moyenne;
   final Color moinsBonne;
 
+  /// Écran rétro (le toi qui exécute).
+  final bool estRetro;
+
   const Teintes({
     required this.fond,
     required this.carte,
@@ -282,6 +314,7 @@ class Teintes extends ThemeExtension<Teintes> {
     required this.meilleure,
     required this.moyenne,
     required this.moinsBonne,
+    this.estRetro = false,
   });
 
   static const sombre = Teintes(
@@ -298,6 +331,42 @@ class Teintes extends ThemeExtension<Teintes> {
     meilleure: Color(0xFFD4FF3A),
     moyenne: Color(0xFFFFB547),
     moinsBonne: Color(0xFFFF6B5E),
+  );
+
+  /// Le soir : accent ambre (celui qui décide).
+  static const soir = Teintes(
+    fond: Color(0xFF0F0F12),
+    carte: Color(0xFF1A1A1F),
+    puce: Color(0xFF26262C),
+    texte: Color(0xFFF5F5F2),
+    doux: Color(0xFFA3A3AD),
+    trait: Color(0xFF26262C),
+    accent: AppTheme.ambre,
+    surAccent: Color(0xFF0F0F12),
+    barre: Color(0xFF2E2E36),
+    texteBarre: Color(0xFFC4C4CC),
+    meilleure: Color(0xFFD4FF3A),
+    moyenne: Color(0xFFFFB547),
+    moinsBonne: Color(0xFFFF6B5E),
+  );
+
+  /// Le jour : vieux terminal, bleu-vert phosphore sur noir (celui qui
+  /// exécute). Réponses : bleu-vert, sable, corail.
+  static const retro = Teintes(
+    fond: Color(0xFF050807),
+    carte: Color(0xFF0B1412),
+    puce: Color(0xFF12302B),
+    texte: AppTheme.bleuVert,
+    doux: Color(0xFF3FA593),
+    trait: Color(0xFF12302B),
+    accent: AppTheme.bleuVert,
+    surAccent: Color(0xFF050807),
+    barre: Color(0xFF0B1412),
+    texteBarre: Color(0xFF3FA593),
+    meilleure: AppTheme.bleuVert,
+    moyenne: Color(0xFFE8D7B0),
+    moinsBonne: Color(0xFFFF7A6B),
+    estRetro: true,
   );
 
   static Teintes de(BuildContext context) =>

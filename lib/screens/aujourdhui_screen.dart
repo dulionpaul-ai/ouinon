@@ -2,26 +2,38 @@ import 'package:flutter/material.dart';
 
 import '../data/base.dart';
 import '../data/notifications.dart';
+import '../data/preferences.dart';
 import '../models/creneau.dart';
 import '../models/question.dart';
 import '../models/tache.dart';
 import '../utils/date_fr.dart';
+import '../utils/deux_moi.dart';
 import '../utils/jour.dart';
 import '../utils/planning.dart';
 import '../utils/stats.dart';
 import '../theme/app_theme.dart';
 import '../widgets/boutons_reponse.dart';
+import '../widgets/retro.dart';
 import '../widgets/rond.dart';
 import 'edition_tache_screen.dart';
 import 'preparer_screen.dart';
+import 'rapport_screen.dart';
 import 'reglages_screen.dart';
 
 /// Aujourd'hui (revue du 25/10/2026) : les questions du jour en lignes
 /// compactes, puis « Ma journée » (heure, rond à cocher, texte), avec les
 /// créneaux fixes en gris. On glisse le doigt vers la droite pour la
 /// veille, jamais après aujourd'hui ; la roue dentée mène aux Réglages.
+///
+/// Les deux toi (26/10/2026) : le jour, la page d'aujourd'hui devient un
+/// terminal (la chose en cours en grand, avec Pas fait · Reporter · Fait,
+/// le mot laissé la veille au soir, le compte rendu) ; le soir, elle
+/// montre ce que le toi du jour a remonté et « Préparer demain ».
 class AujourdhuiScreen extends StatefulWidget {
   final Base base;
+
+  /// Qui est là (choisi par l'accueil).
+  final Moi moi;
 
   /// Moment présent imposé (tests).
   final DateTime Function() maintenant;
@@ -30,6 +42,7 @@ class AujourdhuiScreen extends StatefulWidget {
     super.key,
     required this.base,
     this.maintenant = DateTime.now,
+    this.moi = Moi.repos,
   });
 
   @override
@@ -61,6 +74,7 @@ class _AujourdhuiScreenState extends State<AujourdhuiScreen> {
         base: widget.base,
         maintenant: widget.maintenant,
         decalage: -page,
+        moi: page == 0 ? widget.moi : Moi.repos,
       ),
     );
   }
@@ -72,12 +86,14 @@ class _PageJour extends StatefulWidget {
 
   /// Décalage par rapport à aujourd'hui (0 = aujourd'hui, −1 = hier…).
   final int decalage;
+  final Moi moi;
 
   const _PageJour({
     super.key,
     required this.base,
     required this.maintenant,
     required this.decalage,
+    required this.moi,
   });
 
   @override
@@ -91,6 +107,11 @@ class _PageJourState extends State<_PageJour> {
   List<Tache> _taches = const [];
   List<Creneau> _creneaux = const [];
   bool _charge = false;
+
+  /// Mot laissé hier soir pour ce jour ; mot laissé ce jour pour le soir.
+  String? _mot;
+  String? _motSoir;
+  int _demain = 0;
 
   DateTime get _jour => ajouteJours(jourDe(widget.maintenant()), _decalage);
 
@@ -117,6 +138,9 @@ class _PageJourState extends State<_PageJour> {
     final toutes = await widget.base.toutesLesReponses();
     final taches = await widget.base.tachesDu(jour);
     final creneaux = await widget.base.creneauxDu(jour);
+    final mot = await DeuxMoi.motPour(jour);
+    final motSoir = await DeuxMoi.motDuJour(jour);
+    final demain = (await widget.base.tachesDu(ajouteJours(jour, 1))).length;
     if (!mounted || jour != _jour) return;
     setState(() {
       _questions = [
@@ -126,6 +150,9 @@ class _PageJourState extends State<_PageJour> {
       _reponses = reponses;
       _taches = taches;
       _creneaux = creneaux;
+      _mot = mot;
+      _motSoir = motSoir;
+      _demain = demain;
       _series = {
         for (final q in _questions)
           q.id!: serie(q, toutes[q.id] ?? const {}, jour).actuelle,
@@ -176,16 +203,30 @@ class _PageJourState extends State<_PageJour> {
   /// Questions dont on a rouvert les boutons après avoir répondu.
   final _rouvertes = <int>{};
 
-  void _prepare() => Navigator.push(
+  void _prepare({int dans = 0}) => Navigator.push(
     context,
     MaterialPageRoute(
-      builder: (_) => PreparerScreen(
-        base: widget.base,
-        jour: _jour,
-        maintenant: widget.maintenant,
+      builder: (_) => Theme(
+        data: AppTheme.soir(),
+        child: PreparerScreen(
+          base: widget.base,
+          jour: ajouteJours(_jour, dans),
+          maintenant: widget.maintenant,
+        ),
       ),
     ),
   );
+
+  void _rapport() => Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => RapportScreen(base: widget.base, jour: _jour),
+    ),
+  );
+
+  Future<void> _reporte(Tache tache) async {
+    await widget.base.reporteTache(tache.id!, widget.maintenant());
+  }
 
   /// Toucher une chose de la journée : répondre, modifier, remettre.
   Future<void> _actions(Tache tache) async {
@@ -275,37 +316,45 @@ class _PageJourState extends State<_PageJour> {
         ),
       for (final c in _creneaux) (c.debut, _LigneCreneau(creneau: c)),
     ]..sort((a, b) => a.$1.compareTo(b.$1));
+    final executant = widget.moi == Moi.executant;
+    String maj(String texte) => executant ? texte.toUpperCase() : texte;
+    final reglages = IconButton(
+      tooltip: 'Réglages',
+      onPressed: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => ReglagesScreen(base: widget.base)),
+      ),
+      icon: Icon(Icons.settings_outlined, color: t.doux),
+    );
+    final faitesJournee = _taches.where((x) => x.etat == Tache.fait).length;
     return Scaffold(
+      backgroundColor: executant ? Colors.transparent : null,
       body: SafeArea(
         bottom: false,
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 120),
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    dateCourte(_jour),
-                    style: TextStyle(
-                      color: t.doux,
-                      fontWeight: FontWeight.w700,
+            if (executant)
+              ..._enTeteExecutant(context, reglages)
+            else ...[
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      dateCourte(_jour),
+                      style: TextStyle(
+                        color: t.doux,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
-                ),
-                IconButton(
-                  tooltip: 'Réglages',
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ReglagesScreen(base: widget.base),
-                    ),
-                  ),
-                  icon: Icon(Icons.settings_outlined, color: t.doux),
-                ),
-              ],
-            ),
-            GrandTitre(_titre),
-            const SizedBox(height: 18),
+                  reglages,
+                ],
+              ),
+              GrandTitre(_titre),
+              const SizedBox(height: 18),
+              if (widget.moi == Moi.decideur) ..._soir(context),
+            ],
             if (_questions.isNotEmpty) ...[
               Semantics(
                 container: true,
@@ -314,7 +363,7 @@ class _PageJourState extends State<_PageJour> {
                     '${faites > 1 ? 's' : ''}',
                 excludeSemantics: true,
                 child: Text(
-                  'Questions · $faites sur ${_questions.length}',
+                  maj('Questions · $faites sur ${_questions.length}'),
                   style: section,
                 ),
               ),
@@ -337,11 +386,18 @@ class _PageJourState extends State<_PageJour> {
             ],
             Row(
               children: [
-                Expanded(child: Text('Ma journée', style: section)),
+                Expanded(
+                  child: Text(
+                    executant
+                        ? 'ORDRES DU JOUR · $faitesJournee/${_taches.length}'
+                        : 'Ma journée',
+                    style: section,
+                  ),
+                ),
                 if (aVenir)
                   TextButton(
                     onPressed: _prepare,
-                    child: Text(lignes.isEmpty ? 'Préparer' : 'Modifier'),
+                    child: Text(maj(lignes.isEmpty ? 'Préparer' : 'Modifier')),
                   ),
               ],
             ),
@@ -356,8 +412,219 @@ class _PageJourState extends State<_PageJour> {
                 ),
               ),
             for (final (_, w) in lignes) w,
+            if (executant && _taches.isNotEmpty) ...[
+              const SizedBox(height: 22),
+              BoutonRetro('[ COMPTE RENDU ]', onTap: _rapport),
+            ],
           ],
         ),
+      ),
+    );
+  }
+
+  /// Le jour : « OUINON · EXÉCUTANT », l'heure, le mot d'hier soir et la
+  /// chose en cours.
+  List<Widget> _enTeteExecutant(BuildContext context, Widget reglages) {
+    final t = Teintes.de(context);
+    final now = widget.maintenant();
+    final minutes = now.hour * 60 + now.minute;
+    final suivante = enCours(_taches, minutes);
+    return [
+      Row(
+        children: [
+          Expanded(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text('OUINON · EXÉCUTANT', style: styleRetro(26)),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Text(hhmm(minutes), style: styleRetro(24)),
+          reglages,
+        ],
+      ),
+      Text(
+        dateCourte(_jour).toUpperCase(),
+        style: styleMono(13, couleur: t.doux),
+      ),
+      Divider(color: t.puce, height: 20),
+      if (_mot != null)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 14),
+          child: Text.rich(
+            TextSpan(
+              children: [
+                TextSpan(
+                  text: 'MOT DU DÉCIDEUR › ',
+                  style: styleMono(
+                    13,
+                    couleur: t.moyenne.withValues(alpha: 0.6),
+                  ),
+                ),
+                TextSpan(text: '« $_mot »'),
+              ],
+            ),
+            style: styleMono(14, couleur: t.moyenne),
+          ),
+        ),
+      if (_charge)
+        if (suivante == null)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Text(
+              _taches.isEmpty
+                  ? 'RIEN DE PRÉVU PAR LE DÉCIDEUR.'
+                  : 'PLUS RIEN À FAIRE AUJOURD\'HUI.',
+              style: styleRetro(26),
+            ),
+          )
+        else
+          _EnCours(
+            tache: suivante.tache,
+            enCours: suivante.enCours,
+            minutes: minutes,
+            onRepond: (etat) => _repondTache(suivante.tache, etat),
+            onReporte: () => _reporte(suivante.tache),
+          ),
+      const SizedBox(height: 22),
+    ];
+  }
+
+  /// Le soir : ce que le toi du jour a remonté, et « Préparer demain ».
+  List<Widget> _soir(BuildContext context) {
+    final t = Teintes.de(context);
+    final retro = Teintes.retro;
+    return [
+      if (_taches.isNotEmpty) ...[
+        Text(
+          'Ce que ton toi du jour te remonte',
+          style: TextStyle(
+            color: t.doux,
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Material(
+          color: retro.fond,
+          borderRadius: BorderRadius.circular(14),
+          child: InkWell(
+            key: const ValueKey('remonte'),
+            borderRadius: BorderRadius.circular(14),
+            onTap: _rapport,
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${scoreJournee(_taches).toUpperCase()} · '
+                    'COMPTE RENDU ›',
+                    style: styleMono(14, couleur: retro.texte),
+                  ),
+                  if (_motSoir != null)
+                    Text(
+                      '› « $_motSoir »',
+                      style: styleMono(14, couleur: retro.moyenne),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+      ],
+      FilledButton(
+        key: const ValueKey('preparer-demain'),
+        style: FilledButton.styleFrom(
+          backgroundColor: t.accent,
+          foregroundColor: t.surAccent,
+        ),
+        onPressed: () => _prepare(dans: 1),
+        child: Text(
+          _demain == 0
+              ? 'Préparer demain'
+              : 'Demain : $_demain chose${_demain > 1 ? 's' : ''} · modifier',
+        ),
+      ),
+      const SizedBox(height: 22),
+    ];
+  }
+}
+
+/// Le jour : la chose en cours (ou la prochaine) en grand, avec le temps
+/// qui reste et Pas fait · Reporter · Fait.
+class _EnCours extends StatelessWidget {
+  final Tache tache;
+  final bool enCours;
+  final int minutes;
+  final ValueChanged<int> onRepond;
+  final VoidCallback onReporte;
+
+  const _EnCours({
+    required this.tache,
+    required this.enCours,
+    required this.minutes,
+    required this.onRepond,
+    required this.onReporte,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Teintes.de(context);
+    final x = tache;
+    final part = (minutes - x.debut) / x.duree;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(border: Border.all(color: t.texte)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            '${enCours ? 'EN COURS' : 'ENSUITE'} · '
+            '${hhmm(x.debut)} → ${hhmm(x.fin)}',
+            style: styleMono(12, couleur: t.doux),
+          ),
+          const SizedBox(height: 6),
+          Text.rich(
+            TextSpan(
+              text: '> ${x.texte.toUpperCase()}',
+              children: const [WidgetSpan(child: Curseur(hauteur: 24))],
+            ),
+            style: styleRetro(32),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            enCours
+                ? '${barreRetro(part)} '
+                      '${dureeFr(x.fin - minutes).toUpperCase()}'
+                : 'DANS ${dureeFr(x.debut - minutes).toUpperCase()}',
+            style: styleMono(13),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: BoutonRetro(
+                  'PAS FAIT',
+                  couleur: t.moinsBonne,
+                  onTap: () => onRepond(Tache.pasFait),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(child: BoutonRetro('REPORTER', onTap: onReporte)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: BoutonRetro(
+                  'FAIT',
+                  plein: true,
+                  onTap: () => onRepond(Tache.fait),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -469,9 +736,12 @@ class _LigneJournee extends StatelessWidget {
         child: Row(
           children: [
             SizedBox(
-              width: 50,
+              width: t.estRetro ? 58 : 50,
               child: Text(
-                heureFr(tache.debut),
+                t.estRetro ? hhmm(tache.debut) : heureFr(tache.debut),
+                maxLines: 1,
+                softWrap: false,
+                overflow: TextOverflow.fade,
                 style: TextStyle(
                   color: t.doux,
                   fontSize: 13,
@@ -488,36 +758,53 @@ class _LigneJournee extends StatelessWidget {
                 radius: 22,
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(0, 12, 12, 12),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 150),
-                    width: 22,
-                    height: 22,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: fait ? t.accent : Colors.transparent,
-                      border: fait
-                          ? null
-                          : Border.all(
-                              color: pasFait ? t.moinsBonne : t.doux,
-                              width: 2,
+                  child: t.estRetro
+                      ? SizedBox(
+                          width: 34,
+                          child: Text(
+                            maxLines: 1,
+                            softWrap: false,
+                            fait
+                                ? '[x]'
+                                : pasFait
+                                ? '[-]'
+                                : '[ ]',
+                            style: styleMono(
+                              15,
+                              couleur: pasFait ? t.moinsBonne : t.texte,
                             ),
-                    ),
-                    child: fait
-                        ? Icon(
-                            Icons.check_rounded,
-                            size: 15,
-                            color: t.surAccent,
-                          )
-                        : null,
-                  ),
+                          ),
+                        )
+                      : AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          width: 22,
+                          height: 22,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: fait ? t.accent : Colors.transparent,
+                            border: fait
+                                ? null
+                                : Border.all(
+                                    color: pasFait ? t.moinsBonne : t.doux,
+                                    width: 2,
+                                  ),
+                          ),
+                          child: fait
+                              ? Icon(
+                                  Icons.check_rounded,
+                                  size: 15,
+                                  color: t.surAccent,
+                                )
+                              : null,
+                        ),
                 ),
               ),
             ),
             Expanded(
               child: Text(
-                tache.texte,
+                t.estRetro ? tache.texte.toUpperCase() : tache.texte,
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: t.estRetro ? 15 : 16,
                   fontWeight: FontWeight.w700,
                   color: fait || pasFait ? t.doux : t.texte,
                   decoration: fait || pasFait
@@ -555,9 +842,12 @@ class _LigneCreneau extends StatelessWidget {
       child: Row(
         children: [
           SizedBox(
-            width: 50,
+            width: t.estRetro ? 58 : 50,
             child: Text(
-              heureFr(creneau.debut),
+              t.estRetro ? hhmm(creneau.debut) : heureFr(creneau.debut),
+              maxLines: 1,
+              softWrap: false,
+              overflow: TextOverflow.fade,
               style: TextStyle(
                 color: t.doux,
                 fontSize: 13,
@@ -568,7 +858,7 @@ class _LigneCreneau extends StatelessWidget {
           const SizedBox(width: 34),
           Expanded(
             child: Text(
-              creneau.texte,
+              t.estRetro ? creneau.texte.toUpperCase() : creneau.texte,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,

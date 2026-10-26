@@ -1,6 +1,8 @@
-"""Icônes de Ouinon (logo n° 3, choix de Paul du 22/10/2026) : un rond
-coupé en deux, moitié citron (oui), moitié corail (non), sur fond sombre.
-Logo réduit de 5 % le 22/10/2026 (Paul le trouvait un peu gros).
+"""Icônes de Ouinon : le « rond dissocié » (thème des deux toi, 26/10/2026),
+un rond coupé en deux, moitié gauche ambre (le soir, celui qui décide)
+plus haute, moitié droite bleu-vert (le jour, celui qui exécute) plus
+basse, sur fond sombre. Reprend le logo n° 3 de Paul (rond coupé en deux,
+22/10/2026, réduit de 5 %), avec les couleurs des deux toi et le décalage.
 
 Lancement depuis la racine du dépôt : python3 tool/icones.py
 Écrit les icônes Android (classiques, adaptatives, monochrome) et iPhone.
@@ -13,8 +15,8 @@ from PIL import Image, ImageDraw
 
 FOND = (0x17, 0x17, 0x1A, 255)
 TAILLE = 0.95  # part du logo d'origine (réduit de 5 %)
-CITRON = (0xD4, 0xFF, 0x3A, 255)
-CORAIL = (0xFF, 0x6B, 0x5E, 255)
+AMBRE = (0xF2, 0xA5, 0x41, 255)
+BLEU_VERT = (0x5F, 0xE0, 0xC9, 255)
 BLANC = (255, 255, 255, 255)
 SUR = 8  # suréchantillonnage, pour des bords lisses
 
@@ -22,22 +24,30 @@ RES = Path("android/app/src/main/res")
 IOS = Path("ios/Runner/Assets.xcassets/AppIcon.appiconset")
 
 
-def logo(draw, cote, largeur, gauche=CITRON, droite=CORAIL):
+def logo(draw, cote, largeur, gauche=AMBRE, droite=BLEU_VERT):
     """Les deux demi-disques, centrés, sur `largeur` pixels de large
-    (dessin d'origine : rayon 70, écart 12, soit 152 de large)."""
+    (dessin d'origine : rayon 70, écart 12, soit 152 de large ; moitié
+    gauche montée de 8, moitié droite descendue de 8)."""
     echelle = largeur / 152
     r = 70 * echelle
     ecart = 6 * echelle
+    dy = 8 * echelle
     cx, cy = cote / 2, cote / 2
     draw.pieslice(
-        [cx - ecart - r, cy - r, cx - ecart + r, cy + r], 90, 270, fill=gauche
+        [cx - ecart - r, cy - dy - r, cx - ecart + r, cy - dy + r],
+        90,
+        270,
+        fill=gauche,
     )
     draw.pieslice(
-        [cx + ecart - r, cy - r, cx + ecart + r, cy + r], 270, 90, fill=droite
+        [cx + ecart - r, cy + dy - r, cx + ecart + r, cy + dy + r],
+        270,
+        90,
+        fill=droite,
     )
 
 
-def image(cote, fond, largeur_logo, rayon=0, gauche=CITRON, droite=CORAIL):
+def image(cote, fond, largeur_logo, rayon=0, gauche=AMBRE, droite=BLEU_VERT):
     grand = cote * SUR
     img = Image.new("RGBA", (grand, grand), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)

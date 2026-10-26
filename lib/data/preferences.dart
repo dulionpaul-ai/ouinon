@@ -1,5 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../utils/jour.dart';
+
 /// Les choix de la personne gardés sur le téléphone : bilan du dimanche
 /// soir, rappel du soir pour préparer le lendemain, heures de la journée
 /// (pour « Remplir ma journée »), notifications du planning.
@@ -77,6 +79,78 @@ class Preferences {
       (await SharedPreferences.getInstance()).setString(
         _cleNotifsPlanning,
         mode.name,
+      );
+}
+
+/// Les deux toi (idée de Paul du 26/10/2026) : le soir, celui qui
+/// décide ; le jour, celui qui exécute. Le soir va de l'heure du rappel à
+/// `finSoir` ; le jour, c'est la journée (`journee`).
+abstract final class DeuxMoi {
+  static const _cleIntro = 'intro_deux_moi_vue';
+  static const _cleFinSoir = 'fin_soir';
+  static const _cleReveil = 'reveil_vu';
+
+  /// Fin du soir par défaut : 23 h.
+  static const finSoirParDefaut = 23 * 60;
+
+  /// L'intro des deux toi a été vue : les deux modes sont actifs.
+  static Future<bool> actifs() async =>
+      (await SharedPreferences.getInstance()).getBool(_cleIntro) ?? false;
+
+  static Future<void> active(bool oui) async =>
+      (await SharedPreferences.getInstance()).setBool(_cleIntro, oui);
+
+  /// Le soir, celui qui décide : de l'heure du rappel à la fin du soir.
+  static Future<({int debut, int fin})> soir() async {
+    final p = await SharedPreferences.getInstance();
+    return (
+      debut: await Preferences.heureRappelPlanning(),
+      fin: p.getInt(_cleFinSoir) ?? finSoirParDefaut,
+    );
+  }
+
+  static Future<void> changeSoir({int? debut, int? fin}) async {
+    if (debut != null) await Preferences.changeHeureRappelPlanning(debut);
+    if (fin != null) {
+      await (await SharedPreferences.getInstance()).setInt(_cleFinSoir, fin);
+    }
+  }
+
+  /// Le mot laissé le soir pour le toi qui exécute `jour`.
+  static Future<String?> motPour(DateTime jour) async =>
+      (await SharedPreferences.getInstance()).getString('mot_${cleJour(jour)}');
+
+  /// Le mot laissé en fin de journée `jour` pour le toi du soir.
+  static Future<String?> motDuJour(DateTime jour) async =>
+      (await SharedPreferences.getInstance()).getString(
+        'mot_soir_${cleJour(jour)}',
+      );
+
+  static Future<void> changeMotPour(DateTime jour, String? mot) =>
+      _ecrit('mot_${cleJour(jour)}', mot);
+
+  static Future<void> changeMotDuJour(DateTime jour, String? mot) =>
+      _ecrit('mot_soir_${cleJour(jour)}', mot);
+
+  static Future<void> _ecrit(String cle, String? mot) async {
+    final p = await SharedPreferences.getInstance();
+    final texte = mot?.trim() ?? '';
+    if (texte.isEmpty) {
+      await p.remove(cle);
+    } else {
+      await p.setString(cle, texte);
+    }
+  }
+
+  /// L'arrivée du matin (l'ascenseur) a déjà été jouée ce jour-là.
+  static Future<bool> reveilVu(DateTime jour) async =>
+      (await SharedPreferences.getInstance()).getString(_cleReveil) ==
+      cleJour(jour);
+
+  static Future<void> marqueReveil(DateTime jour) async =>
+      (await SharedPreferences.getInstance()).setString(
+        _cleReveil,
+        cleJour(jour),
       );
 }
 

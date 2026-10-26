@@ -45,6 +45,23 @@ compte rendu), mais sans réponse ni historique. À prévoir :
   que tu fais », qui peut ajuster la jauge du soir.
 - Numéro de journée dans le compte rendu (« JOUR 012 »).
 
+## Questions
+
+### Questions liées (Paul, 26/10/2026)
+
+- **Une question posée plusieurs fois par jour** : « Je me suis brossé
+  les dents ? » le matin et le soir. On répond à chacune à part, mais
+  les stats les regroupent : aucune, une sur deux, les deux, en gardant
+  le détail (matin ou soir).
+- **Réponses qui se combinent** : « Sport aujourd'hui ? » Non · Cardio ·
+  Musculation · Les deux.
+- Points à régler avec Paul (maquette d'abord) : aujourd'hui une
+  question a 2 ou 3 réponses rangées de la meilleure à la moins bonne ;
+  Cardio et Musculation sont au même niveau, et « Les deux » en fait
+  4. Pistes : choix multiple (cocher Cardio et/ou Musculation, la
+  meilleure = les deux), ou deux questions liées (« Cardio ? »,
+  « Muscu ? ») regroupées dans les stats comme les dents.
+
 ## Ailleurs dans l'appli
 
 Repris de `docs/plan_action.md` (critique du 23/10/2026) : sauvegarde

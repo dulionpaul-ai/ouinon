@@ -20,7 +20,8 @@ Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
 - Paul ne code pas et échange souvent à la voix depuis son téléphone :
   réponses courtes, en français, sans jargon.
 - Tout en français, sans exception : réponses, messages intermédiaires
-  pendant le travail, points d'avancement.
+  pendant le travail, points d'avancement, réflexions visibles, messages
+  de commit, descriptions des commandes (rappel de Paul du 26/10/2026).
 - En début de session : lire `docs/reprendre_le_projet.md` (état,
   outils à installer, comment fabriquer un APK) puis
   `docs/plan_action.md`, et les tenir à jour, avec `docs/historique.md`.

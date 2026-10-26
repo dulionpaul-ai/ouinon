@@ -12,7 +12,10 @@ import '../utils/jour.dart';
 import '../utils/planning.dart';
 import '../utils/stats.dart';
 import '../theme/app_theme.dart';
+import '../widgets/arrivee.dart';
 import '../widgets/boutons_reponse.dart';
+import '../widgets/calendrier_jour.dart';
+import '../widgets/qui_est_la.dart';
 import '../widgets/retro.dart';
 import '../widgets/rond.dart';
 import 'edition_tache_screen.dart';
@@ -25,10 +28,11 @@ import 'reglages_screen.dart';
 /// créneaux fixes en gris. On glisse le doigt vers la droite pour la
 /// veille, jamais après aujourd'hui ; la roue dentée mène aux Réglages.
 ///
-/// Les deux toi (26/10/2026) : le jour, la page d'aujourd'hui devient un
-/// terminal (la chose en cours en grand, avec Pas fait · Reporter · Fait,
-/// le mot laissé la veille au soir, le compte rendu) ; le soir, elle
-/// montre ce que le toi du jour a remonté et « Préparer demain ».
+/// Les deux toi (26/10/2026) : le jour, c'est l'écran de l'Exécutant
+/// (« Bonjour, Exécutant. », le mot laissé la veille au soir, la chose en
+/// cours en grand avec Pas fait · Reporter · Fait, la journée en
+/// calendrier, le compte rendu) ; le soir, la page montre ce que le toi
+/// du jour a remonté et « Préparer demain ».
 class AujourdhuiScreen extends StatefulWidget {
   final Base base;
 
@@ -317,7 +321,6 @@ class _PageJourState extends State<_PageJour> {
       for (final c in _creneaux) (c.debut, _LigneCreneau(creneau: c)),
     ]..sort((a, b) => a.$1.compareTo(b.$1));
     final executant = widget.moi == Moi.executant;
-    String maj(String texte) => executant ? texte.toUpperCase() : texte;
     final reglages = IconButton(
       tooltip: 'Réglages',
       onPressed: () => Navigator.push(
@@ -328,7 +331,6 @@ class _PageJourState extends State<_PageJour> {
     );
     final faitesJournee = _taches.where((x) => x.etat == Tache.fait).length;
     return Scaffold(
-      backgroundColor: executant ? Colors.transparent : null,
       body: SafeArea(
         bottom: false,
         child: ListView(
@@ -355,51 +357,64 @@ class _PageJourState extends State<_PageJour> {
               const SizedBox(height: 18),
               if (widget.moi == Moi.decideur) ..._soir(context),
             ],
-            if (_questions.isNotEmpty) ...[
-              Semantics(
-                container: true,
-                label:
-                    '$faites sur ${_questions.length} répondue'
-                    '${faites > 1 ? 's' : ''}',
-                excludeSemantics: true,
-                child: Text(
-                  maj('Questions · $faites sur ${_questions.length}'),
-                  style: section,
+            if (_questions.isNotEmpty)
+              Arrivee(
+                rang: 3,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Semantics(
+                      container: true,
+                      label:
+                          '$faites sur ${_questions.length} répondue'
+                          '${faites > 1 ? 's' : ''}',
+                      excludeSemantics: true,
+                      child: Text(
+                        'Questions · $faites sur ${_questions.length}',
+                        style: section,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    for (final q in _questions)
+                      _LigneQuestion(
+                        key: ValueKey('question-${q.id}'),
+                        question: q,
+                        choix: _reponses[q.id],
+                        serie: _series[q.id] ?? 0,
+                        ouverte:
+                            !_reponses.containsKey(q.id) ||
+                            _rouvertes.contains(q.id),
+                        onRouvre: () => setState(() => _rouvertes.add(q.id!)),
+                        onChoix: (c) {
+                          setState(() => _rouvertes.remove(q.id));
+                          _choisit(q, c);
+                        },
+                      ),
+                    const SizedBox(height: 22),
+                  ],
                 ),
               ),
-              const SizedBox(height: 4),
-              for (final q in _questions)
-                _LigneQuestion(
-                  key: ValueKey('question-${q.id}'),
-                  question: q,
-                  choix: _reponses[q.id],
-                  serie: _series[q.id] ?? 0,
-                  ouverte:
-                      !_reponses.containsKey(q.id) || _rouvertes.contains(q.id),
-                  onRouvre: () => setState(() => _rouvertes.add(q.id!)),
-                  onChoix: (c) {
-                    setState(() => _rouvertes.remove(q.id));
-                    _choisit(q, c);
-                  },
-                ),
-              const SizedBox(height: 22),
-            ],
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    executant
-                        ? 'ORDRES DU JOUR · $faitesJournee/${_taches.length}'
-                        : 'Ma journée',
-                    style: section,
+            Arrivee(
+              rang: 4,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      executant && _taches.isNotEmpty
+                          ? 'Ma journée · $faitesJournee fait'
+                                '${faitesJournee > 1 ? 's' : ''} sur '
+                                '${_taches.length}'
+                          : 'Ma journée',
+                      style: section,
+                    ),
                   ),
-                ),
-                if (aVenir)
-                  TextButton(
-                    onPressed: _prepare,
-                    child: Text(maj(lignes.isEmpty ? 'Préparer' : 'Modifier')),
-                  ),
-              ],
+                  if (aVenir)
+                    TextButton(
+                      onPressed: _prepare,
+                      child: Text(lignes.isEmpty ? 'Préparer' : 'Modifier'),
+                    ),
+                ],
+              ),
             ),
             if (_charge && lignes.isEmpty)
               Padding(
@@ -411,10 +426,30 @@ class _PageJourState extends State<_PageJour> {
                   style: TextStyle(color: t.doux),
                 ),
               ),
-            for (final (_, w) in lignes) w,
+            if (executant && lignes.isNotEmpty)
+              Arrivee(
+                rang: 5,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: CalendrierJour(
+                    taches: _taches,
+                    creneaux: _creneaux,
+                    maintenant: () {
+                      final now = widget.maintenant();
+                      return now.hour * 60 + now.minute;
+                    }(),
+                    onTap: _actions,
+                  ),
+                ),
+              )
+            else
+              for (final (_, w) in lignes) w,
             if (executant && _taches.isNotEmpty) ...[
               const SizedBox(height: 22),
-              BoutonRetro('[ COMPTE RENDU ]', onTap: _rapport),
+              OutlinedButton(
+                onPressed: _rapport,
+                child: const Text('Compte rendu de la journée'),
+              ),
             ],
           ],
         ),
@@ -422,72 +457,72 @@ class _PageJourState extends State<_PageJour> {
     );
   }
 
-  /// Le jour : « OUINON · EXÉCUTANT », l'heure, le mot d'hier soir et la
-  /// chose en cours.
+  /// Le jour : qui est là, « Bonjour, Exécutant. » (qui apparaît seul à
+  /// l'arrivée de l'ascenseur), le mot d'hier soir (seule touche de
+  /// terminal) et la chose en cours en grand.
   List<Widget> _enTeteExecutant(BuildContext context, Widget reglages) {
     final t = Teintes.de(context);
     final now = widget.maintenant();
     final minutes = now.hour * 60 + now.minute;
     final suivante = enCours(_taches, minutes);
     return [
-      Row(
-        children: [
-          Expanded(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text('OUINON · EXÉCUTANT', style: styleRetro(26)),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Text(hhmm(minutes), style: styleRetro(24)),
-          reglages,
-        ],
+      Arrivee(
+        child: QuiEstLa(
+          moi: Moi.executant,
+          date: '${dateCourte(_jour)} · ${hhmm(minutes)}',
+          fin: reglages,
+        ),
       ),
-      Text(
-        dateCourte(_jour).toUpperCase(),
-        style: styleMono(13, couleur: t.doux),
-      ),
-      Divider(color: t.puce, height: 20),
+      const GrandTitre('Bonjour, Exécutant.'),
       if (_mot != null)
-        Padding(
-          padding: const EdgeInsets.only(bottom: 14),
-          child: Text.rich(
-            TextSpan(
-              children: [
-                TextSpan(
-                  text: 'MOT DU DÉCIDEUR › ',
-                  style: styleMono(
-                    13,
-                    couleur: t.moyenne.withValues(alpha: 0.6),
+        Arrivee(
+          rang: 1,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: '> ',
+                    style: styleMono(14, couleur: AppTheme.ambre),
                   ),
-                ),
-                TextSpan(text: '« $_mot »'),
-              ],
+                  TextSpan(text: _mot),
+                  const WidgetSpan(
+                    alignment: PlaceholderAlignment.middle,
+                    child: Curseur(hauteur: 16, couleur: AppTheme.bleuVert),
+                  ),
+                ],
+              ),
+              style: styleMono(14, couleur: const Color(0xFFE9DCC0)),
             ),
-            style: styleMono(14, couleur: t.moyenne),
           ),
         ),
       if (_charge)
-        if (suivante == null)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Text(
-              _taches.isEmpty
-                  ? 'RIEN DE PRÉVU PAR LE DÉCIDEUR.'
-                  : 'PLUS RIEN À FAIRE AUJOURD\'HUI.',
-              style: styleRetro(26),
-            ),
-          )
-        else
-          _EnCours(
-            tache: suivante.tache,
-            enCours: suivante.enCours,
-            minutes: minutes,
-            onRepond: (etat) => _repondTache(suivante.tache, etat),
-            onReporte: () => _reporte(suivante.tache),
+        Arrivee(
+          rang: 2,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 20),
+            child: suivante == null
+                ? Text(
+                    _taches.isEmpty
+                        ? 'Rien de prévu par le Décideur.'
+                        : 'Plus rien à faire aujourd\'hui.',
+                    style: TextStyle(
+                      color: t.doux,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  )
+                : _EnCours(
+                    tache: suivante.tache,
+                    enCours: suivante.enCours,
+                    minutes: minutes,
+                    onRepond: (etat) => _repondTache(suivante.tache, etat),
+                    onReporte: () => _reporte(suivante.tache),
+                  ),
           ),
-      const SizedBox(height: 22),
+        ),
+      const SizedBox(height: 24),
     ];
   }
 
@@ -574,58 +609,94 @@ class _EnCours extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = Teintes.de(context);
     final x = tache;
-    final part = (minutes - x.debut) / x.duree;
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(border: Border.all(color: t.texte)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            '${enCours ? 'EN COURS' : 'ENSUITE'} · '
-            '${hhmm(x.debut)} → ${hhmm(x.fin)}',
-            style: styleMono(12, couleur: t.doux),
+    final reste = x.fin - minutes;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          enCours ? 'Maintenant' : 'Ensuite',
+          style: TextStyle(
+            color: t.doux,
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
           ),
-          const SizedBox(height: 6),
-          Text.rich(
-            TextSpan(
-              text: '> ${x.texte.toUpperCase()}',
-              children: const [WidgetSpan(child: Curseur(hauteur: 24))],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          x.texte,
+          style: TextStyle(
+            fontFamily: AppTheme.policeTitre,
+            fontSize: 26,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -1,
+            height: 1.1,
+            color: t.texte,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          enCours
+              ? 'Jusqu\'à ${heureFr(x.fin)} · encore ${dureeFr(reste)}'
+              : 'À ${heureFr(x.debut)} · dans ${dureeFr(x.debut - minutes)}',
+          style: TextStyle(
+            color: t.accent,
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _Bouton(
+                'Pas fait',
+                couleur: t.moinsBonne,
+                onTap: () => onRepond(Tache.pasFait),
+              ),
             ),
-            style: styleRetro(32),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            enCours
-                ? '${barreRetro(part)} '
-                      '${dureeFr(x.fin - minutes).toUpperCase()}'
-                : 'DANS ${dureeFr(x.debut - minutes).toUpperCase()}',
-            style: styleMono(13),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: BoutonRetro(
-                  'PAS FAIT',
-                  couleur: t.moinsBonne,
-                  onTap: () => onRepond(Tache.pasFait),
-                ),
+            const SizedBox(width: 8),
+            Expanded(child: _Bouton('Reporter', onTap: onReporte)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _Bouton(
+                'Fait',
+                plein: true,
+                onTap: () => onRepond(Tache.fait),
               ),
-              const SizedBox(width: 8),
-              Expanded(child: BoutonRetro('REPORTER', onTap: onReporte)),
-              const SizedBox(width: 8),
-              Expanded(
-                child: BoutonRetro(
-                  'FAIT',
-                  plein: true,
-                  onTap: () => onRepond(Tache.fait),
-                ),
-              ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// Pas fait · Reporter · Fait : pilules, Fait en plein.
+class _Bouton extends StatelessWidget {
+  final String texte;
+  final VoidCallback onTap;
+  final bool plein;
+  final Color? couleur;
+
+  const _Bouton(
+    this.texte, {
+    required this.onTap,
+    this.plein = false,
+    this.couleur,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Teintes.de(context);
+    return FilledButton(
+      onPressed: onTap,
+      style: FilledButton.styleFrom(
+        backgroundColor: plein ? t.accent : t.puce,
+        foregroundColor: plein ? t.surAccent : (couleur ?? t.texte),
+        minimumSize: const Size.fromHeight(46),
+        padding: const EdgeInsets.symmetric(horizontal: 6),
       ),
+      child: FittedBox(fit: BoxFit.scaleDown, child: Text(texte, maxLines: 1)),
     );
   }
 }

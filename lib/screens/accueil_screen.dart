@@ -8,7 +8,6 @@ import '../data/notifications.dart';
 import '../data/preferences.dart';
 import '../theme/app_theme.dart';
 import '../utils/deux_moi.dart';
-import '../widgets/retro.dart';
 import '../widgets/rond.dart';
 import 'aujourdhui_screen.dart';
 import '../utils/jour.dart';
@@ -50,6 +49,10 @@ class _AccueilScreenState extends State<AccueilScreen>
   Moi _moi = Moi.repos;
   Timer? _horloge;
 
+  /// Après l'intro, on va chez le Décideur quelle que soit l'heure,
+  /// jusqu'à ce qu'on quitte l'appli.
+  Moi? _force;
+
   @override
   void initState() {
     super.initState();
@@ -86,6 +89,7 @@ class _AccueilScreenState extends State<AccueilScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState etat) {
+    if (etat == AppLifecycleState.paused) _force = null;
     if (etat != AppLifecycleState.resumed) return;
     // Des réponses ont pu arriver par les notifications.
     _base?.signaleChangement();
@@ -98,43 +102,32 @@ class _AccueilScreenState extends State<AccueilScreen>
     final base = _base;
     if (base == null) return;
     final now = widget.maintenant();
-    final moi = await DeuxMoi.actifs()
-        ? moiA(
-            now,
-            jour: await Preferences.journee(),
-            soir: await DeuxMoi.soir(),
-          )
-        : Moi.repos;
+    final moi =
+        _force ??
+        (await DeuxMoi.actifs()
+            ? moiA(
+                now,
+                jour: await Preferences.journee(),
+                soir: await DeuxMoi.soir(),
+              )
+            : Moi.repos);
     if (!mounted) return;
-    if (moi != _moi) setState(() => _moi = moi);
     final jour = jourDe(now);
-    if (moi != Moi.executant || await DeuxMoi.reveilVu(jour)) return;
+    if (moi != Moi.executant || await DeuxMoi.reveilVu(jour)) {
+      if (moi != _moi && mounted) setState(() => _moi = moi);
+      return;
+    }
+    // Premier passage de la journée : l'ascenseur descend chez
+    // l'Exécutant, qui apparaît portes fermées.
     await DeuxMoi.marqueReveil(jour);
-    final taches = await base.tachesDu(jour);
-    final mot = await DeuxMoi.motPour(jour);
     if (!mounted) return;
-    final premiere = enCours(taches, now.hour * 60 + now.minute);
-    await Navigator.push(
+    await PassageScreen.joue(
       context,
-      PassageScreen.route(
-        PassageScreen(
-          versJour: true,
-          titreSoir: 'Hier soir, tu as décidé.',
-          sousTitreSoir: mot == null ? null : '« $mot »',
-          lignesJour: [
-            'BONJOUR.',
-            if (taches.isEmpty)
-              'RIEN DE PRÉVU PAR LE DÉCIDEUR.'
-            else
-              '${taches.length} TÂCHE${taches.length > 1 ? 'S' : ''} '
-                  'REÇUE${taches.length > 1 ? 'S' : ''}.',
-            if (premiere != null)
-              '${premiere.enCours ? 'EN COURS' : 'ENSUITE'} : '
-                  '${hhmm(premiere.tache.debut)} '
-                  '${premiere.tache.texte.toUpperCase()}',
-          ],
-        ),
-      ),
+      versLeSoir: false,
+      auMilieu: () => setState(() {
+        _moi = moi;
+        _onglet = 0;
+      }),
     );
   }
 
@@ -213,7 +206,19 @@ class _AccueilScreenState extends State<AccueilScreen>
     } else {
       await _replanifie();
     }
-    await _majMoi();
+    // Puis l'ascenseur monte chez le Décideur, sur sa to-do : il n'y a
+    // encore rien à exécuter.
+    await DeuxMoi.marqueReveil(jourDe(widget.maintenant()));
+    if (!mounted) return;
+    await PassageScreen.joue(
+      context,
+      versLeSoir: true,
+      auMilieu: () => setState(() {
+        _force = Moi.decideur;
+        _moi = Moi.decideur;
+        _onglet = 1;
+      }),
+    );
   }
 
   /// Une seule fois : proposer l'heure précise (« Alarmes et rappels »).
@@ -276,7 +281,7 @@ class _AccueilScreenState extends State<AccueilScreen>
         ),
       );
     }
-    final retro = _moi == Moi.executant && _onglet == 0;
+    final executant = _moi == Moi.executant && _onglet == 0;
     final ecran = Scaffold(
       body: IndexedStack(
         index: _onglet,
@@ -286,7 +291,7 @@ class _AccueilScreenState extends State<AccueilScreen>
             moi: _moi,
             maintenant: widget.maintenant,
           ),
-          TodoScreen(base: base),
+          TodoScreen(base: base, moi: _moi, maintenant: widget.maintenant),
           StatsScreen(base: base),
         ],
       ),
@@ -300,12 +305,12 @@ class _AccueilScreenState extends State<AccueilScreen>
     // Même arbre dans tous les modes : changer de toi ou d'onglet ne fait
     // rien perdre (pages, saisie en cours).
     return Theme(
-      data: retro
-          ? AppTheme.retro()
+      data: executant
+          ? AppTheme.jour()
           : _moi == Moi.decideur
           ? AppTheme.soir()
           : AppTheme.sombre(),
-      child: FondRetro(actif: retro, child: ecran),
+      child: ecran,
     );
   }
 }

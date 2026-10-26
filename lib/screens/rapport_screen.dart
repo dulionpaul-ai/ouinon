@@ -65,20 +65,7 @@ class _RapportScreenState extends State<RapportScreen> {
   Future<void> _finDeService() async {
     await DeuxMoi.changeMotDuJour(widget.jour, _mot.text);
     if (!mounted) return;
-    Navigator.pushReplacement(
-      context,
-      PassageScreen.route(
-        PassageScreen(
-          versJour: false,
-          lignesJour: const ['FIN DE SERVICE.', 'TRANSMIS AU DÉCIDEUR.'],
-          titreSoir: 'Bonsoir.',
-          sousTitreSoir: _taches.isEmpty
-              ? null
-              : 'Ton toi du jour a fait ${scoreJournee(_taches)} '
-                    'de ce que tu avais prévu.',
-        ),
-      ),
-    );
+    await PassageScreen.joue(context, versLeSoir: true, retireDessous: true);
   }
 
   @override

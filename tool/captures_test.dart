@@ -21,7 +21,7 @@ import 'package:ouinon/screens/edition_tache_screen.dart';
 import 'package:ouinon/screens/edition_question_screen.dart';
 import 'package:ouinon/screens/fiche_question_screen.dart';
 import 'package:ouinon/screens/intro_screen.dart';
-import 'package:ouinon/screens/passage_screen.dart';
+import 'package:ouinon/utils/deux_moi.dart';
 import 'package:ouinon/screens/rapport_screen.dart';
 import 'package:ouinon/screens/preparer_screen.dart';
 import 'package:ouinon/screens/todo_screen.dart';
@@ -417,7 +417,7 @@ void main() {
       '20a-intro-pourquoi',
       const IntroScreen(),
       ThemeMode.dark,
-      arret: const Duration(milliseconds: 7800),
+      arret: const Duration(milliseconds: 10500),
     );
   });
 
@@ -440,7 +440,7 @@ void main() {
       const IntroScreen(),
       ThemeMode.dark,
       avant: (tester) async {
-        await tester.tap(find.text('Faire connaissance'));
+        await tester.tap(find.text('Je décide'));
         await tester.pumpAndSettle();
       },
     );
@@ -453,7 +453,7 @@ void main() {
       const IntroScreen(),
       ThemeMode.dark,
       avant: (tester) async {
-        await tester.tap(find.text('Faire connaissance'));
+        await tester.tap(find.text('Je décide'));
         await tester.pumpAndSettle();
         await tester.tap(find.text('C\'est ça'));
         await tester.pumpAndSettle();
@@ -465,7 +465,7 @@ void main() {
     ('23-executant', 390.0, 1.0),
     ('24-petit-executant', 360.0, 1.3),
   ]) {
-    testWidgets('le jour, écran rétro ($nom)', (tester) async {
+    testWidgets('le jour, l\'Exécutant ($nom)', (tester) async {
       await remplit(tester);
       await capture(
         tester,
@@ -473,26 +473,47 @@ void main() {
         AccueilScreen(maintenant: () => DateTime(2026, 10, 22, 12, 35)),
         ThemeMode.dark,
         largeur: largeur,
-        hauteur: 1000,
+        hauteur: 1500,
         texte: texte,
       );
     });
   }
 
-  testWidgets('l\'ascenseur, arrivée', (tester) async {
+  testWidgets('l\'ascenseur, le matin', (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'bienvenue_vue': true,
+      'intro_deux_moi_vue': true,
+    });
+    await remplit(tester);
     await capture(
       tester,
       '25-ascenseur',
-      const PassageScreen(
-        versJour: true,
-        titreSoir: 'Hier soir, tu as décidé.',
-        lignesJour: [
-          'BONJOUR.',
-          '5 TÂCHES REÇUES.',
-          'ENSUITE : 12:30 APPELER MAMAN',
-        ],
-      ),
+      AccueilScreen(maintenant: () => DateTime(2026, 10, 22, 12, 35)),
       ThemeMode.dark,
+      arret: const Duration(milliseconds: 1700),
+    );
+  });
+
+  testWidgets('le Décideur, première fois', (tester) async {
+    await capture(
+      tester,
+      '28-decideur-vide',
+      avecOnglets(TodoScreen(base: base, moi: Moi.decideur), 1),
+      ThemeMode.dark,
+    );
+  });
+
+  testWidgets('le Décideur, sa to-do', (tester) async {
+    await remplit(tester);
+    await capture(
+      tester,
+      '29-decideur',
+      AccueilScreen(maintenant: () => DateTime(2026, 10, 22, 21, 45)),
+      ThemeMode.dark,
+      avant: (tester) async {
+        await tester.tap(find.text('To-do'));
+        await tester.pumpAndSettle();
+      },
     );
   });
 

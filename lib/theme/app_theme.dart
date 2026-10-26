@@ -26,7 +26,12 @@ class AppTheme {
   /// Le soir, celui qui décide : accent ambre.
   static ThemeData soir() => _theme(Teintes.soir, Brightness.dark);
 
-  /// Le jour, celui qui exécute : vieux terminal bleu-vert sur noir.
+  /// Le jour, celui qui exécute (revu le 26/10/2026, Paul trouvait le
+  /// terminal trop chargé) : le style habituel, accent bleu-vert.
+  static ThemeData jour() => _theme(Teintes.jour, Brightness.dark);
+
+  /// Vieux terminal bleu-vert sur noir : le compte rendu de fin de
+  /// journée.
   static ThemeData retro() => _theme(
     Teintes.retro,
     Brightness.dark,
@@ -350,7 +355,24 @@ class Teintes extends ThemeExtension<Teintes> {
     moinsBonne: Color(0xFFFF6B5E),
   );
 
-  /// Le jour : vieux terminal, bleu-vert phosphore sur noir (celui qui
+  /// Le jour, celui qui exécute : accent bleu-vert.
+  static const jour = Teintes(
+    fond: Color(0xFF0F0F12),
+    carte: Color(0xFF1A1A1F),
+    puce: Color(0xFF26262C),
+    texte: Color(0xFFF5F5F2),
+    doux: Color(0xFFA3A3AD),
+    trait: Color(0xFF26262C),
+    accent: AppTheme.bleuVert,
+    surAccent: Color(0xFF06201B),
+    barre: Color(0xFF2E2E36),
+    texteBarre: Color(0xFFC4C4CC),
+    meilleure: Color(0xFFD4FF3A),
+    moyenne: Color(0xFFFFB547),
+    moinsBonne: Color(0xFFFF6B5E),
+  );
+
+  /// Le compte rendu : vieux terminal, bleu-vert phosphore sur noir (celui qui
   /// exécute). Réponses : bleu-vert, sable, corail.
   static const retro = Teintes(
     fond: Color(0xFF050807),

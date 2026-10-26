@@ -78,9 +78,11 @@ Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
   placer ». Cases : D'abord, À planifier, Vite fait, Peut-être jamais.
 - Toujours sombre ; style et couleurs dans `lib/theme/app_theme.dart`
   (`Teintes`) et `lib/widgets/rond.dart`, pas de puces Material.
-- Les deux toi (26/10/2026) : le soir, celui qui décide (accent ambre,
-  `AppTheme.soir`) ; le jour, celui qui exécute (Aujourd'hui en terminal
-  rétro, `AppTheme.retro`, `lib/widgets/retro.dart`). Plages : début /
+- Les deux toi (26/10/2026) : le soir, le Décideur (accent ambre,
+  `AppTheme.soir`, to-do en 4 cases) ; le jour, l'Exécutant (Aujourd'hui
+  calme, `AppTheme.jour`, accent bleu-vert, calendrier). Le terminal
+  rétro (`AppTheme.retro`, `lib/widgets/retro.dart`) par petites touches
+  seulement : Paul le trouve fatigant en plein écran. Plages : début /
   fin de journée et rappel du soir → fin du soir. Rien de la série
   Severance (nom, logo, vocabulaire).
 - Identifiant de l'appli : `fr.ouinon.app`, nom affiché « Ouinon ».

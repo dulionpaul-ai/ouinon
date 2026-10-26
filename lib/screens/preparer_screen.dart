@@ -14,9 +14,7 @@ import '../utils/jour.dart';
 import '../utils/planning.dart';
 import '../utils/remplissage.dart';
 import '../widgets/grille_journee.dart';
-import '../widgets/retro.dart';
 import 'edition_tache_screen.dart';
-import 'passage_screen.dart';
 
 /// « Préparer demain », en deux étapes (revue du 25/10/2026, sur le modèle
 /// des rituels de planification des applis du moment) :
@@ -220,24 +218,14 @@ class _PreparerScreenState extends State<PreparerScreen> {
     await DeuxMoi.changeMotPour(widget.jour, mot);
     final taches = await widget.base.tachesDu(widget.jour);
     if (!mounted) return;
-    final premiere = enCours(taches, 0);
-    Navigator.pushReplacement(
-      context,
-      PassageScreen.route(
-        PassageScreen(
-          versJour: true,
-          titreSoir: 'Transmis.',
-          sousTitreSoir: taches.isEmpty
-              ? null
-              : 'Demain : ${resumeJournee(taches)}.',
-          lignesJour: [
-            'TRANSMIS AU TOI DE DEMAIN.',
-            if (taches.isNotEmpty)
-              '${taches.length} TÂCHE${taches.length > 1 ? 'S' : ''}.',
-            if (premiere != null)
-              'PREMIÈRE : ${hhmm(premiere.tache.debut)} '
-                  '${premiere.tache.texte.toUpperCase()}',
-          ],
+    final messager = ScaffoldMessenger.of(context);
+    Navigator.pop(context);
+    messager.showSnackBar(
+      SnackBar(
+        content: Text(
+          taches.isEmpty
+              ? 'Transmis à l\'Exécutant.'
+              : 'Transmis à l\'Exécutant : ${resumeJournee(taches)}.',
         ),
       ),
     );

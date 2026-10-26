@@ -54,12 +54,12 @@ fait, version par version : `docs/historique.md`.
 8b. [ ] Les deux toi (26/10/2026, APK n° 14) : intro, mode exécutant
    rétro le jour, mode décideur ambre le soir, ascenseur, mots entre les
    deux, compte rendu, nouveau logo. Reste : avis de Paul après son test
-   du 27/10. Depuis : l'intro raconte le pourquoi (rond qui se
-   sépare, texte B à retravailler). Idées pour plus tard : `docs/idees.md` (intro qui raconte
+   du 27/10. APK n° 15 (26/10/2026) : intro dramatique, ascenseur
+   à afficheur, Décideur en 4 cases, Exécutant calme avec calendrier. Idées pour plus tard : `docs/idees.md` (intro qui raconte
    le pourquoi, notes échangées avec soi-même). En réserve : plan verrouillé le jour (appui long pour
    « remonter »), écran « Hors service » la nuit, stat « tu prévois
    20 % de trop » qui ajuste la jauge, numéro de journée dans le compte
-   rendu. Prochain APK : `version: 1.0.0+15`, seulement avec l'accord de
+   rendu. Prochain APK : `version: 1.0.0+16`, seulement avec l'accord de
    Paul.
 9. [ ] Plus tard (critique du 23/10/2026) : sauvegarde dans un
    fichier, mode « expérience » (tester une habitude 14 jours), objectifs

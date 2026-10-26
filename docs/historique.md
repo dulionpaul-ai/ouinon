@@ -278,3 +278,28 @@ demain »).
   couleurs ; puis « Il y a deux toi », « Le soir, l'un décide », « Le
   jour, l'autre exécute » et le bouton « Faire connaissance ». Deux
   captures de plus (au moment de la coupe, petit téléphone).
+
+## APK n° 15 (1.0.0+15) : le parcours de première ouverture (26/10/2026)
+
+- Maquette refaite avec Paul en plusieurs tours
+  (https://claude.ai/artifact/6uwN74rtwMFmdVsCiuppJ7).
+- Intro : « Tu **savais** quoi faire, mais tu ne le faisais pas. Le même
+  **TOI** décidait et faisait… » (les mots tombent en gros avec leur
+  phrase) ; long silence, le rond tremble, se fend, onde de choc, flash,
+  l'écran secoue, puis les moitiés s'éloignent lentement (3 fois plus
+  lent qu'avant). « Il y a **deux** toi » (« deux » aux deux couleurs).
+  « Le soir, le décideur planifie. Le jour, l'exécutant… s'exécute. »
+  Bouton « Je décide ».
+- Ascenseur refait : portes par-dessus l'écran, afficheur DÉCIDEUR /
+  EXÉCUTANT qui défile dans le sens de la flèche. Portes ouvertes, le
+  « Bonjour » seul, puis le reste. Après l'intro, il monte chez le
+  Décideur, sur sa to-do.
+- To-do : ajout en haut avec Important et Urgent, « Ma to-do » en 4
+  cases toujours visibles (chaque case défile seule), « Bonjour,
+  Décideur. ». Appui long sur une chose : faite.
+- Écran de l'Exécutant beaucoup plus calme (Paul : « trop vert, trop
+  informatique ancien ») : style habituel, accent bleu-vert, une seule
+  touche de terminal (le mot du Décideur), la chose en cours en grand,
+  la journée en calendrier. Le compte rendu reste en terminal.
+- « Préparer demain » finit par « Transmis à l'Exécutant » (plus
+  d'ascenseur à ce moment-là).

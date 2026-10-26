@@ -49,6 +49,10 @@ Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
   du rôle actif seulement (Décideur : To-do, Planifier, Stats ;
   Exécutant : Ma journée), des lignes plutôt que des cartes, pas de
   textes d'aide permanents, pas de nouveau bouton sans nécessité.
+- Jamais d'appui long (« c'est juste chiant ») : le glisser-déposer part
+  dès qu'on pose le doigt. Pas de défilement dans les écrans, surtout
+  pas dans celui de la planification de la journée (consignes de Paul
+  du 26/10/2026).
 
 ## Garde-fous (non négociables)
 

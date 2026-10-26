@@ -34,7 +34,7 @@ void main() {
   late FaussesNotifications notifs;
   // Jeudi 22 octobre 2026, 12 h.
   DateTime midi() => DateTime(2026, 10, 22, 12);
-  // Le même jour, 20 h : ni le jour (9 h – 19 h) ni le soir (21 h 30 –
+  // Le même jour, 20 h : ni le jour (8 h – 20 h) ni le soir (21 h 30 –
   // 23 h) : repos, style habituel.
   DateTime soir20h() => DateTime(2026, 10, 22, 20);
   const deuxMoiVus = {'bienvenue_vue': true, 'intro_deux_moi_vue': true};
@@ -323,7 +323,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Qui est là, et quand ?'), findsOneWidget);
     expect(find.text('21:30 – 23:00'), findsOneWidget);
-    expect(find.text('09:00 – 19:00'), findsOneWidget);
+    expect(find.text('08:00 – 20:00'), findsOneWidget);
     await tester.tap(find.text('C\'est ça'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Autoriser les notifications'));
@@ -515,17 +515,17 @@ void main() {
       );
       expect(find.text('Demain, je fais…'), findsOneWidget);
       expect(find.textContaining('Garage C3 à 9 h'), findsOneWidget);
-      // 9 h – 19 h, moins le garage et les enfants (17 h – 19 h) : 7 h.
-      expect(find.text('sur 7 h de libre'), findsOneWidget);
+      // 8 h – 20 h, moins le garage et les enfants (17 h – 20 h) : 8 h.
+      expect(find.text('sur 8 h de libre'), findsOneWidget);
       await tester.tap(find.text('Papiers'));
       await attends(tester);
       await tester.tap(find.text('Plombier'));
       await attends(tester);
       expect(find.text('Choisi : 1 h 30'), findsOneWidget);
-      expect(find.text('Ça rentre, il reste 5 h 30.'), findsOneWidget);
+      expect(find.text('Ça rentre, il reste 6 h 30.'), findsOneWidget);
       await tester.tap(find.text('Déménagement'));
       await attends(tester);
-      expect(find.text('Trop plein : 2 h 30 de trop.'), findsOneWidget);
+      expect(find.text('Trop plein : 1 h 30 de trop.'), findsOneWidget);
       await tester.tap(find.text('Déménagement'));
       await attends(tester);
       await tester.tap(find.text('Suivant : caser dans la journée'));
@@ -536,14 +536,14 @@ void main() {
       await tester.pumpAndSettle();
       await attends(tester);
       final demain = (await tester.runAsync(() => base.tachesDu(vendredi)))!;
-      // Après le garage et sa marge : le plombier (urgent et important)
-      // d'abord, puis les papiers.
+      // Dès 8 h, le plombier (urgent et important) tient avant le garage ;
+      // les papiers après le garage et sa marge.
       expect(
         [for (final t in demain) (t.texte, t.debut)],
         [
+          ('Plombier', 8 * 60),
           ('Garage C3', 9 * 60),
-          ('Plombier', 10 * 60 + 15),
-          ('Papiers', 11 * 60),
+          ('Papiers', 10 * 60 + 15),
         ],
       );
     });
@@ -764,6 +764,30 @@ void main() {
       await tester.tap(find.text('To-do'));
       await tester.pumpAndSettle();
       expect(find.text('Bonjour, Exécutant.'), findsNothing);
+    });
+
+    testWidgets('changer de toi à la main : ascenseur vers le Décideur', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues({
+        ...deuxMoiVus,
+        'reveil_vu': '2026-10-22',
+      });
+      await ouvre(tester, AccueilScreen(maintenant: dixHeures));
+      await attends(tester);
+      expect(find.text('Bonjour, Exécutant.'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('bascule')));
+      await tester.pump();
+      expect(find.byType(PassageScreen), findsOneWidget);
+      await ascenseur(tester);
+      await tester.pumpAndSettle();
+      expect(find.text('Bonjour, Décideur.'), findsOneWidget);
+      // Et retour.
+      await tester.tap(find.byKey(const ValueKey('bascule')).first);
+      await tester.pump();
+      await ascenseur(tester);
+      await tester.pumpAndSettle();
+      expect(find.text('Bonjour, Exécutant.'), findsOneWidget);
     });
 
     testWidgets('le matin : l\'ascenseur, une fois par jour', (tester) async {

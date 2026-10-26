@@ -10,6 +10,8 @@ Mis à jour le 26/10/2026.
   Exécutant calme avec calendrier). **Attendre les retours de Paul**
   (captures) et les traiter en premier.
 - Tout est sur `main`, 89 tests verts, rien en cours.
+- Depuis l'APK n° 15 (pas encore dans un APK) : changer de toi à la
+  main (toucher le nom en haut à gauche), journée 8 h – 20 h par défaut.
 - Maquette du parcours : https://claude.ai/artifact/6uwN74rtwMFmdVsCiuppJ7
   (Paul a validé intro, ascenseur, Décideur, Exécutant le 26/10/2026).
 - Idées pour plus tard notées dans `docs/idees.md` : intro qui raconte

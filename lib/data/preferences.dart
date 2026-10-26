@@ -44,10 +44,10 @@ class Preferences {
   static const _cleFinJournee = 'fin_journee';
   static const _cleNotifsPlanning = 'notifs_planning';
 
-  /// La journée où « Remplir ma journée » place la liste : 9 h – 19 h par
-  /// défaut.
-  static const debutJourneeParDefaut = 9 * 60;
-  static const finJourneeParDefaut = 19 * 60;
+  /// La journée (plage de l'Exécutant, où « Caser pour moi » place la
+  /// liste) : 8 h – 20 h par défaut (Paul, 26/10/2026).
+  static const debutJourneeParDefaut = 8 * 60;
+  static const finJourneeParDefaut = 20 * 60;
 
   static Future<({int debut, int fin})> journee() async {
     final p = await SharedPreferences.getInstance();

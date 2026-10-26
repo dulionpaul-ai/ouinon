@@ -39,6 +39,9 @@ class AujourdhuiScreen extends StatefulWidget {
   /// Qui est là (choisi par l'accueil).
   final Moi moi;
 
+  /// Passer à l'autre toi (nul tant que l'intro n'a pas été vue).
+  final VoidCallback? onBascule;
+
   /// Moment présent imposé (tests).
   final DateTime Function() maintenant;
 
@@ -47,6 +50,7 @@ class AujourdhuiScreen extends StatefulWidget {
     required this.base,
     this.maintenant = DateTime.now,
     this.moi = Moi.repos,
+    this.onBascule,
   });
 
   @override
@@ -79,6 +83,7 @@ class _AujourdhuiScreenState extends State<AujourdhuiScreen> {
         maintenant: widget.maintenant,
         decalage: -page,
         moi: page == 0 ? widget.moi : Moi.repos,
+        onBascule: page == 0 ? widget.onBascule : null,
       ),
     );
   }
@@ -91,8 +96,10 @@ class _PageJour extends StatefulWidget {
   /// Décalage par rapport à aujourd'hui (0 = aujourd'hui, −1 = hier…).
   final int decalage;
   final Moi moi;
+  final VoidCallback? onBascule;
 
   const _PageJour({
+    this.onBascule,
     super.key,
     required this.base,
     required this.maintenant,
@@ -339,19 +346,11 @@ class _PageJourState extends State<_PageJour> {
             if (executant)
               ..._enTeteExecutant(context, reglages)
             else ...[
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      dateCourte(_jour),
-                      style: TextStyle(
-                        color: t.doux,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  reglages,
-                ],
+              QuiEstLa(
+                moi: widget.moi,
+                date: dateCourte(_jour),
+                fin: reglages,
+                onBascule: widget.onBascule,
               ),
               GrandTitre(_titre),
               const SizedBox(height: 18),
@@ -471,6 +470,7 @@ class _PageJourState extends State<_PageJour> {
           moi: Moi.executant,
           date: '${dateCourte(_jour)} · ${hhmm(minutes)}',
           fin: reglages,
+          onBascule: widget.onBascule,
         ),
       ),
       const GrandTitre('Bonjour, Exécutant.'),

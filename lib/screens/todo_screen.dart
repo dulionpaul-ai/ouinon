@@ -29,6 +29,9 @@ class TodoScreen extends StatefulWidget {
   /// Qui est là (choisi par l'accueil).
   final Moi moi;
 
+  /// Passer à l'autre toi (nul tant que l'intro n'a pas été vue).
+  final VoidCallback? onBascule;
+
   /// Moment présent imposé (tests).
   final DateTime Function() maintenant;
 
@@ -36,6 +39,7 @@ class TodoScreen extends StatefulWidget {
     super.key,
     required this.base,
     this.moi = Moi.repos,
+    this.onBascule,
     this.maintenant = DateTime.now,
   });
 
@@ -163,7 +167,11 @@ class _TodoScreenState extends State<TodoScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Arrivee(
-          child: QuiEstLa(moi: widget.moi, date: dateCourte(_aujourdhui)),
+          child: QuiEstLa(
+            moi: widget.moi,
+            date: dateCourte(_aujourdhui),
+            onBascule: widget.onBascule,
+          ),
         ),
         GrandTitre(bonjour ? 'Bonjour, Décideur.' : 'To-do'),
         if (liste.isEmpty)

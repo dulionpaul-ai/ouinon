@@ -49,9 +49,12 @@ class _AccueilScreenState extends State<AccueilScreen>
   Moi _moi = Moi.repos;
   Timer? _horloge;
 
-  /// Après l'intro, on va chez le Décideur quelle que soit l'heure,
-  /// jusqu'à ce qu'on quitte l'appli.
+  /// Après l'intro, ou quand on change de toi à la main : ce toi-là,
+  /// quelle que soit l'heure, jusqu'à ce qu'on quitte l'appli.
   Moi? _force;
+
+  /// Les deux toi sont actifs (intro vue).
+  bool _actifs = false;
 
   @override
   void initState() {
@@ -102,9 +105,12 @@ class _AccueilScreenState extends State<AccueilScreen>
     final base = _base;
     if (base == null) return;
     final now = widget.maintenant();
+    final actifs = await DeuxMoi.actifs();
+    if (!mounted) return;
+    if (actifs != _actifs) setState(() => _actifs = actifs);
     final moi =
         _force ??
-        (await DeuxMoi.actifs()
+        (_actifs
             ? moiA(
                 now,
                 jour: await Preferences.journee(),
@@ -127,6 +133,21 @@ class _AccueilScreenState extends State<AccueilScreen>
       auMilieu: () => setState(() {
         _moi = moi;
         _onglet = 0;
+      }),
+    );
+  }
+
+  /// Changer de toi à la main (demande de Paul du 26/10/2026) : de
+  /// l'Exécutant au Décideur, sinon vers l'Exécutant ; en ascenseur.
+  Future<void> _bascule() async {
+    final vers = _moi == Moi.executant ? Moi.decideur : Moi.executant;
+    await PassageScreen.joue(
+      context,
+      versLeSoir: vers == Moi.decideur,
+      auMilieu: () => setState(() {
+        _force = vers;
+        _moi = vers;
+        _onglet = vers == Moi.decideur ? 1 : 0;
       }),
     );
   }
@@ -214,6 +235,7 @@ class _AccueilScreenState extends State<AccueilScreen>
       context,
       versLeSoir: true,
       auMilieu: () => setState(() {
+        _actifs = true;
         _force = Moi.decideur;
         _moi = Moi.decideur;
         _onglet = 1;
@@ -289,9 +311,15 @@ class _AccueilScreenState extends State<AccueilScreen>
           AujourdhuiScreen(
             base: base,
             moi: _moi,
+            onBascule: _actifs ? _bascule : null,
             maintenant: widget.maintenant,
           ),
-          TodoScreen(base: base, moi: _moi, maintenant: widget.maintenant),
+          TodoScreen(
+            base: base,
+            moi: _moi,
+            onBascule: _actifs ? _bascule : null,
+            maintenant: widget.maintenant,
+          ),
           StatsScreen(base: base),
         ],
       ),

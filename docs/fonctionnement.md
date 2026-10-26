@@ -22,12 +22,12 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 | `screens/intro_screen.dart` | Intro en 3 pages, cadran des heures. Page 1 minutée par `_Recit` : le pourquoi, puis le logo (`RondDissocie` : naissance, fente, écart du blanc aux deux couleurs), puis « Il y a deux toi ». |
 | `screens/passage_screen.dart` | L'ascenseur, posé par-dessus l'écran (`PassageScreen.joue`) : portes, afficheur DÉCIDEUR / EXÉCUTANT qui défile dans le sens de la flèche ; portes fermées, `auMilieu` change l'écran derrière et `arriveeAscenseur` prévient ; 3,2 s. |
 | `widgets/arrivee.dart` | `arriveeAscenseur` et `Arrivee` : à l'arrivée, le « Bonjour » seul, puis le reste de l'écran morceau par morceau. |
-| `widgets/qui_est_la.dart` | En haut à gauche : demi-rond et nom (DÉCIDEUR ambre, EXÉCUTANT bleu-vert), date. |
+| `widgets/qui_est_la.dart` | En haut à gauche : demi-rond et nom (DÉCIDEUR ambre, EXÉCUTANT bleu-vert, AU REPOS), date. Toucher le nom (⇅) fait changer de toi en ascenseur. |
 | `widgets/calendrier_jour.dart` | La journée de l'Exécutant en calendrier : heures régulières, cases transparentes, créneaux hachurés, trait de l'heure. |
 | `screens/rapport_screen.dart` | Compte rendu de fin de journée (rétro, `AppTheme.retro`), mot pour le soir, « Fin de service » (ascenseur vers le Décideur, le compte rendu part portes fermées). |
 | `widgets/retro.dart` | Briques rétro : fond à lignes de balayage, curseur (`Curseur.clignote` coupé dans les tests), bouton rectangulaire, barre « [████░░] », heures « 09:05 ». |
 | `data/base.dart` | Base `ouinon.sqlite` (version 4 : colonne `choisie_pour` de `liste` et table `creneaux`) : tables `questions` (rendues dans l'ordre de la journée : heure, puis création), `reponses` (une réponse par question et par jour, effacée avec sa question), `planning` (version 2 ; colonnes `liste_id` et `quadrant` en version 3) et `liste` (version 3), par mise à jour de la base. « Fait » sur une chose tirée de la liste la marque faite dans la liste (`repondTache`) ; `placees` dit ce qui est déjà placé. Reporter une chose (`reporteTache`), raccourcis (`habitudes`). Changement du nombre de réponses avec conversion de l'historique (`enregistreAvecNombre`). |
-| `data/preferences.dart` | Choix gardés sur le téléphone : bilan du dimanche, rappel du soir et son heure (activés par défaut, 21 h 30), heures de la journée (9 h – 19 h), notifications du planning (début et fin par défaut). `DeuxMoi` : intro vue (= modes actifs), fin du soir (23 h), mots (`mot_2026-10-23` pour le toi du jour, `mot_soir_…` pour le soir), ascenseur du matin déjà joué. |
+| `data/preferences.dart` | Choix gardés sur le téléphone : bilan du dimanche, rappel du soir et son heure (activés par défaut, 21 h 30), heures de la journée (8 h – 20 h), notifications du planning (début et fin par défaut). `DeuxMoi` : intro vue (= modes actifs), fin du soir (23 h), mots (`mot_2026-10-23` pour le toi du jour, `mot_soir_…` pour le soir), ascenseur du matin déjà joué. |
 | `data/suggestions.dart` | Suggestions de réponses de l'écran Nouvelle question (« Oui / Non », « Bien / Moyen / Pas bien » au départ), créées, modifiées ou supprimées par la personne, gardées dans les préférences du téléphone. |
 | `data/notifications.dart` | Programmation des notifications (questions, choses prévues, rappel du soir, bilan), boutons, réponse depuis la notification (`reponseNotifArrierePlan`). |
 | `utils/remplissage.dart` | « Remplir ma journée » (testé) : ordre de placement, premier créneau libre, proposition, temps libre. |
@@ -231,8 +231,8 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
   30 min sinon. Écran d'une chose : durée, Important et Urgent sur une
   ligne, date limite (urgente à moins de 2 jours).
 - **Préparer** (un jour) : étape 1, cocher (`choisitPour`) ; jauge =
-  durées choisies face au temps libre de la journée (Réglages, 9 h –
-  19 h) moins rendez-vous et créneaux fixes ; citron, orange dès 85 %,
+  durées choisies face au temps libre de la journée (Réglages, 8 h –
+  20 h) moins rendez-vous et créneaux fixes ; citron, orange dès 85 %,
   rouge au-delà. Étape 2 : journée (40 px par heure), glisser les
   choses, « Caser pour moi » (`remplitJournee`), toucher une heure vide
   = rendez-vous. « Terminer » case le reste ; ce qui ne rentre pas n'est
@@ -266,6 +266,10 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
   « l'exécutant… s'exécute. », bouton « Je décide »), heures,
   notifications, puis l'ascenseur monte chez le Décideur, sur la to-do,
   quelle que soit l'heure, jusqu'à ce qu'on quitte l'appli.
+- **Changer de toi à la main** : toucher le nom en haut à gauche
+  (Aujourd'hui ou To-do). De l'Exécutant vers le Décideur, sinon vers
+  l'Exécutant ; en ascenseur ; ce toi reste jusqu'à ce qu'on quitte
+  l'appli, puis l'heure décide à nouveau.
 - **Ascenseur du matin** : la première fois que l'appli est ouverte dans
   la plage du jour (une fois par jour), l'ascenseur descend chez
   l'Exécutant.

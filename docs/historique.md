@@ -307,3 +307,8 @@ demain »).
   côté (`docs/idees.md`) ; vidéo de l'intro faite depuis la maquette ;
   autre nom envisagé (Binôme, Tandem, Moitiés…), Paul garde « Ouinon »
   pour l'instant.
+- Changer de toi à la main (Paul) : toucher « DÉCIDEUR » / « EXÉCUTANT »
+  en haut à gauche, l'ascenseur fait le passage. Horaires de base de la
+  journée : 8 h – 20 h (au lieu de 9 h – 19 h), réglables dès l'intro
+  (page « Qui est là, et quand ? ») et dans les Réglages. Pas encore dans
+  un APK.

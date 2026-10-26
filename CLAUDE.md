@@ -27,6 +27,8 @@ Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
 - Tenir `docs/fonctionnement.md` à jour à chaque changement d'architecture.
 - `docs/revue_produit.md` : choix de Paul du 22/10/2026, référence pour
   le périmètre V1.
+- `docs/idees.md` : idées pour plus tard. Tout ce que Paul dit « pour
+  plus tard » y va, avec la date (consigne du 26/10/2026).
 - Paul envoie ses retours en captures d'écran de son téléphone.
 - **Toujours demander à Paul avant de fabriquer un APK** (consigne du
   23/10/2026) : faire les modifications, les vérifier, les pousser, puis

@@ -446,6 +446,22 @@ void main() {
     );
   });
 
+  testWidgets('intro, page 2, petit téléphone', (tester) async {
+    await capture(
+      tester,
+      '21b-petit-intro-2',
+      const IntroScreen(),
+      ThemeMode.dark,
+      largeur: 360,
+      hauteur: 760,
+      texte: 1.3,
+      avant: (tester) async {
+        await tester.tap(find.text('Répartir les rôles'));
+        await tester.pumpAndSettle();
+      },
+    );
+  });
+
   testWidgets('intro, page 3, petit téléphone', (tester) async {
     await capture(
       tester,

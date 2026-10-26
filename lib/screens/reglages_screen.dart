@@ -12,6 +12,7 @@ import '../utils/version.dart';
 import '../widgets/rond.dart';
 import 'creneaux_screen.dart';
 import 'intro_screen.dart';
+import 'roles_screen.dart';
 import 'questions_screen.dart';
 
 /// Réglages, en lignes simples (revue du 25/10/2026) : tes questions, tes
@@ -32,7 +33,6 @@ class _ReglagesScreenState extends State<ReglagesScreen>
   bool _bilan = true;
   bool _rappelPlanning = true;
   int _heureRappel = Preferences.heureRappelPlanningParDefaut;
-  int _finSoir = DeuxMoi.finSoirParDefaut;
   ({int debut, int fin}) _journee = (
     debut: Preferences.debutJourneeParDefaut,
     fin: Preferences.finJourneeParDefaut,
@@ -79,7 +79,6 @@ class _ReglagesScreenState extends State<ReglagesScreen>
     final rappelPlanning = await Preferences.rappelPlanning();
     final heureRappel = await Preferences.heureRappelPlanning();
     final journee = await Preferences.journee();
-    final soir = await DeuxMoi.soir();
     final notifsPlanning = await Preferences.notifsPlanning();
     final reponsesTest = await widget.base.nombreReponsesTest();
     final questions = await widget.base.questions();
@@ -99,7 +98,6 @@ class _ReglagesScreenState extends State<ReglagesScreen>
       _bilan = bilan;
       _rappelPlanning = rappelPlanning;
       _heureRappel = heureRappel;
-      _finSoir = soir.fin;
       _journee = journee;
       _notifsPlanning = notifsPlanning;
       _reponsesTest = reponsesTest;
@@ -182,20 +180,13 @@ class _ReglagesScreenState extends State<ReglagesScreen>
     return choisie == null ? null : choisie.hour * 60 + choisie.minute;
   }
 
-  Future<void> _choisitJournee({required bool debut}) async {
-    final minutes = await _heure(debut ? _journee.debut : _journee.fin);
-    if (minutes == null || !mounted) return;
-    final nouvelle = debut
-        ? (debut: minutes, fin: _journee.fin)
-        : (debut: _journee.debut, fin: minutes);
-    if (nouvelle.fin <= nouvelle.debut) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('La fin doit venir après le début.')),
-      );
-      return;
-    }
-    setState(() => _journee = nouvelle);
-    await Preferences.changeJournee(debut: nouvelle.debut, fin: nouvelle.fin);
+  Future<void> _repartit() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => RolesScreen(base: widget.base)),
+    );
+    final journee = await Preferences.journee();
+    if (mounted) setState(() => _journee = journee);
   }
 
   Future<void> _changeNotifsPlanning(NotifsPlanning mode) async {
@@ -214,13 +205,6 @@ class _ReglagesScreenState extends State<ReglagesScreen>
     try {
       await Notifications.instance.replanifie(widget.base);
     } catch (_) {}
-  }
-
-  Future<void> _choisitFinSoir() async {
-    final minutes = await _heure(_finSoir);
-    if (minutes == null || !mounted) return;
-    setState(() => _finSoir = minutes);
-    await DeuxMoi.changeSoir(fin: minutes);
   }
 
   Future<void> _autoriseHeurePrecise() async {
@@ -381,30 +365,22 @@ class _ReglagesScreenState extends State<ReglagesScreen>
           ]),
           _Section('Les deux toi', [
             _Ligne(
-              cle: const ValueKey('debut-journee'),
-              titre: 'Toi qui exécutes : début',
-              valeur: heureFr(_journee.debut),
-              onTap: () => _choisitJournee(debut: true),
+              cle: const ValueKey('repartir-roles'),
+              titre: 'Répartir les rôles',
+              valeur:
+                  '${heureFr(_journee.debut)} – '
+                  '${heureFr(_journee.fin % (24 * 60))}',
+              sousTitre:
+                  'La journée à l\'Exécutant, le reste au Décideur. '
+                  '« Caser pour moi » place ta to-do dans la journée.',
+              onTap: _repartit,
             ),
             _Ligne(
-              cle: const ValueKey('fin-journee'),
-              titre: 'Toi qui exécutes : fin',
-              valeur: heureFr(_journee.fin),
-              sousTitre: '« Caser pour moi » place ta to-do entre ces heures.',
-              onTap: () => _choisitJournee(debut: false),
-            ),
-            _Ligne(
-              cle: const ValueKey('debut-soir'),
-              titre: 'Toi qui décides : début',
+              cle: const ValueKey('rappel-soir'),
+              titre: 'Heure du rappel du soir',
               valeur: heureFr(_heureRappel),
-              sousTitre: 'Le rappel du soir arrive à cette heure.',
+              sousTitre: '« Et demain, tu fais quoi ? »',
               onTap: _choisitHeureRappel,
-            ),
-            _Ligne(
-              cle: const ValueKey('fin-soir'),
-              titre: 'Toi qui décides : fin',
-              valeur: heureFr(_finSoir),
-              onTap: _choisitFinSoir,
             ),
             _Ligne(
               titre: 'Revoir l\'intro',

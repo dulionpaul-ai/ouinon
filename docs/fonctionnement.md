@@ -244,10 +244,15 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 ## Les deux toi (26/10/2026)
 
 - **Qui est là** : une fois l'intro vue, l'accueil regarde l'heure
-  (chaque minute et au retour dans l'appli). Plage de l'exécutant = début
-  et fin de journée ; plage du décideur = heure du rappel du soir → fin
-  du soir. Le jour l'emporte si elles se croisent ; ailleurs, repos
-  (style habituel).
+  (chaque minute et au retour dans l'appli). L'anneau des 24 heures est
+  toujours plein (Paul, 26/10/2026) : pendant la journée (début / fin,
+  8 h – 20 h par défaut), l'Exécutant ; tout le reste du temps, le
+  Décideur. `Moi.repos` ne sert plus qu'avant l'intro. L'anneau
+  (`widgets/anneau_roles.dart` : `AnneauRoles`, `RepartitionRoles`) se
+  règle en glissant ses deux ronds, par quarts d'heure, une heure au
+  moins pour chacun, sans passer minuit ; dans l'intro (page 2) et dans
+  les Réglages (« Répartir les rôles », `screens/roles_screen.dart`).
+  L'heure du rappel du soir reste un réglage à part.
 - **Le jour** (revu le 26/10/2026, le terminal était trop chargé) :
   l'onglet Aujourd'hui seul devient l'écran de l'Exécutant, thème
   `AppTheme.jour` (style habituel, accent bleu-vert ; même arbre de

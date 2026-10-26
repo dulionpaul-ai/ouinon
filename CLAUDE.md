@@ -85,7 +85,8 @@ Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
   seulement : Paul le trouve fatigant en plein écran. Style « tableau »
   pour le Décideur (moins rond, matrice en croix), « terminal sobre »
   pour l'Exécutant (`Teintes.terminal`, `Teintes.rayon`), validés le
-  26/10/2026. Onglets : To-do, Aujourd'hui, Stats. Plages : début /
-  fin de journée et rappel du soir → fin du soir. Rien de la série
+  26/10/2026. Onglets : To-do, Aujourd'hui, Stats. Plages : l'anneau
+  des 24 heures est toujours plein (pas de repos) : la journée (début /
+  fin) à l'Exécutant, tout le reste au Décideur. Rien de la série
   Severance (nom, logo, vocabulaire).
 - Identifiant de l'appli : `fr.ouinon.app`, nom affiché « Ouinon ».

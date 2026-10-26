@@ -82,16 +82,11 @@ class Preferences {
       );
 }
 
-/// Les deux toi (idée de Paul du 26/10/2026) : le soir, celui qui
-/// décide ; le jour, celui qui exécute. Le soir va de l'heure du rappel à
-/// `finSoir` ; le jour, c'est la journée (`journee`).
+/// Les deux toi (idée de Paul du 26/10/2026) : le jour (`journee`), celui
+/// qui exécute ; tout le reste du temps, celui qui décide.
 abstract final class DeuxMoi {
   static const _cleIntro = 'intro_deux_moi_vue';
-  static const _cleFinSoir = 'fin_soir';
   static const _cleReveil = 'reveil_vu';
-
-  /// Fin du soir par défaut : 23 h.
-  static const finSoirParDefaut = 23 * 60;
 
   /// L'intro des deux toi a été vue : les deux modes sont actifs.
   static Future<bool> actifs() async =>
@@ -99,22 +94,6 @@ abstract final class DeuxMoi {
 
   static Future<void> active(bool oui) async =>
       (await SharedPreferences.getInstance()).setBool(_cleIntro, oui);
-
-  /// Le soir, celui qui décide : de l'heure du rappel à la fin du soir.
-  static Future<({int debut, int fin})> soir() async {
-    final p = await SharedPreferences.getInstance();
-    return (
-      debut: await Preferences.heureRappelPlanning(),
-      fin: p.getInt(_cleFinSoir) ?? finSoirParDefaut,
-    );
-  }
-
-  static Future<void> changeSoir({int? debut, int? fin}) async {
-    if (debut != null) await Preferences.changeHeureRappelPlanning(debut);
-    if (fin != null) {
-      await (await SharedPreferences.getInstance()).setInt(_cleFinSoir, fin);
-    }
-  }
 
   /// Le mot laissé le soir pour le toi qui exécute `jour`.
   static Future<String?> motPour(DateTime jour) async =>

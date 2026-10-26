@@ -4,12 +4,13 @@ import 'package:flutter/material.dart';
 
 import '../data/preferences.dart';
 import '../theme/app_theme.dart';
+import '../widgets/anneau_roles.dart';
 import '../widgets/retro.dart';
 
 /// L'intro des deux toi (idée de Paul du 26/10/2026), en trois pages :
 /// 1. le pourquoi, puis « Il y a deux toi » : le rond entier tremble, se
 ///    brise et se sépare en deux couleurs (revu avec Paul le 26/10/2026) ;
-/// 2. « Qui est là, et quand ? » : les heures de chacun ;
+/// 2. « Qui est là, et quand ? » : l'anneau des heures de chacun ;
 /// 3. les notifications, par lesquelles ils se parlent.
 ///
 /// Renvoie vrai si la personne a demandé les notifications.
@@ -28,10 +29,9 @@ class _IntroScreenState extends State<IntroScreen>
     debut: Preferences.debutJourneeParDefaut,
     fin: Preferences.finJourneeParDefaut,
   );
-  ({int debut, int fin}) _soir = (
-    debut: Preferences.heureRappelPlanningParDefaut,
-    fin: DeuxMoi.finSoirParDefaut,
-  );
+
+  /// L'heure du rappel du soir (« Et demain, tu fais quoi ? »).
+  int _rappel = Preferences.heureRappelPlanningParDefaut;
 
   late final _logo = AnimationController(
     vsync: this,
@@ -52,11 +52,11 @@ class _IntroScreenState extends State<IntroScreen>
 
   Future<void> _charge() async {
     final jour = await Preferences.journee();
-    final soir = await DeuxMoi.soir();
+    final rappel = await Preferences.heureRappelPlanning();
     if (mounted) {
       setState(() {
         _jour = jour;
-        _soir = soir;
+        _rappel = rappel;
       });
     }
   }
@@ -75,46 +75,8 @@ class _IntroScreenState extends State<IntroScreen>
 
   Future<void> _termine(bool notifications) async {
     await Preferences.changeJournee(debut: _jour.debut, fin: _jour.fin);
-    await DeuxMoi.changeSoir(debut: _soir.debut, fin: _soir.fin);
     await DeuxMoi.active(true);
     if (mounted) Navigator.pop(context, notifications);
-  }
-
-  /// Cadran d'heure (sans clavier, 24 h) ; nul si annulé.
-  Future<int?> _heure(int depart, String aide) async {
-    final choisie = await showTimePicker(
-      context: context,
-      helpText: aide,
-      initialEntryMode: TimePickerEntryMode.dialOnly,
-      initialTime: TimeOfDay(hour: depart ~/ 60, minute: depart % 60),
-      builder: (context, enfant) => MediaQuery(
-        data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
-        child: enfant!,
-      ),
-    );
-    return choisie == null ? null : choisie.hour * 60 + choisie.minute;
-  }
-
-  Future<void> _choisitJour() async {
-    final debut = await _heure(_jour.debut, 'Tu commences à');
-    if (debut == null) return;
-    final fin = await _heure(_jour.fin, 'Tu finis à');
-    if (fin == null || !mounted) return;
-    if (fin <= debut) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('La fin doit venir après le début.')),
-      );
-      return;
-    }
-    setState(() => _jour = (debut: debut, fin: fin));
-  }
-
-  Future<void> _choisitSoir() async {
-    final debut = await _heure(_soir.debut, 'Tu décides à partir de');
-    if (debut == null) return;
-    final fin = await _heure(_soir.fin, 'Jusqu\'à');
-    if (fin == null || !mounted) return;
-    setState(() => _soir = (debut: debut, fin: fin));
   }
 
   @override
@@ -447,58 +409,10 @@ class _IntroScreenState extends State<IntroScreen>
     );
   }
 
+  /// Page 2 : l'anneau des 24 heures, toujours plein (revu avec Paul le
+  /// 26/10/2026) : la journée à l'Exécutant, le reste au Décideur.
   Widget _pageHeures(BuildContext context) {
     final t = Teintes.de(context);
-    Widget ligne({
-      required Key cle,
-      required Color couleur,
-      required String titre,
-      required String sousTitre,
-      required ({int debut, int fin}) plage,
-      required VoidCallback onTap,
-    }) => InkWell(
-      key: cle,
-      onTap: onTap,
-      child: Container(
-        constraints: const BoxConstraints(minHeight: 68),
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: t.puce)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 10,
-              height: 10,
-              decoration: BoxDecoration(color: couleur, shape: BoxShape.circle),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    titre,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  Text(
-                    sousTitre,
-                    style: TextStyle(color: t.doux, fontSize: 13),
-                  ),
-                ],
-              ),
-            ),
-            Text(
-              '${hhmm(plage.debut)} – ${hhmm(plage.fin)}',
-              style: styleMono(15, couleur: couleur),
-            ),
-          ],
-        ),
-      ),
-    );
     return ListView(
       children: [
         const SizedBox(height: 24),
@@ -514,46 +428,13 @@ class _IntroScreenState extends State<IntroScreen>
         ),
         const SizedBox(height: 6),
         Text(
-          'Touche une ligne pour changer ses heures.',
+          'Glisse les ronds pour changer les heures.',
           style: TextStyle(color: t.doux, fontSize: 15),
         ),
-        const SizedBox(height: 28),
-        Center(
-          child: SizedBox(
-            width: 210,
-            height: 210,
-            child: CustomPaint(
-              painter: _Cadran(jour: _jour, soir: _soir, puce: t.puce),
-              child: Center(
-                child: Text(
-                  'le reste :\nrepos',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: t.doux,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 28),
-        ligne(
-          cle: const ValueKey('intro-soir'),
-          couleur: AppTheme.ambre,
-          titre: 'Toi qui décides',
-          sousTitre: 'le soir, tu prépares demain',
-          plage: _soir,
-          onTap: _choisitSoir,
-        ),
-        ligne(
-          cle: const ValueKey('intro-jour'),
-          couleur: AppTheme.bleuVert,
-          titre: 'Toi qui exécutes',
-          sousTitre: 'le jour, tu fais',
-          plage: _jour,
-          onTap: _choisitJour,
+        const SizedBox(height: 22),
+        RepartitionRoles(
+          journee: _jour,
+          onChange: (j) => setState(() => _jour = j),
         ),
       ],
     );
@@ -689,7 +570,7 @@ class _IntroScreenState extends State<IntroScreen>
               ),
               const SizedBox(height: 14),
               ligne(
-                hhmm(_soir.debut),
+                hhmm(_rappel),
                 AppTheme.ambre,
                 '«\u00a0Et demain, tu fais quoi\u00a0?\u00a0»',
                 'le Décideur prépare la journée',
@@ -870,44 +751,4 @@ class RondDissocie extends CustomPainter {
       ancien.tension != tension ||
       ancien.onde != onde ||
       ancien.entier != entier;
-}
-
-/// Cadran de 24 heures : le soir en ambre, le jour en bleu-vert.
-class _Cadran extends CustomPainter {
-  final ({int debut, int fin}) jour;
-  final ({int debut, int fin}) soir;
-  final Color puce;
-
-  const _Cadran({required this.jour, required this.soir, required this.puce});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final epaisseur = size.shortestSide * 0.11;
-    final rect = Rect.fromCircle(
-      center: size.center(Offset.zero),
-      radius: size.shortestSide / 2 - epaisseur / 2,
-    );
-    Paint trait(Color c) => Paint()
-      ..color = c
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = epaisseur;
-    canvas.drawArc(rect, 0, 2 * math.pi, false, trait(puce));
-    void plage(({int debut, int fin}) p, Color c) {
-      final duree = (p.fin - p.debut) % (24 * 60);
-      canvas.drawArc(
-        rect,
-        -math.pi / 2 + p.debut / (24 * 60) * 2 * math.pi,
-        duree / (24 * 60) * 2 * math.pi,
-        false,
-        trait(c),
-      );
-    }
-
-    plage(jour, AppTheme.bleuVert);
-    plage(soir, AppTheme.ambre);
-  }
-
-  @override
-  bool shouldRepaint(_Cadran ancien) =>
-      ancien.jour != jour || ancien.soir != soir;
 }

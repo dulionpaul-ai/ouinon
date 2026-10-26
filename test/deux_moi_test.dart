@@ -1,22 +1,36 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ouinon/models/tache.dart';
 import 'package:ouinon/utils/deux_moi.dart';
+import 'package:ouinon/widgets/anneau_roles.dart';
 
 void main() {
   const jour = (debut: 9 * 60, fin: 19 * 60);
-  const soir = (debut: 21 * 60 + 30, fin: 30);
   final jeudi = DateTime(2026, 10, 22);
 
-  test('qui est là : le jour, le soir (après minuit compris), le repos', () {
-    Moi a(int h, [int m = 0]) =>
-        moiA(DateTime(2026, 10, 22, h, m), jour: jour, soir: soir);
+  test('qui est là : la journée à l\'Exécutant, tout le reste au Décideur', () {
+    Moi a(int h, [int m = 0]) => moiA(DateTime(2026, 10, 22, h, m), jour: jour);
     expect(a(9), Moi.executant);
     expect(a(18, 59), Moi.executant);
-    expect(a(19), Moi.repos);
+    expect(a(19), Moi.decideur);
     expect(a(21, 30), Moi.decideur);
     expect(a(0, 15), Moi.decideur);
-    expect(a(0, 30), Moi.repos);
-    expect(a(7), Moi.repos);
+    expect(a(7), Moi.decideur);
+  });
+
+  test('l\'anneau : quarts d\'heure, une heure au moins, pas après minuit', () {
+    ({int debut, int fin})? place(bool debutBouge, int minute) =>
+        AnneauRoles.place(
+          debut: 8 * 60,
+          fin: 20 * 60,
+          debutBouge: debutBouge,
+          minute: minute,
+        );
+    expect(place(true, 7 * 60 + 8), (debut: 7 * 60 + 15, fin: 20 * 60));
+    expect(place(false, 0), (debut: 8 * 60, fin: 24 * 60));
+    expect(place(false, 8 * 60 + 30), isNull);
+    expect(place(true, 20 * 60), isNull);
+    // Le début ne passe pas de l'autre côté de minuit.
+    expect(place(true, 23 * 60 + 50), isNull);
   });
 
   test('la chose en cours, sinon la prochaine sans réponse', () {

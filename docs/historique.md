@@ -333,3 +333,8 @@ demain »).
   ordre des onglets, phrases, page 3 de l'intro.
 - Bouton de fin d'intro : « Répartir les rôles » (choix de Paul, à la
   place de « Je décide »).
+- L'anneau des rôles (maquette validée par Paul) : toujours plein, plus
+  de « repos » ; la journée à l'Exécutant, le reste au Décideur ; on
+  glisse les deux ronds. Dans l'intro et dans les Réglages (« Répartir
+  les rôles »). La « fin du soir » disparaît ; « Heure du rappel du
+  soir » reste réglable.

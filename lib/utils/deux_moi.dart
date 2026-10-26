@@ -10,32 +10,27 @@ enum Moi {
   /// Le soir : on décide de demain (ambre).
   decideur,
 
-  /// Le jour : on exécute le plan (écran rétro).
+  /// Le jour : on exécute le plan (terminal sobre).
   executant,
 
-  /// En dehors des deux plages : repos, style habituel.
+  /// Les deux toi ne sont pas encore actifs (intro pas vue) : style
+  /// habituel.
   repos,
 }
 
 /// `minutes` (depuis minuit) est-il dans la plage ? Une plage peut passer
-/// minuit (soir de 21 h 30 à 0 h 30).
+/// minuit.
 bool dansPlage(int minutes, ({int debut, int fin}) plage) {
   final d = plage.debut, f = plage.fin;
   if (d == f) return false;
   return d < f ? minutes >= d && minutes < f : minutes >= d || minutes < f;
 }
 
-/// Qui est là à `maintenant` : le jour l'emporte si les plages se
-/// croisent.
-Moi moiA(
-  DateTime maintenant, {
-  required ({int debut, int fin}) jour,
-  required ({int debut, int fin}) soir,
-}) {
+/// Qui est là à `maintenant` (anneau toujours plein, 26/10/2026) :
+/// l'Exécutant pendant la journée, le Décideur tout le reste du temps.
+Moi moiA(DateTime maintenant, {required ({int debut, int fin}) jour}) {
   final m = maintenant.hour * 60 + maintenant.minute;
-  if (dansPlage(m, jour)) return Moi.executant;
-  if (dansPlage(m, soir)) return Moi.decideur;
-  return Moi.repos;
+  return dansPlage(m, jour) ? Moi.executant : Moi.decideur;
 }
 
 /// La chose en cours à `minutes`, sinon la prochaine sans réponse ; nulle

@@ -322,7 +322,9 @@ void main() {
     await tester.tap(find.text('Répartir les rôles'));
     await tester.pumpAndSettle();
     expect(find.text('Qui est là, et quand ?'), findsOneWidget);
-    expect(find.text('21:30 – 23:00'), findsOneWidget);
+    // L'anneau : la journée à l'Exécutant, tout le reste au Décideur.
+    expect(find.byKey(const ValueKey('anneau')), findsOneWidget);
+    expect(find.text('20:00 – 08:00'), findsOneWidget);
     expect(find.text('08:00 – 20:00'), findsOneWidget);
     await tester.tap(find.text('C\'est ça'));
     await tester.pumpAndSettle();

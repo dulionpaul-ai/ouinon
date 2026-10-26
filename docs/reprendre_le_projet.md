@@ -13,8 +13,9 @@ Mis à jour le 26/10/2026.
   et journée 8 h – 20 h. **Attendre les retours de Paul**
   (captures) et les traiter en premier.
 - Tout est sur `main`, 89 tests verts, rien en cours.
-- En attente de Paul : anneau des plages à glisser, sans
-  repos (https://claude.ai/artifact/RCSH1LPmay7wUhQSqPLGZs).
+- Depuis l'APK n° 17 (pas encore dans un APK) : bouton « Répartir les
+  rôles », anneau des rôles à glisser (plus de repos). En attente de
+  Paul : le choix « Une fois · Chaque jour » dans la To-do.
 - Maquette du parcours : https://claude.ai/artifact/6uwN74rtwMFmdVsCiuppJ7
   (Paul a validé intro, ascenseur, Décideur, Exécutant le 26/10/2026).
 - Idées pour plus tard notées dans `docs/idees.md` : intro qui raconte

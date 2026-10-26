@@ -119,13 +119,7 @@ class _AccueilScreenState extends State<AccueilScreen>
     if (actifs != _actifs) setState(() => _actifs = actifs);
     final moi =
         _force ??
-        (_actifs
-            ? moiA(
-                now,
-                jour: await Preferences.journee(),
-                soir: await DeuxMoi.soir(),
-              )
-            : Moi.repos);
+        (_actifs ? moiA(now, jour: await Preferences.journee()) : Moi.repos);
     if (!mounted) return;
     final jour = jourDe(now);
     if (moi != Moi.executant || await DeuxMoi.reveilVu(jour)) {

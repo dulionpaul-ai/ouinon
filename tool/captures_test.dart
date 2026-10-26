@@ -446,6 +446,24 @@ void main() {
     );
   });
 
+  testWidgets('intro, page 3, petit téléphone', (tester) async {
+    await capture(
+      tester,
+      '22b-petit-intro-3',
+      const IntroScreen(),
+      ThemeMode.dark,
+      largeur: 360,
+      hauteur: 760,
+      texte: 1.3,
+      avant: (tester) async {
+        await tester.tap(find.text('Je décide'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('C\'est ça'));
+        await tester.pumpAndSettle();
+      },
+    );
+  });
+
   testWidgets('intro, page 3', (tester) async {
     await capture(
       tester,

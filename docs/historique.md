@@ -312,3 +312,9 @@ demain »).
   journée : 8 h – 20 h (au lieu de 9 h – 19 h), réglables dès l'intro
   (page « Qui est là, et quand ? ») et dans les Réglages. Envoyé dans
   l'APK n° 16 (1.0.0+16, 26/10/2026).
+- Intro, page 3 refaite (Paul : moins de terminal) : « Les deux TOI ne
+  se parlent pas. » (TOI aux deux couleurs), « Le Décideur planifie.
+  Chaque matin, l'Exécutant reçoit ses ordres », puis les notifications
+  qui font le lien, chacune à son heure. Maquette de l'anneau des
+  plages à glisser, sans repos, et noms pour le bouton de fin d'intro :
+  https://claude.ai/artifact/RCSH1LPmay7wUhQSqPLGZs (en attente de Paul).

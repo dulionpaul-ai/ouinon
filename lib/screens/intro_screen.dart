@@ -120,7 +120,11 @@ class _IntroScreenState extends State<IntroScreen>
   @override
   Widget build(BuildContext context) {
     final t = Teintes.de(context);
-    final pages = [_pageDeuxToi(context), _pageHeures(context), _pageNotifs()];
+    final pages = [
+      _pageDeuxToi(context),
+      _pageHeures(context),
+      _pageNotifs(context),
+    ];
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -553,58 +557,170 @@ class _IntroScreenState extends State<IntroScreen>
     );
   }
 
-  Widget _pageNotifs() => Container(
-    margin: const EdgeInsets.symmetric(vertical: 24),
-    clipBehavior: Clip.antiAlias,
-    decoration: BoxDecoration(
-      color: Teintes.retro.fond,
-      borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: Teintes.retro.puce),
-    ),
-    child: FondRetro(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('ILS SE PARLENT', style: styleRetro(34)),
-            Text('PAR NOTIFICATIONS.', style: styleRetro(34)),
-            const SizedBox(height: 24),
-            for (final (heure, texte) in [
-              (hhmm(_soir.debut), 'LE SOIR : PRÉPARER DEMAIN'),
-              (hhmm(_jour.debut), 'LE MATIN : TA JOURNÉE T\'ATTEND'),
-              ('', 'CHAQUE CHOSE : C\'EST L\'HEURE, PUIS C\'EST FAIT ?'),
-              (hhmm(_jour.fin), 'LE COMPTE RENDU'),
-            ])
+  /// Page 3 (revue avec Paul le 26/10/2026) : les deux toi ne se parlent
+  /// pas ; seules les notifications font le lien, chacune à son heure.
+  Widget _pageNotifs(BuildContext context) {
+    final t = Teintes.de(context);
+    const texte = TextStyle(fontSize: 17, height: 1.4);
+    Widget ligne(String heure, Color couleur, String message, String quoi) =>
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 9),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Row(
+                padding: const EdgeInsets.only(top: 6),
+                child: Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: couleur,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              SizedBox(
+                width: 64,
+                child: Text(
+                  heure,
+                  maxLines: 1,
+                  softWrap: false,
+                  style: styleMono(14, couleur: couleur),
+                ),
+              ),
+              Expanded(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(
-                      width: 60,
-                      child: Text(
-                        heure,
-                        maxLines: 1,
-                        softWrap: false,
-                        style: styleMono(13),
+                    Text(
+                      message,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                    Expanded(child: Text(texte, style: styleMono(13))),
+                    Text(quoi, style: TextStyle(color: t.doux, fontSize: 14)),
                   ],
                 ),
               ),
-            const SizedBox(height: 14),
-            Text(
-              'Tout reste sur ton téléphone.',
-              style: styleMono(12, couleur: Teintes.retro.doux),
-            ),
-          ],
+            ],
+          ),
+        );
+    return LayoutBuilder(
+      builder: (context, contraintes) => SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: contraintes.maxHeight),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text.rich(
+                TextSpan(
+                  children: [
+                    const TextSpan(text: 'Les deux '),
+                    // « TOI » aux couleurs des deux moitiés du logo.
+                    WidgetSpan(
+                      alignment: PlaceholderAlignment.baseline,
+                      baseline: TextBaseline.alphabetic,
+                      child: ShaderMask(
+                        blendMode: BlendMode.srcIn,
+                        shaderCallback: (r) => const LinearGradient(
+                          colors: [
+                            AppTheme.ambre,
+                            AppTheme.ambre,
+                            AppTheme.bleuVert,
+                            AppTheme.bleuVert,
+                          ],
+                          stops: [0, 0.5, 0.5, 1],
+                        ).createShader(r),
+                        child: const Text(
+                          'TOI',
+                          style: TextStyle(
+                            fontFamily: AppTheme.policeTitre,
+                            fontSize: 30,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const TextSpan(text: ' ne se parlent pas.'),
+                  ],
+                ),
+                style: TextStyle(
+                  fontFamily: AppTheme.policeTitre,
+                  fontSize: 26,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -1,
+                  height: 1.15,
+                  color: t.texte,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: 'Le Décideur',
+                      style: TextStyle(
+                        color: AppTheme.ambre,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    TextSpan(text: ' planifie. Chaque matin, '),
+                    TextSpan(
+                      text: 'l\'Exécutant',
+                      style: TextStyle(
+                        color: AppTheme.bleuVert,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    TextSpan(
+                      text:
+                          ' reçoit ses ordres. Entre eux, rien que '
+                          'des notifications :',
+                    ),
+                  ],
+                ),
+                style: texte,
+              ),
+              const SizedBox(height: 14),
+              ligne(
+                hhmm(_soir.debut),
+                AppTheme.ambre,
+                '«\u00a0Et demain, tu fais quoi\u00a0?\u00a0»',
+                'le Décideur prépare la journée',
+              ),
+              ligne(
+                hhmm(_jour.debut),
+                AppTheme.bleuVert,
+                '«\u00a0Ta journée t\'attend\u00a0»',
+                'l\'Exécutant reçoit ses tâches',
+              ),
+              ligne(
+                '',
+                AppTheme.bleuVert,
+                '«\u00a0C\'est l\'heure\u00a0», puis «\u00a0C\'est fait\u00a0?\u00a0»',
+                'pour chaque chose, au début et à la fin',
+              ),
+              ligne(
+                hhmm(_jour.fin),
+                AppTheme.ambre,
+                '«\u00a0Fin de service\u00a0»',
+                'le compte rendu remonte au Décideur',
+              ),
+              const SizedBox(height: 18),
+              Text(
+                'Tout reste sur ton téléphone.',
+                style: TextStyle(color: t.doux, fontSize: 14),
+              ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 /// Le minutage de la page 1, en secondes (revu avec Paul le 26/10/2026) :

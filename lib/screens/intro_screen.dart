@@ -9,8 +9,8 @@ import '../widgets/retro.dart';
 /// L'intro des deux toi (idée de Paul du 26/10/2026), en trois pages :
 /// 1. le pourquoi, puis « Il y a deux toi » : le rond entier tremble, se
 ///    brise et se sépare en deux couleurs (revu avec Paul le 26/10/2026) ;
-/// 2. qui fait quoi, et où (To-do et Stats : le Décideur ; Aujourd'hui :
-///    l'Exécutant), et les notifications qui font le lien.
+/// 2. qui fait quoi (le Décideur : To-do, Planifier, Stats ; l'Exécutant :
+///    Ma journée ; l'ascenseur entre les deux), et les notifications.
 ///
 /// Renvoie vrai si la personne a demandé les notifications.
 class IntroScreen extends StatefulWidget {
@@ -513,7 +513,7 @@ class _IntroScreenState extends State<IntroScreen>
                         fontWeight: FontWeight.w800,
                       ),
                     ),
-                    TextSpan(text: ' planifie, dans la To-do. Chaque matin, '),
+                    TextSpan(text: ' liste et planifie. Chaque matin, '),
                     TextSpan(
                       text: 'l\'Exécutant',
                       style: TextStyle(
@@ -523,8 +523,9 @@ class _IntroScreenState extends State<IntroScreen>
                     ),
                     TextSpan(
                       text:
-                          ' reçoit ses ordres, dans Aujourd\'hui. Entre '
-                          'eux, rien que des notifications :',
+                          ' reçoit ses ordres dans « Ma journée ». On passe '
+                          'de l\'un à l\'autre par l\'ascenseur, en bas de '
+                          'l\'écran. Entre eux, rien que des notifications :',
                     ),
                   ],
                 ),

@@ -347,3 +347,12 @@ demain »).
   ⇅ ; « Modifier » chez l'Exécutant monte chez le Décideur ; intro en
   2 pages (bouton « Qui fait quoi ? ») ; Réglages : début et fin de la
   journée. Envoyé dans l'APK n° 18 (1.0.0+18).
+- Retours de Paul sur l'APK n° 18 : plus de barre d'ajout, un bouton
+  « Ajouter » qui ouvre un formulaire d'une page (titre, durée,
+  Important / Urgent, heure imposée ; base v5, colonne `heure`) ;
+  « Planifier » devient un onglet (toute la liste, glisser sur la
+  journée de demain, blocs orange translucides) ; deux rôles séparés
+  avec leurs onglets (Décideur : To-do · Planifier · Stats ; Exécutant :
+  Ma journée) et un bouton Ascenseur bien visible ; l'Exécutant peut
+  ajouter une chose ou changer une heure. Barrières entre les rôles :
+  plus tard.

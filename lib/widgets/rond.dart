@@ -157,11 +157,15 @@ class BarreOnglets extends StatelessWidget {
   final List<String> libelles;
   final ValueChanged<int> onChoix;
 
+  /// Le bouton Ascenseur, à droite des onglets.
+  final Widget? ascenseur;
+
   const BarreOnglets({
     super.key,
     required this.index,
     required this.libelles,
     required this.onChoix,
+    this.ascenseur,
   });
 
   /// Revue le 26/10/2026 (moins rond) : posée en bas, des mots ; celui
@@ -254,6 +258,10 @@ class BarreOnglets extends StatelessWidget {
                 for (final (i, libelle) in libelles.indexed) ...[
                   if (i > 0 && t.terminal) const SizedBox(width: 6),
                   onglet(i, libelle),
+                ],
+                if (ascenseur != null) ...[
+                  const SizedBox(width: 8),
+                  ascenseur!,
                 ],
               ],
             ),
@@ -516,6 +524,73 @@ class PastilleSerie extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Le bouton Ascenseur (26/10/2026) : toujours à droite de la barre du
+/// bas, bien visible, à la couleur du toi où il mène (ambre vers le
+/// Décideur, bleu-vert vers l'Exécutant).
+class BoutonAscenseur extends StatelessWidget {
+  /// Vers le Décideur (▲), sinon vers l'Exécutant (▼).
+  final bool versLeSoir;
+  final VoidCallback onTap;
+
+  const BoutonAscenseur({
+    super.key,
+    required this.versLeSoir,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Teintes.de(context);
+    final couleur = versLeSoir ? AppTheme.ambre : AppTheme.bleuVert;
+    return Semantics(
+      button: true,
+      label: versLeSoir
+          ? 'Ascenseur vers le Décideur'
+          : 'Ascenseur vers l\'Exécutant',
+      excludeSemantics: true,
+      child: Material(
+        key: const ValueKey('ascenseur'),
+        color: couleur.withValues(alpha: 0.12),
+        shape: RoundedRectangleBorder(
+          side: BorderSide(color: couleur, width: 1.5),
+          borderRadius: BorderRadius.circular(t.rayon),
+        ),
+        child: InkWell(
+          onTap: onTap,
+          customBorder: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(t.rayon),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  versLeSoir
+                      ? Icons.arrow_upward_rounded
+                      : Icons.arrow_downward_rounded,
+                  size: 18,
+                  color: couleur,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  versLeSoir ? 'Décideur' : 'Exécutant',
+                  maxLines: 1,
+                  style: TextStyle(
+                    color: couleur,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

@@ -45,8 +45,9 @@ Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
   (`tool/installer_outils.sh`). APK de test fabriqués dans la session ;
   Codemagic pour l'iPhone.
 - Avant chaque APK : regarder les captures (`tool/captures_test.dart`).
-- Garder l'appli simple (demande de Paul du 25/10/2026) : trois onglets
-  (To-do, Aujourd'hui, Stats), des lignes plutôt que des cartes, pas de
+- Garder l'appli simple (demande de Paul du 25/10/2026) : les onglets
+  du rôle actif seulement (Décideur : To-do, Planifier, Stats ;
+  Exécutant : Ma journée), des lignes plutôt que des cartes, pas de
   textes d'aide permanents, pas de nouveau bouton sans nécessité.
 
 ## Garde-fous (non négociables)
@@ -85,10 +86,12 @@ Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
   seulement : Paul le trouve fatigant en plein écran. Style « tableau »
   pour le Décideur (moins rond, matrice en croix), « terminal sobre »
   pour l'Exécutant (`Teintes.terminal`, `Teintes.rayon`), validés le
-  26/10/2026. Onglets : To-do, Aujourd'hui, Stats. Le toi suit
-  l'onglet (26/10/2026) : To-do et Stats, le Décideur ; Aujourd'hui,
-  l'Exécutant ; ascenseur au premier passage de la journée dans chaque
-  sens. Les heures de la journée (Réglages) ne servent qu'aux
-  notifications, à « Caser pour moi » et à l'onglet d'ouverture. Rien de la série
+  26/10/2026. Deux rôles séparés (26/10/2026) : le Décideur a ses
+  onglets To-do · Planifier · Stats, l'Exécutant a « Ma journée » ; on
+  passe de l'un à l'autre par le bouton Ascenseur (à droite de la barre
+  du bas), le rôle actif est gardé (`DeuxMoi.role`). Pour l'instant pas
+  de barrière : l'Exécutant peut ajouter une chose ou changer une heure.
+  Les heures de la journée (Réglages) servent aux notifications et à
+  « Caser pour moi ». Rien de la série
   Severance (nom, logo, vocabulaire).
 - Identifiant de l'appli : `fr.ouinon.app`, nom affiché « Ouinon ».

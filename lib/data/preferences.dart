@@ -1,5 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../utils/deux_moi.dart';
+
 import '../utils/jour.dart';
 
 /// Les choix de la personne gardés sur le téléphone : bilan du dimanche
@@ -82,12 +84,12 @@ class Preferences {
       );
 }
 
-/// Les deux toi (idée de Paul du 26/10/2026) : le toi suit l'onglet
-/// (To-do et Stats : celui qui décide ; Aujourd'hui : celui qui exécute).
+/// Les deux toi (idée de Paul du 26/10/2026) : deux rôles séparés, le
+/// Décideur (To-do, Planifier, Stats) et l'Exécutant (Ma journée) ; on
+/// passe de l'un à l'autre par l'ascenseur.
 abstract final class DeuxMoi {
   static const _cleIntro = 'intro_deux_moi_vue';
-  static const _cleReveil = 'reveil_vu';
-  static const _cleRetour = 'retour_vu';
+  static const _cleRole = 'role_actif';
 
   /// L'intro des deux toi a été vue : les deux modes sont actifs.
   static Future<bool> actifs() async =>
@@ -122,24 +124,16 @@ abstract final class DeuxMoi {
     }
   }
 
-  /// L'ascenseur a déjà été joué ce jour-là dans ce sens (vers
-  /// l'Exécutant : « le réveil » ; vers le Décideur : « le retour »).
-  static Future<bool> passageVu(
-    DateTime jour, {
-    required bool versLeSoir,
-  }) async =>
-      (await SharedPreferences.getInstance()).getString(
-        versLeSoir ? _cleRetour : _cleReveil,
-      ) ==
-      cleJour(jour);
+  /// Le rôle actif (Décideur par défaut), gardé d'une ouverture à
+  /// l'autre ; on en change par l'ascenseur (26/10/2026).
+  static Future<Moi> role() async =>
+      (await SharedPreferences.getInstance()).getString(_cleRole) ==
+          Moi.executant.name
+      ? Moi.executant
+      : Moi.decideur;
 
-  static Future<void> marquePassage(
-    DateTime jour, {
-    required bool versLeSoir,
-  }) async => (await SharedPreferences.getInstance()).setString(
-    versLeSoir ? _cleRetour : _cleReveil,
-    cleJour(jour),
-  );
+  static Future<void> changeRole(Moi role) async =>
+      (await SharedPreferences.getInstance()).setString(_cleRole, role.name);
 }
 
 /// Au début : rappel (« C'est l'heure »), avec « Reporter ». À la fin :

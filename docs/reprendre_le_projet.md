@@ -9,6 +9,9 @@ Mis à jour le 26/10/2026.
   l'onglet (To-do et Stats : Décideur ; Aujourd'hui : Exécutant),
   ascenseur au premier passage de la journée, intro en 2 pages, style
   « tableau » / « terminal sobre ». **Attendre les retours de Paul.**
+- Depuis l'APK n° 18 (pas encore dans un APK) : formulaire « Ajouter »
+  d'une page avec heure imposée, onglet Planifier, deux rôles séparés
+  avec bouton Ascenseur. **Demander à Paul s'il veut l'APK n° 19.**
 - En attente de Paul : le choix « Une fois · Chaque jour » dans la
   To-do (créer des questions qui reviennent).
 - Maquette du parcours : https://claude.ai/artifact/6uwN74rtwMFmdVsCiuppJ7

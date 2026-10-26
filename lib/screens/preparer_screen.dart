@@ -35,11 +35,16 @@ class PreparerScreen extends StatefulWidget {
   /// Moment présent imposé (tests).
   final DateTime Function() maintenant;
 
+  /// L'onglet « Planifier » du Décideur (26/10/2026) : pas d'étape de
+  /// choix, toute la to-do au-dessus de la journée, on glisse.
+  final bool onglet;
+
   const PreparerScreen({
     super.key,
     required this.base,
     required this.jour,
     this.maintenant = DateTime.now,
+    this.onglet = false,
   });
 
   @override
@@ -112,8 +117,10 @@ class _PreparerScreenState extends State<PreparerScreen> {
       if (_choisie(a)) a,
   ];
 
+  /// Ce qui reste à caser : ce qui a été choisi, ou, dans l'onglet
+  /// Planifier, toute la to-do.
   List<AFaire> get _aCaser => [
-    for (final a in _choisies)
+    for (final a in widget.onglet ? _ordonnee : _choisies)
       if (!_casees.containsKey(a.id)) a,
   ];
 
@@ -141,10 +148,12 @@ class _PreparerScreenState extends State<PreparerScreen> {
     }
   }
 
+  /// Une chose posée dans la journée ; avec une heure imposée, elle va à
+  /// cette heure-là, où qu'on la lâche.
   Future<void> _pose(AFaire a, int debut) => widget.base.enregistreTache(
     Tache(
       jour: _jour,
-      debut: debut,
+      debut: a.heure ?? debut,
       duree: a.duree,
       texte: a.texte,
       listeId: a.id,
@@ -152,12 +161,24 @@ class _PreparerScreenState extends State<PreparerScreen> {
     ),
   );
 
-  /// Case tout ce qui reste ; rend ce qui ne rentre pas.
+  /// Case tout ce qui reste ; rend ce qui ne rentre pas. Les heures
+  /// imposées d'abord, à leur heure.
   Future<List<AFaire>> _caseLeReste() async {
+    final aPlacer = [
+      for (final a in _aCaser)
+        if (!widget.onglet || a.caseLe(_jour) != Case.peutEtreJamais) a,
+    ];
+    for (final a in aPlacer) {
+      if (a.heure != null) await _pose(a, a.heure!);
+    }
+    final taches = await widget.base.tachesDu(_jour);
     final proposition = remplitJournee(
       jour: _jour,
-      prevues: _taches,
-      aPlacer: _aCaser,
+      prevues: taches,
+      aPlacer: [
+        for (final a in aPlacer)
+          if (a.heure == null) a,
+      ],
       debutJournee: _journee.debut,
       finJournee: _journee.fin,
       maintenant: widget.maintenant(),
@@ -183,7 +204,7 @@ class _PreparerScreenState extends State<PreparerScreen> {
   }
 
   Future<void> _termine() async {
-    final hors = await _caseLeReste();
+    final hors = widget.onglet ? <AFaire>[] : await _caseLeReste();
     for (final a in hors) {
       await widget.base.choisitPour(a.id!, null);
     }
@@ -210,7 +231,7 @@ class _PreparerScreenState extends State<PreparerScreen> {
     // Les deux toi : un mot pour le toi de demain, puis l'ascenseur.
     final demain = widget.jour.isAfter(jourDe(widget.maintenant()));
     if (!demain || !await DeuxMoi.actifs()) {
-      if (mounted) Navigator.pop(context);
+      if (mounted && !widget.onglet) Navigator.pop(context);
       return;
     }
     final mot = await _demandeMot();
@@ -219,7 +240,7 @@ class _PreparerScreenState extends State<PreparerScreen> {
     final taches = await widget.base.tachesDu(widget.jour);
     if (!mounted) return;
     final messager = ScaffoldMessenger.of(context);
-    Navigator.pop(context);
+    if (!widget.onglet) Navigator.pop(context);
     messager.showSnackBar(
       SnackBar(
         content: Text(
@@ -376,6 +397,28 @@ class _PreparerScreenState extends State<PreparerScreen> {
   @override
   Widget build(BuildContext context) {
     final t = Teintes.de(context);
+    if (widget.onglet) {
+      return Scaffold(
+        body: SafeArea(
+          bottom: false,
+          child: !_charge ? const SizedBox() : _caser(context),
+        ),
+        bottomNavigationBar: _charge
+            ? Padding(
+                // Au-dessus de la barre d'onglets (déjà comptée dans le
+                // bas de l'écran).
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.paddingOf(context).bottom,
+                ),
+                child: MediaQuery.removePadding(
+                  context: context,
+                  removeBottom: true,
+                  child: _bas(context),
+                ),
+              )
+            : null,
+      );
+    }
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -485,12 +528,56 @@ class _PreparerScreenState extends State<PreparerScreen> {
       padding: const EdgeInsets.only(bottom: 24),
       children: [
         _titre(
-          'Quand ?',
+          widget.onglet ? 'Planifier demain' : 'Quand ?',
           aCaser.isEmpty
               ? 'Tout est casé. Appui long sur un bloc pour le déplacer.'
               : 'Appui long sur une chose, puis glisse-la sur une heure.',
         ),
-        if (aCaser.isNotEmpty)
+        // Dans l'onglet Planifier : toute la to-do sur deux lignes qui
+        // défilent de côté, pour laisser la place à la journée.
+        if (aCaser.isNotEmpty && widget.onglet) ...[
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final rang in [0, 1])
+                  Padding(
+                    padding: EdgeInsets.only(bottom: rang == 0 ? 8 : 0),
+                    child: Row(
+                      children: [
+                        for (final (i, a) in aCaser.indexed)
+                          if (i % 2 == rang)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: _Puce(
+                                key: ValueKey('acaser-${a.id}'),
+                                aFaire: a,
+                                onGlisse: _glisse,
+                                onFinGlisse: _finGlisse,
+                              ),
+                            ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 4, 20, 8),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: _casePourMoi,
+                style: TextButton.styleFrom(foregroundColor: t.accent),
+                icon: const Icon(Icons.auto_awesome_rounded, size: 18),
+                label: const Text('Caser pour moi'),
+              ),
+            ),
+          ),
+        ],
+        if (aCaser.isNotEmpty && !widget.onglet)
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
             child: Wrap(
@@ -541,7 +628,9 @@ class _PreparerScreenState extends State<PreparerScreen> {
 
   Widget _bas(BuildContext context) {
     final t = Teintes.de(context);
-    final contenu = _etape == 0 ? _jauge(context) : _boutonsCaser(context);
+    final contenu = _etape == 0 && !widget.onglet
+        ? _jauge(context)
+        : _boutonsCaser(context);
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF16161A),
@@ -636,7 +725,13 @@ class _PreparerScreenState extends State<PreparerScreen> {
         Expanded(
           child: FilledButton(
             onPressed: _termine,
-            child: const Text('Terminer'),
+            style: widget.onglet
+                ? FilledButton.styleFrom(
+                    backgroundColor: t.accent,
+                    foregroundColor: t.surAccent,
+                  )
+                : null,
+            child: Text(widget.onglet ? 'Transmettre' : 'Terminer'),
           ),
         ),
       ],
@@ -812,7 +907,9 @@ class _Puce extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Text(
-            dureeFr(aFaire.duree),
+            aFaire.heure == null
+                ? dureeFr(aFaire.duree)
+                : 'à ${heureFr(aFaire.heure!)} · ${dureeFr(aFaire.duree)}',
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,

@@ -21,6 +21,7 @@ import 'package:ouinon/screens/edition_tache_screen.dart';
 import 'package:ouinon/screens/edition_question_screen.dart';
 import 'package:ouinon/screens/fiche_question_screen.dart';
 import 'package:ouinon/screens/intro_screen.dart';
+import 'package:ouinon/theme/app_theme.dart';
 import 'package:ouinon/utils/deux_moi.dart';
 import 'package:ouinon/screens/rapport_screen.dart';
 import 'package:ouinon/screens/preparer_screen.dart';
@@ -102,6 +103,12 @@ void main() {
       const Creneau(texte: 'Enfants', debut: 17 * 60, fin: 23 * 60),
     );
   });
+
+  /// Le rôle actif : l'Exécutant.
+  Future<void> rolExecutant() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('role_actif', 'executant');
+  }
 
   Widget avecOnglets(Widget ecran, int index) => Scaffold(
     body: ecran,
@@ -277,7 +284,6 @@ void main() {
           await tester.enterText(find.byType(TextField).first, 'Papiers');
           await tester.tap(find.byKey(const ValueKey('duree-60')));
           await tester.tap(find.byKey(const ValueKey('important')));
-          await tester.tap(find.text('Cette semaine'));
           await tester.pumpAndSettle();
         },
       );
@@ -468,6 +474,7 @@ void main() {
     ('24-petit-executant', 360.0, 1.3),
   ]) {
     testWidgets('le jour, l\'Exécutant ($nom)', (tester) async {
+      await rolExecutant();
       await remplit(tester);
       await capture(
         tester,
@@ -481,18 +488,19 @@ void main() {
     });
   }
 
-  testWidgets('l\'ascenseur, le matin', (tester) async {
-    SharedPreferences.setMockInitialValues({
-      'bienvenue_vue': true,
-      'intro_deux_moi_vue': true,
-    });
+  testWidgets('l\'ascenseur, vers l\'Exécutant', (tester) async {
     await remplit(tester);
     await capture(
       tester,
       '25-ascenseur',
       AccueilScreen(maintenant: () => DateTime(2026, 10, 22, 12, 35)),
       ThemeMode.dark,
-      arret: const Duration(milliseconds: 1700),
+      avant: (tester) async {
+        await tester.tap(find.byKey(const ValueKey('ascenseur')));
+        for (var i = 0; i < 17; i++) {
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+      },
     );
   });
 
@@ -530,7 +538,7 @@ void main() {
     await remplit(tester);
     await capture(
       tester,
-      '27-soir',
+      '27-planifier',
       AccueilScreen(maintenant: () => DateTime(2026, 10, 22, 21, 45)),
       ThemeMode.dark,
       hauteur: 1000,
@@ -538,6 +546,18 @@ void main() {
         await tester.tap(find.byKey(const ValueKey('onglet-1')));
         await tester.pumpAndSettle();
       },
+    );
+  });
+
+  testWidgets('le formulaire d\'une chose', (tester) async {
+    await capture(
+      tester,
+      '30-formulaire',
+      Theme(
+        data: AppTheme.soir(),
+        child: EditionAFaireScreen(base: base),
+      ),
+      ThemeMode.dark,
     );
   });
 }

@@ -45,30 +45,23 @@ class _AccueilScreenState extends State<AccueilScreen>
 
   Base? _base;
   Object? _erreur;
-  // Les onglets, dans l'ordre du chemin (Paul, 26/10/2026) : on liste,
-  // on fait, on regarde.
+  // Deux rôles séparés (Paul, 26/10/2026). Le Décideur a ses onglets :
+  // on liste, on planifie, on regarde. L'Exécutant a sa journée.
   static const _todo = 0;
-  static const _aujourdhui = 1;
+  static const _planifier = 1;
 
+  /// L'onglet du Décideur.
   int _onglet = _todo;
-
-  /// L'onglet de départ est posé une fois, à l'ouverture ; ensuite, c'est
-  /// celui qu'on choisit.
-  bool _ongletPose = false;
   Timer? _attente;
 
   /// Les deux toi sont actifs (intro vue).
   bool _actifs = false;
 
-  /// Le toi suit l'onglet (Paul, 26/10/2026) : Aujourd'hui, l'Exécutant ;
-  /// To-do et Stats, le Décideur.
-  static Moi _moiDe(int onglet, bool actifs) => !actifs
-      ? Moi.repos
-      : onglet == _aujourdhui
-      ? Moi.executant
-      : Moi.decideur;
+  /// Le rôle actif, gardé d'une ouverture à l'autre ; on en change par
+  /// l'ascenseur.
+  Moi _role = Moi.decideur;
 
-  Moi get _moi => _moiDe(_onglet, _actifs);
+  Moi get _moi => _actifs ? _role : Moi.repos;
 
   @override
   void initState() {
@@ -110,69 +103,43 @@ class _AccueilScreenState extends State<AccueilScreen>
     _base?.signaleChangement();
   }
 
-  /// À l'ouverture : l'onglet de départ suit l'heure (pendant la journée,
-  /// Aujourd'hui ; sinon, la To-do), avec l'ascenseur au premier passage
-  /// de la journée.
+  /// À l'ouverture : le rôle qu'on avait en partant.
   Future<void> _premierOnglet() async {
     final actifs = await DeuxMoi.actifs();
+    final role = await DeuxMoi.role();
     if (!mounted) return;
-    final jour = await Preferences.journee();
-    if (!mounted) return;
-    final now = widget.maintenant();
-    final m = now.hour * 60 + now.minute;
-    final onglet = actifs && dansPlage(m, jour) ? _aujourdhui : _todo;
-    setState(() => _actifs = actifs);
-    if (!_ongletPose) await _vaVers(onglet);
+    setState(() {
+      _actifs = actifs;
+      _role = role;
+    });
   }
 
-  /// Toute arrivée d'ascenseur (fin de service, « Modifier ma journée »)
-  /// met l'onglet du toi d'arrivée : la To-do chez le Décideur, Aujourd'hui
-  /// chez l'Exécutant.
+  /// Toute arrivée d'ascenseur (bouton Ascenseur, fin de service) met le
+  /// rôle d'arrivée.
   void _arrivee() {
     if (!_actifs || !mounted) return;
-    final versLeSoir = arriveeAscenseur.value.versLeSoir;
-    unawaited(
-      DeuxMoi.marquePassage(
-        jourDe(widget.maintenant()),
-        versLeSoir: versLeSoir,
-      ),
-    );
-    final onglet = versLeSoir ? _todo : _aujourdhui;
-    if ((_moi == Moi.decideur) != versLeSoir) {
+    final role = arriveeAscenseur.value.versLeSoir
+        ? Moi.decideur
+        : Moi.executant;
+    if (role != _role) {
       setState(() {
-        _onglet = onglet;
-        _ongletPose = true;
+        _role = role;
+        _onglet = _todo;
       });
     }
+    unawaited(DeuxMoi.changeRole(role));
   }
 
-  /// Change d'onglet ; si le toi change et que c'est la première fois de
-  /// la journée dans ce sens, en ascenseur (le nouvel onglet apparaît
-  /// portes fermées).
-  Future<void> _vaVers(int onglet) async {
-    final avant = _ongletPose ? _moi : null;
-    final apres = _moiDe(onglet, _actifs);
-    final jour = jourDe(widget.maintenant());
-    final versLeSoir = apres == Moi.decideur;
-    if (!_actifs ||
-        apres == avant ||
-        await DeuxMoi.passageVu(jour, versLeSoir: versLeSoir)) {
-      if (mounted) {
-        setState(() {
-          _onglet = onglet;
-          _ongletPose = true;
-        });
-      }
-      return;
-    }
-    await DeuxMoi.marquePassage(jour, versLeSoir: versLeSoir);
-    if (!mounted) return;
+  /// Le bouton Ascenseur : on passe à l'autre rôle (les portes se ferment
+  /// sur l'un, s'ouvrent sur l'autre).
+  Future<void> _ascenseur() async {
+    final vers = _role == Moi.decideur ? Moi.executant : Moi.decideur;
     await PassageScreen.joue(
       context,
-      versLeSoir: versLeSoir,
+      versLeSoir: vers == Moi.decideur,
       auMilieu: () => setState(() {
-        _onglet = onglet;
-        _ongletPose = true;
+        _role = vers;
+        _onglet = _todo;
       }),
     );
   }
@@ -196,20 +163,12 @@ class _AccueilScreenState extends State<AccueilScreen>
     }
     if (ouverture != Notifications.preparer) return;
     Notifications.instance.ouverture.value = null;
-    setState(() => _onglet = _todo);
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => Theme(
-          data: AppTheme.soir(),
-          child: PreparerScreen(
-            base: base,
-            jour: ajouteJours(jourDe(widget.maintenant()), 1),
-            maintenant: widget.maintenant,
-          ),
-        ),
-      ),
-    );
+    // Le rappel du soir : chez le Décideur, sur Planifier.
+    setState(() {
+      _role = Moi.decideur;
+      _onglet = _planifier;
+    });
+    unawaited(DeuxMoi.changeRole(Moi.decideur));
   }
 
   /// Plusieurs changements d'affilée : une seule reprogrammation.
@@ -254,16 +213,15 @@ class _AccueilScreenState extends State<AccueilScreen>
     }
     // Puis l'ascenseur monte chez le Décideur, sur sa to-do : il n'y a
     // encore rien à exécuter.
-    final aujourdhui = jourDe(widget.maintenant());
-    await DeuxMoi.marquePassage(aujourdhui, versLeSoir: true);
+    await DeuxMoi.changeRole(Moi.decideur);
     if (!mounted) return;
     await PassageScreen.joue(
       context,
       versLeSoir: true,
       auMilieu: () => setState(() {
         _actifs = true;
+        _role = Moi.decideur;
         _onglet = _todo;
-        _ongletPose = true;
       }),
     );
   }
@@ -328,29 +286,47 @@ class _AccueilScreenState extends State<AccueilScreen>
         ),
       );
     }
-    final executant = _moi == Moi.executant && _onglet == _aujourdhui;
+    final executant = _moi == Moi.executant;
+    final demain = ajouteJours(jourDe(widget.maintenant()), 1);
     final ecran = Scaffold(
       body: IndexedStack(
-        index: _onglet,
+        // Les écrans des deux rôles restent tous dans l'arbre : passer de
+        // l'un à l'autre ne fait rien perdre.
+        index: executant ? 3 : _onglet,
         children: [
           TodoScreen(
             base: base,
-            moi: _moiDe(_todo, _actifs),
+            moi: _actifs ? Moi.decideur : Moi.repos,
             maintenant: widget.maintenant,
           ),
-          AujourdhuiScreen(
+          PreparerScreen(
+            key: ValueKey('planifier-${cleJour(demain)}'),
             base: base,
-            moi: _moiDe(_aujourdhui, _actifs),
+            jour: demain,
             maintenant: widget.maintenant,
+            onglet: true,
           ),
           StatsScreen(base: base),
+          AujourdhuiScreen(
+            base: base,
+            moi: _actifs ? Moi.executant : Moi.repos,
+            maintenant: widget.maintenant,
+          ),
         ],
       ),
       extendBody: true,
       bottomNavigationBar: BarreOnglets(
-        index: _onglet,
-        libelles: const ['To-do', 'Aujourd\'hui', 'Stats'],
-        onChoix: _vaVers,
+        index: executant ? 0 : _onglet,
+        libelles: executant
+            ? const ['Ma journée']
+            : const ['To-do', 'Planifier', 'Stats'],
+        onChoix: (i) {
+          if (!executant) setState(() => _onglet = i);
+        },
+        // L'ascenseur, toujours au même endroit, bien visible.
+        ascenseur: _actifs
+            ? BoutonAscenseur(versLeSoir: executant, onTap: _ascenseur)
+            : null,
       ),
     );
     // Même arbre dans tous les modes : changer de toi ou d'onglet ne fait

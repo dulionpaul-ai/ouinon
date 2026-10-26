@@ -15,18 +15,15 @@ import '../widgets/retro.dart';
 import '../widgets/qui_est_la.dart';
 import '../widgets/rond.dart';
 import 'edition_a_faire_screen.dart';
-import 'preparer_screen.dart';
 import 'rapport_screen.dart';
 import 'reglages_screen.dart';
 
-/// La to-do (revue du 25/10/2026, refaite avec Paul le 26/10/2026) : en
-/// haut, « Ajouter… » (« Papiers 1 h ») avec Important et Urgent ; en
-/// dessous, « Ma to-do » dans les 4 cases d'Eisenhower, toujours toutes
-/// visibles (chaque case défile seule si elle est pleine) ; en bas,
-/// « Préparer demain ». Le soir, c'est l'écran du Décideur : à
-/// l'arrivée de l'ascenseur, « Bonjour, Décideur. » d'abord, le reste
-/// ensuite. Une chose n'a pas d'heure ici : elle en prend une quand on la
-/// case dans une journée.
+/// La to-do du Décideur (refaite avec Paul le 26/10/2026) : en haut,
+/// « Ajouter », qui ouvre le formulaire d'une page ; en dessous, les 4
+/// cases d'Eisenhower, toujours toutes visibles (chaque case défile seule
+/// si elle est pleine). On planifie ensuite dans l'onglet « Planifier ».
+/// À l'arrivée de l'ascenseur, « Bonjour, Décideur. » d'abord, le reste
+/// ensuite.
 class TodoScreen extends StatefulWidget {
   final Base base;
 
@@ -50,11 +47,6 @@ class TodoScreen extends StatefulWidget {
 class _TodoScreenState extends State<TodoScreen> {
   List<AFaire> _liste = const [];
   Map<int, Tache> _casees = const {};
-  int _demainCasees = 0;
-  final _saisie = TextEditingController();
-  final _focus = FocusNode();
-  bool _important = false;
-  bool _urgent = false;
 
   /// Arrivé par l'ascenseur chez le Décideur : « Bonjour, Décideur. »
   /// jusqu'à la première chose ajoutée.
@@ -74,8 +66,6 @@ class _TodoScreenState extends State<TodoScreen> {
   void dispose() {
     widget.base.changements.removeListener(_recharge);
     arriveeAscenseur.removeListener(_arrive);
-    _saisie.dispose();
-    _focus.dispose();
     super.dispose();
   }
 
@@ -86,7 +76,6 @@ class _TodoScreenState extends State<TodoScreen> {
   Future<void> _recharge() async {
     final liste = await widget.base.liste();
     final casees = await widget.base.placees(_aujourdhui);
-    final demain = await widget.base.tachesDu(ajouteJours(_aujourdhui, 1));
     final duJour = await widget.base.tachesDu(_aujourdhui);
     final motSoir = await DeuxMoi.motDuJour(_aujourdhui);
     final journee = await Preferences.journee();
@@ -95,7 +84,6 @@ class _TodoScreenState extends State<TodoScreen> {
     setState(() {
       _liste = liste;
       _casees = casees;
-      _demainCasees = demain.length;
       // Ce que l'Exécutant remonte : après sa journée, ou s'il a laissé
       // un mot.
       _remonte =
@@ -117,27 +105,6 @@ class _TodoScreenState extends State<TodoScreen> {
     ),
   );
 
-  Future<void> _ajoute() async {
-    final lu = lisAjout(_saisie.text);
-    if (lu.texte.isEmpty) return;
-    await widget.base.enregistreAFaire(
-      AFaire(
-        texte: lu.texte,
-        duree: lu.duree ?? 30,
-        important: _important,
-        urgent: _urgent,
-        creeLe: _aujourdhui,
-      ),
-    );
-    _saisie.clear();
-    setState(() {
-      _important = false;
-      _urgent = false;
-      _bonjour = false;
-    });
-    _focus.requestFocus();
-  }
-
   Future<void> _faite(AFaire a) async {
     await widget.base.marqueFaite(a.id!, _aujourdhui);
     if (!mounted) return;
@@ -152,6 +119,20 @@ class _TodoScreenState extends State<TodoScreen> {
     );
   }
 
+  /// « Ajouter » : le formulaire d'une page.
+  void _nouvelle() {
+    setState(() => _bonjour = false);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EditionAFaireScreen(
+          base: widget.base,
+          maintenant: widget.maintenant,
+        ),
+      ),
+    );
+  }
+
   void _ouvre(AFaire a) => Navigator.push(
     context,
     MaterialPageRoute(
@@ -159,20 +140,6 @@ class _TodoScreenState extends State<TodoScreen> {
         base: widget.base,
         aFaire: a,
         maintenant: widget.maintenant,
-      ),
-    ),
-  );
-
-  void _prepare() => Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => Theme(
-        data: AppTheme.soir(),
-        child: PreparerScreen(
-          base: widget.base,
-          jour: ajouteJours(_aujourdhui, 1),
-          maintenant: widget.maintenant,
-        ),
       ),
     ),
   );
@@ -273,26 +240,18 @@ class _TodoScreenState extends State<TodoScreen> {
             ),
           ),
         const SizedBox(height: 14),
-        Arrivee(rang: 2, child: _barreAjout(t)),
-        const SizedBox(height: 10),
         Arrivee(
-          rang: 3,
-          child: Row(
-            children: [
-              _Bascule(
-                texte: 'Important',
-                couleur: t.accent,
-                actif: _important,
-                onTap: () => setState(() => _important = !_important),
-              ),
-              const SizedBox(width: 18),
-              _Bascule(
-                texte: 'Urgent',
-                couleur: t.moinsBonne,
-                actif: _urgent,
-                onTap: () => setState(() => _urgent = !_urgent),
-              ),
-            ],
+          rang: 2,
+          child: FilledButton.icon(
+            key: const ValueKey('ajouter'),
+            onPressed: _nouvelle,
+            style: FilledButton.styleFrom(
+              backgroundColor: t.accent,
+              foregroundColor: t.surAccent,
+              minimumSize: const Size.fromHeight(50),
+            ),
+            icon: const Icon(Icons.add_rounded),
+            label: const Text('Ajouter'),
           ),
         ),
         const SizedBox(height: 18),
@@ -308,26 +267,6 @@ class _TodoScreenState extends State<TodoScreen> {
             ),
           ),
         ),
-        if (liste.isNotEmpty || _demainCasees > 0) ...[
-          const SizedBox(height: 10),
-          Arrivee(
-            rang: 6,
-            child: FilledButton(
-              onPressed: _prepare,
-              style: FilledButton.styleFrom(
-                backgroundColor: t.accent,
-                foregroundColor: t.surAccent,
-                minimumSize: const Size.fromHeight(52),
-              ),
-              child: Text(
-                _demainCasees == 0
-                    ? 'Préparer demain'
-                    : 'Demain : $_demainCasees chose'
-                          '${_demainCasees > 1 ? 's' : ''} · modifier',
-              ),
-            ),
-          ),
-        ],
       ],
     );
     return Scaffold(
@@ -350,109 +289,6 @@ class _TodoScreenState extends State<TodoScreen> {
               ),
             );
           },
-        ),
-      ),
-    );
-  }
-
-  Widget _barreAjout(Teintes t) => Container(
-    height: 52,
-    padding: const EdgeInsets.fromLTRB(18, 0, 5, 0),
-    decoration: BoxDecoration(
-      color: t.carte,
-      borderRadius: BorderRadius.circular(t.rayon),
-    ),
-    child: Row(
-      children: [
-        Expanded(
-          child: TextField(
-            key: const ValueKey('ajout'),
-            controller: _saisie,
-            focusNode: _focus,
-            textCapitalization: TextCapitalization.sentences,
-            textInputAction: TextInputAction.done,
-            onSubmitted: (_) => _ajoute(),
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            decoration: const InputDecoration(
-              hintText: 'Ajouter… (ex. Papiers 1 h)',
-              border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
-              filled: false,
-              isDense: true,
-              contentPadding: EdgeInsets.zero,
-            ),
-          ),
-        ),
-        IconButton(
-          tooltip: 'Ajouter',
-          onPressed: _ajoute,
-          style: IconButton.styleFrom(
-            backgroundColor: t.accent,
-            foregroundColor: t.surAccent,
-            fixedSize: const Size(42, 42),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(t.rayon - 4),
-            ),
-          ),
-          icon: const Icon(Icons.add_rounded),
-        ),
-      ],
-    ),
-  );
-}
-
-/// Important ou Urgent, à cocher avant d'ajouter : un rond vide ou
-/// plein et le mot, sans cadre (style « tableau », 26/10/2026).
-class _Bascule extends StatelessWidget {
-  final String texte;
-  final Color couleur;
-  final bool actif;
-  final VoidCallback onTap;
-
-  const _Bascule({
-    required this.texte,
-    required this.couleur,
-    required this.actif,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final t = Teintes.de(context);
-    final c = actif ? couleur : t.doux;
-    return Semantics(
-      button: true,
-      toggled: actif,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(6),
-        child: SizedBox(
-          height: 36,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 150),
-                width: 11,
-                height: 11,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: actif ? couleur : Colors.transparent,
-                  border: Border.all(color: c, width: 1.6),
-                ),
-              ),
-              const SizedBox(width: 7),
-              Text(
-                texte,
-                style: TextStyle(
-                  color: c,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

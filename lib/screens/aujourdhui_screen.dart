@@ -19,8 +19,6 @@ import '../widgets/qui_est_la.dart';
 import '../widgets/retro.dart';
 import '../widgets/rond.dart';
 import 'edition_tache_screen.dart';
-import 'passage_screen.dart';
-import 'preparer_screen.dart';
 import 'rapport_screen.dart';
 import 'reglages_screen.dart';
 
@@ -201,23 +199,18 @@ class _PageJourState extends State<_PageJour> {
   /// Questions dont on a rouvert les boutons après avoir répondu.
   final _rouvertes = <int>{};
 
-  /// Préparer (ou modifier) une journée : c'est le travail du Décideur.
-  /// Chez l'Exécutant, on y monte en ascenseur (répartition du 26/10/2026).
-  void _prepare({int dans = 0}) {
-    final ecran = Theme(
-      data: AppTheme.soir(),
-      child: PreparerScreen(
+  /// L'Exécutant peut retoucher sa journée (Paul, 26/10/2026) : ajouter
+  /// une chose ; changer une heure se fait en touchant la chose.
+  void _ajoute() => Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => EditionTacheScreen(
         base: widget.base,
-        jour: ajouteJours(_jour, dans),
+        jour: _jour,
         maintenant: widget.maintenant,
       ),
-    );
-    if (widget.moi == Moi.executant) {
-      PassageScreen.joue(context, versLeSoir: true, destination: ecran);
-    } else {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => ecran));
-    }
-  }
+    ),
+  );
 
   void _rapport() => Navigator.push(
     context,
@@ -400,9 +393,11 @@ class _PageJourState extends State<_PageJour> {
                     ),
                   ),
                   if (aVenir)
-                    TextButton(
-                      onPressed: _prepare,
-                      child: Text(lignes.isEmpty ? 'Préparer' : 'Modifier'),
+                    TextButton.icon(
+                      key: const ValueKey('ajouter-journee'),
+                      onPressed: _ajoute,
+                      icon: const Icon(Icons.add_rounded, size: 18),
+                      label: const Text('Ajouter'),
                     ),
                 ],
               ),

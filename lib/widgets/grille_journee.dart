@@ -393,9 +393,11 @@ class _BlocTacheGrille extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Teintes.de(context);
-    // Une seule couleur pour la to-do (citron), blanc pour un rendez-vous.
-    final fond = tache.imperatif ? t.texte : t.accent;
-    final texte = t.fond;
+    // Translucide (Paul, 26/10/2026) : la couleur du toi (orange chez le
+    // Décideur) pour la to-do, blanc pour un rendez-vous.
+    final couleur = tache.imperatif ? t.texte : t.accent;
+    final fond = couleur.withValues(alpha: 0.24);
+    final texte = t.texte;
     final plage =
         '${heureFr(tache.debut)} – ${heureFr((tache.debut + duree) % (24 * 60))}';
     final serre = hauteur < 44;
@@ -404,7 +406,8 @@ class _BlocTacheGrille extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: fond,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(t.rayon / 2 + 2),
+          border: Border(left: BorderSide(color: couleur, width: 3)),
         ),
         padding: EdgeInsets.fromLTRB(12, serre ? 2 : 7, 10, 2),
         child: Row(

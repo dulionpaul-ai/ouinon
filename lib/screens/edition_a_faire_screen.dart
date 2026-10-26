@@ -9,9 +9,10 @@ import '../utils/jour.dart';
 import '../utils/planning.dart';
 import '../widgets/rond.dart';
 
-/// Ajout ou modification d'une chose de la liste « À faire » : quoi,
-/// combien de temps, « Important ? », « Urgent ? » et une date limite
-/// facultative (qui rend urgent quand elle approche).
+/// Ajout ou modification d'une chose de la to-do, sur une seule page
+/// (demande de Paul du 26/10/2026) : titre, durée, Important / Urgent et
+/// une heure imposée facultative. (Une date limite déjà donnée est gardée
+/// telle quelle.)
 class EditionAFaireScreen extends StatefulWidget {
   final Base base;
 
@@ -38,6 +39,7 @@ class _EditionAFaireScreenState extends State<EditionAFaireScreen> {
   late bool _important;
   late bool _urgent;
   DateTime? _echeance;
+  int? _heure;
   String? _erreur;
 
   bool get _nouvelle => widget.aFaire == null;
@@ -52,6 +54,7 @@ class _EditionAFaireScreenState extends State<EditionAFaireScreen> {
     _important = a?.important ?? false;
     _urgent = a?.urgent ?? false;
     _echeance = a?.echeance;
+    _heure = a?.heure;
   }
 
   @override
@@ -67,6 +70,7 @@ class _EditionAFaireScreenState extends State<EditionAFaireScreen> {
         important: _important,
         urgent: _urgent,
         echeance: () => _echeance,
+        heure: () => _heure,
       );
 
   Future<void> _enregistre() async {
@@ -106,36 +110,36 @@ class _EditionAFaireScreenState extends State<EditionAFaireScreen> {
     if (mounted) Navigator.pop(context);
   }
 
-  Future<void> _choisitDate() async {
-    final date = await showDatePicker(
+  /// Cadran d'heure (sans clavier, 24 h).
+  Future<void> _choisitHeure() async {
+    final depart = _heure ?? 9 * 60;
+    final choisie = await showTimePicker(
       context: context,
-      initialDate: _echeance ?? ajouteJours(_aujourdhui, 7),
-      firstDate: _aujourdhui,
-      lastDate: ajouteJours(_aujourdhui, 365),
+      helpText: 'À quelle heure ?',
+      initialEntryMode: TimePickerEntryMode.dialOnly,
+      initialTime: TimeOfDay(hour: depart ~/ 60, minute: depart % 60),
+      builder: (context, enfant) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+        child: enfant!,
+      ),
     );
-    if (date != null && mounted) setState(() => _echeance = jourDe(date));
+    if (choisie != null && mounted) {
+      setState(() => _heure = choisie.hour * 60 + choisie.minute);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final t = Teintes.de(context);
     final theme = Theme.of(context);
-    final doux = TextStyle(color: t.doux, height: 1.35);
     final brouillon = _brouillon;
-    final dimanche = ajouteJours(_aujourdhui, 7 - _aujourdhui.weekday);
-    final demain = ajouteJours(_aujourdhui, 1);
     Widget titre(String texte) => Padding(
       padding: const EdgeInsets.fromLTRB(6, 22, 6, 10),
       child: Text(texte, style: theme.textTheme.titleMedium),
     );
-    String? devientUrgent;
-    if (_echeance != null && !brouillon.urgentLe(_aujourdhui)) {
-      final le = ajouteJours(_echeance!, -AFaire.joursUrgence);
-      devientUrgent = 'Devient urgent le ${dateCourte(le).toLowerCase()}';
-    }
     return Scaffold(
       appBar: AppBar(
-        title: Text(_nouvelle ? 'À faire' : 'Modifier'),
+        title: Text(_nouvelle ? 'Ajouter' : 'Modifier'),
         actions: [
           if (!_nouvelle)
             IconButton(
@@ -170,7 +174,7 @@ class _EditionAFaireScreenState extends State<EditionAFaireScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(14, 0, 14, 24),
         children: [
-          titre('Quoi'),
+          titre('Titre'),
           TextField(
             controller: _texte,
             autofocus: _nouvelle,
@@ -188,7 +192,7 @@ class _EditionAFaireScreenState extends State<EditionAFaireScreen> {
               padding: const EdgeInsets.fromLTRB(6, 8, 6, 0),
               child: Text(_erreur!, style: TextStyle(color: t.moinsBonne)),
             ),
-          titre('Combien de temps'),
+          titre('Durée'),
           Wrap(
             spacing: 6,
             runSpacing: 6,
@@ -228,54 +232,34 @@ class _EditionAFaireScreenState extends State<EditionAFaireScreen> {
               ),
             ],
           ),
-          titre('Date limite'),
+          titre('Heure imposée'),
           Wrap(
             spacing: 6,
             runSpacing: 6,
             children: [
               PiluleChoix(
                 'Aucune',
-                choisie: _echeance == null,
-                onTap: () => setState(() => _echeance = null),
+                key: const ValueKey('heure-aucune'),
+                choisie: _heure == null,
+                onTap: () => setState(() => _heure = null),
               ),
               PiluleChoix(
-                'Demain',
-                choisie: _echeance == demain,
-                onTap: () => setState(() => _echeance = demain),
-              ),
-              if (dimanche != demain)
-                PiluleChoix(
-                  'Cette semaine',
-                  choisie: _echeance == dimanche,
-                  onTap: () => setState(() => _echeance = dimanche),
-                ),
-              PiluleChoix(
-                _echeance != null &&
-                        _echeance != demain &&
-                        _echeance != dimanche
-                    ? dateCourte(_echeance!)
-                    : 'Choisir…',
-                choisie:
-                    _echeance != null &&
-                    _echeance != demain &&
-                    _echeance != dimanche,
-                onTap: _choisitDate,
+                _heure == null ? 'Choisir…' : 'À ${heureFr(_heure!)}',
+                key: const ValueKey('heure-choisir'),
+                choisie: _heure != null,
+                onTap: _choisitHeure,
               ),
             ],
           ),
-          if (!_urgent && brouillon.urgentLe(_aujourdhui))
-            Padding(
-              padding: const EdgeInsets.fromLTRB(6, 10, 6, 0),
-              child: Text('Urgent : la date limite est proche.', style: doux),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(6, 10, 6, 0),
+            child: Text(
+              _heure == null
+                  ? 'Tu la caseras où tu veux en planifiant.'
+                  : 'En planifiant, elle se pose à ${heureFr(_heure!)}.',
+              style: TextStyle(color: t.doux, height: 1.35),
             ),
-          if (devientUrgent != null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(6, 10, 6, 0),
-              child: Text(
-                devientUrgent.endsWith('.') ? devientUrgent : '$devientUrgent.',
-                style: doux,
-              ),
-            ),
+          ),
         ],
       ),
     );

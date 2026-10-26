@@ -27,7 +27,7 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 | `widgets/calendrier_jour.dart` | La journée de l'Exécutant en calendrier : heures régulières, cases transparentes, créneaux hachurés, trait de l'heure. |
 | `screens/rapport_screen.dart` | Compte rendu de fin de journée (rétro, `AppTheme.retro`), mot pour le soir, « Fin de service » (ascenseur vers le Décideur, le compte rendu part portes fermées). |
 | `widgets/retro.dart` | Briques rétro : fond à lignes de balayage, curseur (`Curseur.clignote` coupé dans les tests), bouton rectangulaire, barre « [████░░] », heures « 09:05 ». |
-| `data/base.dart` | Base `ouinon.sqlite` (version 4 : colonne `choisie_pour` de `liste` et table `creneaux`) : tables `questions` (rendues dans l'ordre de la journée : heure, puis création), `reponses` (une réponse par question et par jour, effacée avec sa question), `planning` (version 2 ; colonnes `liste_id` et `quadrant` en version 3) et `liste` (version 3), par mise à jour de la base. « Fait » sur une chose tirée de la liste la marque faite dans la liste (`repondTache`) ; `placees` dit ce qui est déjà placé. Reporter une chose (`reporteTache`), raccourcis (`habitudes`). Changement du nombre de réponses avec conversion de l'historique (`enregistreAvecNombre`). |
+| `data/base.dart` | Base `ouinon.sqlite` (version 5 : colonne `heure` de `liste`, l'heure imposée ; version 4 : colonne `choisie_pour` et table `creneaux`) : tables `questions` (rendues dans l'ordre de la journée : heure, puis création), `reponses` (une réponse par question et par jour, effacée avec sa question), `planning` (version 2 ; colonnes `liste_id` et `quadrant` en version 3) et `liste` (version 3), par mise à jour de la base. « Fait » sur une chose tirée de la liste la marque faite dans la liste (`repondTache`) ; `placees` dit ce qui est déjà placé. Reporter une chose (`reporteTache`), raccourcis (`habitudes`). Changement du nombre de réponses avec conversion de l'historique (`enregistreAvecNombre`). |
 | `data/preferences.dart` | Choix gardés sur le téléphone : bilan du dimanche, rappel du soir et son heure (activés par défaut, 21 h 30), heures de la journée (8 h – 20 h), notifications du planning (début et fin par défaut). `DeuxMoi` : intro vue (= modes actifs), fin du soir (23 h), mots (`mot_2026-10-23` pour le toi du jour, `mot_soir_…` pour le soir), ascenseur du matin déjà joué. |
 | `data/suggestions.dart` | Suggestions de réponses de l'écran Nouvelle question (« Oui / Non », « Bien / Moyen / Pas bien » au départ), créées, modifiées ou supprimées par la personne, gardées dans les préférences du téléphone. |
 | `data/notifications.dart` | Programmation des notifications (questions, choses prévues, rappel du soir, bilan), boutons, réponse depuis la notification (`reponseNotifArrierePlan`). |
@@ -243,21 +243,21 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 
 ## Les deux toi (26/10/2026)
 
-- **Qui est là : le toi suit l'onglet** (Paul, 26/10/2026, à la place
-  des plages horaires et de l'anneau) : To-do et Stats, le Décideur
-  (ambre) ; Aujourd'hui, l'Exécutant (terminal sobre). Changer d'onglet
-  fait changer de toi ; au premier passage de la journée dans un sens,
-  en ascenseur (`DeuxMoi.passageVu` / `marquePassage` : `reveil_vu`
-  vers l'Exécutant, `retour_vu` vers le Décideur). À l'ouverture,
-  l'onglet suit l'heure : pendant la journée (Réglages, 8 h – 20 h),
-  Aujourd'hui ; sinon la To-do. `Moi.repos` : avant l'intro seulement.
-  Toute arrivée d'ascenseur (fin de service, « Modifier ») met l'onglet
-  du toi d'arrivée.
-- **Zones grises** : chez l'Exécutant, « Modifier » (sa journée) monte
-  chez le Décideur en ascenseur et s'ouvre sur Préparer
-  (`PassageScreen.joue(destination:)`). Le compte rendu remonté
-  (score, mot) se lit dans la To-do du Décideur (après la journée, ou
-  s'il y a un mot). Les Réglages sont accessibles des deux côtés.
+- **Deux rôles séparés** (Paul, 26/10/2026) : le **Décideur** a trois
+  onglets : To-do (bouton « Ajouter » → formulaire d'une page : titre,
+  durée, Important / Urgent, heure imposée ; les 4 cases ; le compte
+  rendu remonté), Planifier (`PreparerScreen(onglet: true)` : toute la
+  to-do sur deux lignes qui défilent, la journée de demain dessous, on
+  glisse ; blocs translucides ; une heure imposée place la chose à son
+  heure ; « Caser pour moi » ; « Transmettre » avec un mot) et Stats.
+  L'**Exécutant** a « Ma journée » (Aujourd'hui) : il peut ajouter une
+  chose (« Ajouter ») et changer une heure (toucher la chose). On passe
+  de l'un à l'autre par le bouton **Ascenseur** (`BoutonAscenseur`, à
+  droite de la barre du bas) ; le rôle actif est gardé (`DeuxMoi.role`
+  / `changeRole`, clé `role_actif`). Toute arrivée d'ascenseur (bouton,
+  fin de service) met le rôle d'arrivée. Le rappel du soir ouvre
+  Planifier chez le Décideur. `Moi.repos` : avant l'intro seulement.
+  Pas encore de barrière entre les rôles (voir `docs/idees.md`).
 - **Le jour** (revu le 26/10/2026, le terminal était trop chargé) :
   l'onglet Aujourd'hui seul devient l'écran de l'Exécutant, thème
   `AppTheme.jour` (style habituel, accent bleu-vert ; même arbre de
@@ -266,10 +266,8 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
   en cours ou la prochaine en grand avec Pas fait · Reporter · Fait, les
   questions, puis la journée en calendrier (`CalendrierJour`) et
   « Compte rendu de la journée ».
-- **Le soir** : accent ambre partout ; en haut d'Aujourd'hui, le score
-  du jour et le mot remonté, puis « Préparer demain ». Préparer s'ouvre
-  toujours en ambre. Préparer demain (pour un jour à venir) finit par le
-  mot pour demain, puis « Transmis à l'Exécutant ».
+- **Le Décideur** : accent ambre partout. « Transmettre » (Planifier)
+  demande un mot pour demain, puis « Transmis à l'Exécutant ».
 - **To-do du Décideur** : « Bonjour, Décideur. » à l'arrivée de
   l'ascenseur et tant que la to-do est vide (avec « Ici, tu ne fais
   rien : tu décides… »), sinon « To-do ».

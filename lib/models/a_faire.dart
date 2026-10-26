@@ -30,6 +30,10 @@ class AFaire {
   /// Choisie pour ce jour-là (dans le bac « À placer » de ce jour).
   final DateTime? choisiePour;
 
+  /// Heure imposée (minutes depuis minuit), facultative : posée dans la
+  /// journée, elle va à cette heure-là (formulaire du 26/10/2026).
+  final int? heure;
+
   /// Inventée par « Ajouter 6 mois de test » (effaçable d'un coup).
   final bool test;
 
@@ -46,6 +50,7 @@ class AFaire {
     required this.creeLe,
     this.faiteLe,
     this.choisiePour,
+    this.heure,
     this.test = false,
   });
 
@@ -69,6 +74,7 @@ class AFaire {
     DateTime? Function()? echeance,
     DateTime? Function()? faiteLe,
     DateTime? Function()? choisiePour,
+    int? Function()? heure,
   }) => AFaire(
     id: id ?? this.id,
     texte: texte ?? this.texte,
@@ -79,6 +85,7 @@ class AFaire {
     creeLe: creeLe,
     faiteLe: faiteLe == null ? this.faiteLe : faiteLe(),
     choisiePour: choisiePour == null ? this.choisiePour : choisiePour(),
+    heure: heure == null ? this.heure : heure(),
     test: test,
   );
 
@@ -92,6 +99,7 @@ class AFaire {
     'cree_le': cleJour(creeLe),
     'faite_le': faiteLe == null ? null : cleJour(faiteLe!),
     'choisie_pour': choisiePour == null ? null : cleJour(choisiePour!),
+    'heure': heure,
     'test': test ? 1 : 0,
   };
 
@@ -114,6 +122,7 @@ class AFaire {
       final String c => jourDepuisCle(c),
       _ => null,
     },
+    heure: l['heure'] as int?,
     test: (l['test'] as int) == 1,
   );
 }

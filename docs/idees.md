@@ -66,6 +66,12 @@ compte rendu), mais sans réponse ni historique. À prévoir :
   notifications, Aujourd'hui, stats : aucune · une sur deux · les deux,
   détail par question, calendrier à cases coupées en deux).
 
+## Les rôles
+
+- De vraies barrières entre le Décideur et l'Exécutant (Paul,
+  26/10/2026, « dans un second temps ») : pour l'instant on passe
+  librement de l'un à l'autre et l'Exécutant peut retoucher sa journée.
+
 ## Ailleurs dans l'appli
 
 Repris de `docs/plan_action.md` (critique du 23/10/2026) : sauvegarde

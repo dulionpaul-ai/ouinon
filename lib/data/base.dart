@@ -19,7 +19,7 @@ import '../utils/stats.dart';
 class Base {
   /// 2 : planning ; 3 : liste « À faire » ; 4 : choisies pour un jour et
   /// créneaux fixes (24/10/2026).
-  static const version = 4;
+  static const version = 5;
 
   final Database db;
 
@@ -87,6 +87,9 @@ class Base {
             await db.execute('ALTER TABLE liste ADD COLUMN choisie_pour TEXT');
           }
           if (ancienne < 4) await _creeCreneaux(db);
+          if (ancienne >= 3 && ancienne < 5) {
+            await db.execute('ALTER TABLE liste ADD COLUMN heure INTEGER');
+          }
         },
         singleInstance: instanceUnique,
       ),
@@ -152,7 +155,8 @@ class Base {
         cree_le TEXT NOT NULL,
         faite_le TEXT,
         test INTEGER NOT NULL DEFAULT 0,
-        choisie_pour TEXT
+        choisie_pour TEXT,
+        heure INTEGER
       )''');
   }
 

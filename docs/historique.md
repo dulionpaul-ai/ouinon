@@ -303,3 +303,7 @@ demain »).
   la journée en calendrier. Le compte rendu reste en terminal.
 - « Préparer demain » finit par « Transmis à l'Exécutant » (plus
   d'ascenseur à ce moment-là).
+- Après l'APK n° 15 : maquette des questions liées (piste B), mise de
+  côté (`docs/idees.md`) ; vidéo de l'intro faite depuis la maquette ;
+  autre nom envisagé (Binôme, Tandem, Moitiés…), Paul garde « Ouinon »
+  pour l'instant.

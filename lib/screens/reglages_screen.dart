@@ -12,7 +12,6 @@ import '../utils/version.dart';
 import '../widgets/rond.dart';
 import 'creneaux_screen.dart';
 import 'intro_screen.dart';
-import 'questions_screen.dart';
 
 /// Réglages, en lignes simples (revue du 25/10/2026) : tes questions, tes
 /// créneaux fixes, ta journée, les notifications, les données de test.
@@ -40,7 +39,6 @@ class _ReglagesScreenState extends State<ReglagesScreen>
   int _reponsesTest = 0;
   NotifPrevue? _prochaine;
   int? _enAttente;
-  int _nbQuestions = 0;
   String _creneaux = '';
 
   @override
@@ -80,7 +78,6 @@ class _ReglagesScreenState extends State<ReglagesScreen>
     final journee = await Preferences.journee();
     final notifsPlanning = await Preferences.notifsPlanning();
     final reponsesTest = await widget.base.nombreReponsesTest();
-    final questions = await widget.base.questions();
     final creneaux = await widget.base.creneaux();
     final maintenant = DateTime.now();
     final plan = planifie(
@@ -100,7 +97,6 @@ class _ReglagesScreenState extends State<ReglagesScreen>
       _journee = journee;
       _notifsPlanning = notifsPlanning;
       _reponsesTest = reponsesTest;
-      _nbQuestions = questions.length;
       _creneaux = [
         for (final c in creneaux)
           '${c.texte} ${heureFr(c.debut)} – ${heureFr(c.fin % (24 * 60))}',
@@ -283,11 +279,6 @@ class _ReglagesScreenState extends State<ReglagesScreen>
         padding: const EdgeInsets.fromLTRB(14, 8, 14, 32),
         children: [
           _Section('Ton appli', [
-            _Ligne(
-              titre: 'Mes questions',
-              valeur: '$_nbQuestions',
-              onTap: () => _ouvre(QuestionsScreen(base: widget.base)),
-            ),
             _Ligne(
               titre: 'Créneaux fixes',
               sousTitre: _creneaux.isEmpty

@@ -13,6 +13,7 @@ import '../utils/stats.dart';
 import '../widgets/cases.dart';
 import '../widgets/graphiques.dart';
 import '../widgets/rond.dart';
+import 'edition_question_screen.dart';
 import 'fiche_question_screen.dart';
 
 /// Les stats en graphiques (demande de Paul du 23/10/2026 : l'outil
@@ -170,6 +171,55 @@ class _StatsScreenState extends State<StatsScreen> {
                 ],
               ),
             ),
+            // Les questions se gèrent ici, chez le Décideur (retour de
+            // Paul du 26/10/2026) : ajouter, et toucher une carte pour la
+            // voir et la modifier.
+            _Section(
+              'Tes questions',
+              fin: TextButton.icon(
+                key: const ValueKey('ajouter-question'),
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => EditionQuestionScreen(base: widget.base),
+                  ),
+                ),
+                icon: const Icon(Icons.add_rounded),
+                label: const Text('Ajouter'),
+              ),
+            ),
+            if (_questions.isEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(6, 0, 6, 10),
+                child: Text('Aucune question pour l\'instant.', style: doux),
+              ),
+            for (final q in _questions)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: _CarteQuestion(
+                  question: q,
+                  courbe: _courbe(q, 91),
+                  debut: ajouteJours(_aujourdhui, -90),
+                  bilan: bilan(
+                    q,
+                    _reponses[q.id] ?? const {},
+                    debut: ajouteJours(_aujourdhui, -90),
+                    fin: _aujourdhui,
+                  ),
+                  serie: serie(q, _reponses[q.id] ?? const {}, _aujourdhui),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => FicheQuestionScreen(
+                        base: widget.base,
+                        question: q,
+                        maintenant: widget.maintenant,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            const SizedBox(height: 18),
             const _Section('Découvertes'),
             if (_decouvertes.isEmpty)
               CarteRonde(
@@ -242,33 +292,6 @@ class _StatsScreenState extends State<StatsScreen> {
               ..._planning(context),
               const SizedBox(height: 8),
             ],
-            const _Section('Tes questions'),
-            for (final q in _questions)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: _CarteQuestion(
-                  question: q,
-                  courbe: _courbe(q, 91),
-                  debut: ajouteJours(_aujourdhui, -90),
-                  bilan: bilan(
-                    q,
-                    _reponses[q.id] ?? const {},
-                    debut: ajouteJours(_aujourdhui, -90),
-                    fin: _aujourdhui,
-                  ),
-                  serie: serie(q, _reponses[q.id] ?? const {}, _aujourdhui),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => FicheQuestionScreen(
-                        base: widget.base,
-                        question: q,
-                        maintenant: widget.maintenant,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
             Padding(
               padding: const EdgeInsets.fromLTRB(6, 8, 6, 0),
               child: Text(
@@ -916,12 +939,22 @@ class _Section extends StatelessWidget {
   final String texte;
   final Key? cle;
 
-  const _Section(this.texte, {this.cle});
+  /// À droite du titre (« + Ajouter »).
+  final Widget? fin;
+
+  const _Section(this.texte, {this.cle, this.fin});
 
   @override
   Widget build(BuildContext context) => Padding(
     key: cle,
     padding: const EdgeInsets.fromLTRB(6, 0, 6, 10),
-    child: Text(texte, style: Theme.of(context).textTheme.titleLarge),
+    child: Row(
+      children: [
+        Expanded(
+          child: Text(texte, style: Theme.of(context).textTheme.titleLarge),
+        ),
+        ?fin,
+      ],
+    ),
   );
 }

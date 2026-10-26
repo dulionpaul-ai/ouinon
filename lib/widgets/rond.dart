@@ -255,10 +255,16 @@ class BarreOnglets extends StatelessWidget {
             height: 48,
             child: Row(
               children: [
-                for (final (i, libelle) in libelles.indexed) ...[
-                  if (i > 0 && t.terminal) const SizedBox(width: 6),
-                  onglet(i, libelle),
-                ],
+                // Un seul onglet (l'Exécutant) : rien à choisir, la
+                // barre ne garde que l'ascenseur (retour de Paul du
+                // 26/10/2026).
+                if (libelles.length < 2)
+                  const Spacer()
+                else
+                  for (final (i, libelle) in libelles.indexed) ...[
+                    if (i > 0 && t.terminal) const SizedBox(width: 6),
+                    onglet(i, libelle),
+                  ],
                 if (ascenseur != null) ...[
                   const SizedBox(width: 8),
                   ascenseur!,

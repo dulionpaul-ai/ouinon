@@ -264,6 +264,13 @@ void main() {
 
   testWidgets('Stats : sans réponse, explication', (tester) async {
     await ouvre(tester, StatsScreen(base: base, maintenant: midi));
+    // Les questions d'abord, avec « Ajouter » (Décideur).
+    expect(find.byKey(const ValueKey('ajouter-question')), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Pas encore assez de jours en commun (14 au moins).'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(
       find.textContaining('Les premières découvertes arrivent'),
       findsOneWidget,
@@ -836,7 +843,7 @@ void main() {
       await tester.pumpAndSettle();
       // L'Exécutant : Ma journée seule.
       expect(find.text('BONJOUR, EXÉCUTANT.'), findsOneWidget);
-      expect(find.text('MA JOURNÉE'), findsOneWidget);
+      expect(find.byKey(const ValueKey('onglet-0')), findsNothing);
       expect(find.text('Planifier'), findsNothing);
       final prefs = (await tester.runAsync(SharedPreferences.getInstance))!;
       expect(prefs.getString('role_actif'), 'executant');

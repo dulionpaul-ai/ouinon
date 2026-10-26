@@ -313,3 +313,7 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
   `https://maven-central.storage-download.googleapis.com/maven2/`.
 - Codemagic (`codemagic.yaml`, lancement à la main) : APK et TestFlight.
 - Flutter 3.47.7 partout.
+
+## Questions (26/10/2026)
+
+Les questions se gèrent chez le Décideur, en haut de l'onglet Stats : « + Ajouter » (`ajouter-question`) ouvre `EditionQuestionScreen`, toucher une carte ouvre sa fiche (bouton Modifier). Plus de ligne « Mes questions » dans les Réglages. Chez l'Exécutant, la barre du bas n'a plus d'onglet : seulement le bouton Ascenseur.

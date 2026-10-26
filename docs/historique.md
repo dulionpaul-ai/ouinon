@@ -329,3 +329,5 @@ demain »).
   vieil écran, touches carrées. Onglets dans l'ordre To-do · Aujourd'hui
   · Stats (on liste, on fait, on regarde), en bas, sans pilule ; une
   petite phrase sous chaque titre.
+- Envoyé dans l'APK n° 17 (1.0.0+17, 26/10/2026) : nouveau style,
+  ordre des onglets, phrases, page 3 de l'intro.

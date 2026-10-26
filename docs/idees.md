@@ -78,3 +78,5 @@ Repris de `docs/plan_action.md` (critique du 23/10/2026) : sauvegarde
 dans un fichier, mode « expérience » (tester une habitude 14 jours),
 objectifs tout prêts au démarrage, planning sur toute la semaine,
 widget, iPhone, stores (avec l'accord de Paul).
+
+- 26/10/2026 : après « Fait » dans une notification (Android), remplacer son texte par un message calculé sur le téléphone (« Bravo, 3 sur 10 aujourd'hui », « 3ᵉ jour d'affilée pour Sport »), puis la faire disparaître seule après 2-3 s. Pour « Pas fait », un message neutre. Sur iPhone, la notification disparaît simplement.

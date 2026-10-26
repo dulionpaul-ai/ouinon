@@ -3,6 +3,18 @@
 À lire en premier dans une nouvelle session Claude (avec `CLAUDE.md`).
 Mis à jour le 26/10/2026.
 
+## Reprendre ici (fin de session du 26/10/2026)
+
+- Dernier APK envoyé : **n° 14** (1.0.0+14), « les deux toi ». Paul le
+  teste le 27/10/2026 : **attendre ses retours** (captures) et les
+  traiter en premier.
+- Tout est sur `main`, 89 tests verts, rien en cours.
+- Idées pour plus tard notées dans `docs/idees.md` : intro qui raconte
+  le pourquoi (style ascenseur), notes échangées avec soi-même (avec
+  réponse et fil des échanges), et les idées en réserve. Rien n'est à
+  coder sans l'accord de Paul ; maquettes d'abord.
+- Prochain APK : 1.0.0+15, **toujours demander à Paul avant**.
+
 ## En une minute
 
 - **Ouinon** : appli Android (iPhone plus tard) de suivi de vie. Chaque
@@ -92,6 +104,9 @@ Détail dans `docs/revue_produit.md`. Les plus importants :
 - Styles : https://claude.ai/artifact/8wYzPghoUihjK5CGqjZQSg
   (A à C refusés ; D Bulles + F Nuit ronde retenus).
 - Logo : https://claude.ai/artifact/8JC7nnJjfsTQoX79W3FXtW (n° 3 retenu).
+- To-do, thème et les deux toi : https://claude.ai/artifact/PHDAQFDgYKQT1s19Ym7ige
+  (pages « Les deux toi », « Thème v2 », « Thème : les deux moi »,
+  « Version simple », « Tableau blanc »).
 
 ## Installer les outils dans une session neuve
 

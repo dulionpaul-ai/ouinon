@@ -264,7 +264,7 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
   l'ascenseur et tant que la to-do est vide (avec « Ici, tu ne fais
   rien : tu décides… »), sinon « To-do ».
 - **Première ouverture** : intro (le pourquoi, le rond qui se brise,
-  « l'exécutant… s'exécute. », bouton « Je décide »), heures,
+  « l'exécutant… s'exécute. », bouton « Répartir les rôles »), heures,
   notifications, puis l'ascenseur monte chez le Décideur, sur la to-do,
   quelle que soit l'heure, jusqu'à ce qu'on quitte l'appli.
 - **Changer de toi à la main** : toucher le nom en haut à gauche

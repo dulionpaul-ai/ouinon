@@ -440,7 +440,7 @@ void main() {
       const IntroScreen(),
       ThemeMode.dark,
       avant: (tester) async {
-        await tester.tap(find.text('Je décide'));
+        await tester.tap(find.text('Répartir les rôles'));
         await tester.pumpAndSettle();
       },
     );
@@ -456,7 +456,7 @@ void main() {
       hauteur: 760,
       texte: 1.3,
       avant: (tester) async {
-        await tester.tap(find.text('Je décide'));
+        await tester.tap(find.text('Répartir les rôles'));
         await tester.pumpAndSettle();
         await tester.tap(find.text('C\'est ça'));
         await tester.pumpAndSettle();
@@ -471,7 +471,7 @@ void main() {
       const IntroScreen(),
       ThemeMode.dark,
       avant: (tester) async {
-        await tester.tap(find.text('Je décide'));
+        await tester.tap(find.text('Répartir les rôles'));
         await tester.pumpAndSettle();
         await tester.tap(find.text('C\'est ça'));
         await tester.pumpAndSettle();

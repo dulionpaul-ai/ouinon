@@ -174,7 +174,9 @@ class _IntroScreenState extends State<IntroScreen>
                           _suivante();
                         }
                       },
-                      child: Text(_page == 0 ? 'Je décide' : 'C\'est ça'),
+                      child: Text(
+                        _page == 0 ? 'Répartir les rôles' : 'C\'est ça',
+                      ),
                     ),
                   ),
                 )

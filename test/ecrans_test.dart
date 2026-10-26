@@ -319,7 +319,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.textContaining('Il y a ', findRichText: true), findsOneWidget);
-    await tester.tap(find.text('Je décide'));
+    await tester.tap(find.text('Répartir les rôles'));
     await tester.pumpAndSettle();
     expect(find.text('Qui est là, et quand ?'), findsOneWidget);
     expect(find.text('21:30 – 23:00'), findsOneWidget);

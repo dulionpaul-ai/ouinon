@@ -14,8 +14,7 @@ Mis à jour le 26/10/2026.
   (captures) et les traiter en premier.
 - Tout est sur `main`, 89 tests verts, rien en cours.
 - En attente de Paul : anneau des plages à glisser, sans
-  repos (https://claude.ai/artifact/RCSH1LPmay7wUhQSqPLGZs), et le nom
-  du bouton de fin d'intro (« Partager ma journée » proposé).
+  repos (https://claude.ai/artifact/RCSH1LPmay7wUhQSqPLGZs).
 - Maquette du parcours : https://claude.ai/artifact/6uwN74rtwMFmdVsCiuppJ7
   (Paul a validé intro, ascenseur, Décideur, Exécutant le 26/10/2026).
 - Idées pour plus tard notées dans `docs/idees.md` : intro qui raconte

@@ -331,3 +331,5 @@ demain »).
   petite phrase sous chaque titre.
 - Envoyé dans l'APK n° 17 (1.0.0+17, 26/10/2026) : nouveau style,
   ordre des onglets, phrases, page 3 de l'intro.
+- Bouton de fin d'intro : « Répartir les rôles » (choix de Paul, à la
+  place de « Je décide »).

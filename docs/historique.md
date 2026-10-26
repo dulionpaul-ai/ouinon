@@ -310,5 +310,5 @@ demain »).
 - Changer de toi à la main (Paul) : toucher « DÉCIDEUR » / « EXÉCUTANT »
   en haut à gauche, l'ascenseur fait le passage. Horaires de base de la
   journée : 8 h – 20 h (au lieu de 9 h – 19 h), réglables dès l'intro
-  (page « Qui est là, et quand ? ») et dans les Réglages. Pas encore dans
-  un APK.
+  (page « Qui est là, et quand ? ») et dans les Réglages. Envoyé dans
+  l'APK n° 16 (1.0.0+16, 26/10/2026).

@@ -205,7 +205,9 @@ Fabriqué avec l'accord de Paul le 23/10/2026.
   un simple mémo : pas repris.
 - APK fabriqué à la demande de Paul.
 
-## Après l'APK n° 12 (dans le code) : grande simplification
+## APK n° 13 (1.0.0+13) : grande simplification
+
+Fabriqué à la demande de Paul le 26/10/2026.
 
 - Paul : « l'appli est devenue un peu trop compliquée, il y a des boutons
   et des bandeaux partout ». Revue complète et comparaison avec les

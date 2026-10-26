@@ -175,7 +175,8 @@ Trois onglets : **Aujourd'hui** (questions compactes, ma journée),
 Préparer demain = choisir (jauge de temps libre) puis caser (glisser ou
 « Caser pour moi »). Réglages en lignes simples, avec « Mes questions »
 et « Créneaux fixes ». Important / Urgent gardés sur une ligne dans
-l'écran d'une chose ; tri automatique. Reste : avis de Paul, APK n° 13
-(`version: 1.0.0+13`) **seulement avec son accord**. Pistes : alléger
+l'écran d'une chose ; tri automatique. APK n° 13 envoyé le 26/10/2026.
+Reste : avis de Paul. Prochain APK : `version: 1.0.0+14`, **seulement
+avec son accord**. Pistes : alléger
 aussi la page Stats (comparateur et carte des liens derrière un
 toucher).

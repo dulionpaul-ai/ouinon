@@ -21,7 +21,9 @@ Mis à jour le 22/10/2026.
   onglet « À faire » calqué sur le tableau blanc de Paul. Depuis, dans le
   code : **grande simplification** (3 onglets Aujourd'hui · To-do ·
   Stats, « Préparer demain » en 2 étapes ; voir `docs/historique.md`),
-  version déjà à 1.0.0+13 pour l'APK n° 13, pas encore fabriqué.
+  envoyée en **APK n° 13** (1.0.0+13, 26/10/2026). Pour le prochain,
+  passer `version` à 1.0.0+14 dans `pubspec.yaml` et
+  `lib/utils/version.dart`.
   Toujours demander à Paul avant de fabriquer un APK. Les boutons de
   notification marchent appli fermée (confirmé par Paul).
 - **Le code est sur `main`** du dépôt `dulionpaul-ai/ouinon` (voir

@@ -5,7 +5,7 @@ Mis à jour le 26/10/2026.
 
 ## Reprendre ici (fin de session du 26/10/2026)
 
-- Dernier APK envoyé : **n° 19** (1.0.0+20, 26/10/2026) : deux rôles
+- Dernier APK envoyé : **n° 19** (1.0.0+21, 26/10/2026) : deux rôles
   séparés (Décideur : To-do · Planifier · Stats ; Exécutant : Ma
   journée), bouton Ascenseur, formulaire « Ajouter » avec heure imposée,
   onglet Planifier. **Attendre les retours de Paul.**
@@ -17,7 +17,7 @@ Mis à jour le 26/10/2026.
   le pourquoi (style ascenseur), notes échangées avec soi-même (avec
   réponse et fil des échanges), et les idées en réserve. Rien n'est à
   coder sans l'accord de Paul ; maquettes d'abord.
-- Prochain APK : 1.0.0+20, **toujours demander à Paul avant**.
+- Prochain APK : 1.0.0+21, **toujours demander à Paul avant**.
 
 ## En une minute
 
@@ -40,8 +40,8 @@ Mis à jour le 26/10/2026.
   envoyée en **APK n° 13** (1.0.0+13, 26/10/2026). **APK n° 14**
   (1.0.0+14, 26/10/2026) : **les deux toi** (intro, écran rétro le jour,
   ambre le soir, ascenseur, mots, compte rendu, nouveau logo ; voir
-  `docs/fonctionnement.md`). **APK n° 15** (1.0.0+15) : parcours de première ouverture. **APK n° 16** : changer de toi à la main, 8 h – 20 h. **APK n° 17** : nouveau style. **APK n° 18** : le toi suit l'onglet. **APK n° 20** : deux rôles séparés. Pour le
-  prochain, passer `version` à 1.0.0+20 dans `pubspec.yaml` et `lib/utils/version.dart`.
+  `docs/fonctionnement.md`). **APK n° 15** (1.0.0+15) : parcours de première ouverture. **APK n° 16** : changer de toi à la main, 8 h – 20 h. **APK n° 17** : nouveau style. **APK n° 18** : le toi suit l'onglet. **APK n° 21** : deux rôles séparés. Pour le
+  prochain, passer `version` à 1.0.0+21 dans `pubspec.yaml` et `lib/utils/version.dart`.
   Toujours demander à Paul avant de fabriquer un APK. Les boutons de
   notification marchent appli fermée (confirmé par Paul).
 - **Le code est sur `main`** du dépôt `dulionpaul-ai/ouinon` (voir

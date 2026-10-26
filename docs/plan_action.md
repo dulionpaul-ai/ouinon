@@ -54,7 +54,8 @@ fait, version par version : `docs/historique.md`.
 8b. [ ] Les deux toi (26/10/2026, APK n° 14) : intro, mode exécutant
    rétro le jour, mode décideur ambre le soir, ascenseur, mots entre les
    deux, compte rendu, nouveau logo. Reste : avis de Paul après son test
-   du 27/10. Idées pour plus tard : `docs/idees.md` (intro qui raconte
+   du 27/10. Depuis : l'intro raconte le pourquoi (rond qui se
+   sépare, texte B à retravailler). Idées pour plus tard : `docs/idees.md` (intro qui raconte
    le pourquoi, notes échangées avec soi-même). En réserve : plan verrouillé le jour (appui long pour
    « remonter »), écran « Hors service » la nuit, stat « tu prévois
    20 % de trop » qui ajuste la jauge, numéro de journée dans le compte

@@ -121,6 +121,7 @@ void main() {
     double largeur = 390,
     double texte = 1,
     Future<void> Function(WidgetTester)? avant,
+    Duration? arret,
   }) async {
     tester.view.physicalSize = Size(largeur * 2, hauteur * 2);
     tester.platformDispatcher.textScaleFactorTestValue = texte;
@@ -129,9 +130,16 @@ void main() {
     addTearDown(tester.view.reset);
     await tester.pumpWidget(OuinonApp(accueil: ecran));
     await attends(tester, 15);
-    // Laisse les animations des graphiques aller au bout.
-    await tester.pump(const Duration(seconds: 2));
-    await tester.pumpAndSettle();
+    if (arret != null) {
+      // Arrêt sur image au milieu d'une animation.
+      for (var i = 0; i < arret.inMilliseconds ~/ 100; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    } else {
+      // Laisse les animations des graphiques aller au bout.
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+    }
     if (avant != null) await avant(tester);
     await expectLater(
       find.byType(MaterialApp),
@@ -399,6 +407,30 @@ void main() {
   // Les deux toi (26/10/2026).
   testWidgets('intro, page 1', (tester) async {
     await capture(tester, '20-intro-1', const IntroScreen(), ThemeMode.dark);
+  });
+
+  testWidgets('intro, page 1 : le pourquoi, au moment de la coupe', (
+    tester,
+  ) async {
+    await capture(
+      tester,
+      '20a-intro-pourquoi',
+      const IntroScreen(),
+      ThemeMode.dark,
+      arret: const Duration(milliseconds: 7800),
+    );
+  });
+
+  testWidgets('intro, page 1, petit téléphone', (tester) async {
+    await capture(
+      tester,
+      '20b-petit-intro',
+      const IntroScreen(),
+      ThemeMode.dark,
+      largeur: 360,
+      hauteur: 760,
+      texte: 1.3,
+    );
   });
 
   testWidgets('intro, page 2', (tester) async {

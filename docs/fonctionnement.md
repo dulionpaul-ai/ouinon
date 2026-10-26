@@ -19,7 +19,7 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 | `widgets/grille_journee.dart` | La journée heure par heure (52 px par heure, 8 h – 23 h, élargie si besoin) : blocs à leur vraie taille (couleur de leur case, blanc pour un impératif), créneaux hachurés, trait « maintenant » ; dépôt d'une chose du bac ou d'un bloc (au quart d'heure, d'après le haut de ce qu'on glisse), durée en tirant le bas, toucher une heure vide. |
 | `screens/edition_creneau_screen.dart` | Ajout ou modification d'un créneau fixe. |
 | `utils/deux_moi.dart` | Les deux toi (testé) : qui est là (`moiA` : exécutant, décideur, repos ; plages qui passent minuit), chose en cours (`enCours`), textes du matin et du compte rendu. |
-| `screens/intro_screen.dart` | Intro en 3 pages, cadran des heures, logo animé (`RondDissocie`). |
+| `screens/intro_screen.dart` | Intro en 3 pages, cadran des heures. Page 1 minutée par `_Recit` : le pourquoi, puis le logo (`RondDissocie` : naissance, fente, écart du blanc aux deux couleurs), puis « Il y a deux toi ». |
 | `screens/passage_screen.dart` | L'ascenseur : portes, étage SOIR ↓ JOUR, lignes du terminal qui s'écrivent ; 2,4 s puis se ferme seul, un appui le passe. |
 | `screens/rapport_screen.dart` | Compte rendu de fin de journée (rétro), mot pour le soir, « Fin de service ». |
 | `widgets/retro.dart` | Briques rétro : fond à lignes de balayage, curseur (`Curseur.clignote` coupé dans les tests), bouton rectangulaire, barre « [████░░] », heures « 09:05 ». |

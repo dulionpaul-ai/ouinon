@@ -9,6 +9,10 @@ Mis à jour le 26/10/2026.
   teste le 27/10/2026 : **attendre ses retours** (captures) et les
   traiter en premier.
 - Tout est sur `main`, 89 tests verts, rien en cours.
+- Depuis l'APK n° 14 : l'intro raconte le pourquoi, avec le rond qui se
+  sépare en deux (texte B, formulation à retravailler avec Paul ;
+  maquette https://claude.ai/artifact/6uwN74rtwMFmdVsCiuppJ7). Pas
+  encore dans un APK.
 - Idées pour plus tard notées dans `docs/idees.md` : intro qui raconte
   le pourquoi (style ascenseur), notes échangées avec soi-même (avec
   réponse et fil des échanges), et les idées en réserve. Rien n'est à

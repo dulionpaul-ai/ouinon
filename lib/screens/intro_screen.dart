@@ -7,7 +7,8 @@ import '../theme/app_theme.dart';
 import '../widgets/retro.dart';
 
 /// L'intro des deux toi (idée de Paul du 26/10/2026), en trois pages :
-/// 1. « Il y a deux toi » : le logo se sépare en deux ;
+/// 1. le pourquoi, puis « Il y a deux toi » : le rond entier se fend et
+///    se sépare en deux couleurs (texte B choisi par Paul le 26/10/2026) ;
 /// 2. « Qui est là, et quand ? » : les heures de chacun ;
 /// 3. les notifications, par lesquelles ils se parlent.
 ///
@@ -34,8 +35,14 @@ class _IntroScreenState extends State<IntroScreen>
 
   late final _logo = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 1600),
+    duration: Duration(milliseconds: (_Recit.total * 1000).round()),
   )..forward();
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.of(context).disableAnimations) _logo.value = 1;
+  }
 
   @override
   void initState() {
@@ -145,12 +152,27 @@ class _IntroScreenState extends State<IntroScreen>
               ),
               const SizedBox(height: 18),
               if (_page < 2)
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: _suivante,
-                    child: Text(
-                      _page == 0 ? 'Faire connaissance' : 'C\'est ça',
+                AnimatedBuilder(
+                  animation: _logo,
+                  builder: (context, enfant) => Opacity(
+                    opacity: _page == 0
+                        ? _Recit.apparition(_logo.value, _Recit.bouton)
+                        : 1,
+                    child: enfant,
+                  ),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: () {
+                        if (_page == 0 && _logo.isAnimating) {
+                          _logo.value = 1;
+                        } else {
+                          _suivante();
+                        }
+                      },
+                      child: Text(
+                        _page == 0 ? 'Faire connaissance' : 'C\'est ça',
+                      ),
                     ),
                   ),
                 )
@@ -177,51 +199,60 @@ class _IntroScreenState extends State<IntroScreen>
 
   Widget _pageDeuxToi(BuildContext context) {
     final t = Teintes.de(context);
-    Widget ligne(double debut, Widget enfant) => AnimatedBuilder(
-      animation: _logo,
-      builder: (context, _) {
-        final v = ((_logo.value - debut) / 0.3).clamp(0.0, 1.0);
-        return Opacity(
-          opacity: v,
-          child: Transform.translate(
-            offset: Offset(0, 8 * (1 - v)),
-            child: enfant,
-          ),
+    Widget ligne(double debut, Widget enfant, {double sortie = 99}) =>
+        AnimatedBuilder(
+          animation: _logo,
+          builder: (context, _) {
+            final v =
+                _Recit.apparition(_logo.value, debut) *
+                (1 - _Recit.apparition(_logo.value, sortie, duree: 0.5));
+            return Opacity(
+              opacity: v,
+              child: Transform.translate(
+                offset: Offset(0, 8 * (1 - v)),
+                child: enfant,
+              ),
+            );
+          },
         );
-      },
-    );
     const texte = TextStyle(fontSize: 18, height: 1.4);
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+    final pourquoi = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Center(
-          child: AnimatedBuilder(
-            animation: _logo,
-            builder: (context, _) => CustomPaint(
-              size: const Size(150, 150),
-              painter: RondDissocie(
-                ecart: Curves.easeInOutCubic.transform(
-                  (_logo.value / 0.6).clamp(0.0, 1.0),
-                ),
-              ),
+        for (var i = 0; i < _Recit.pourquoi.length; i++) ...[
+          if (i > 0) const SizedBox(height: 10),
+          ligne(
+            _Recit.entree(i),
+            Text(
+              _Recit.pourquoi[i],
+              style: i == _Recit.pourquoi.length - 1
+                  ? texte
+                  : texte.copyWith(color: t.doux),
             ),
+            sortie: _Recit.sortie,
           ),
-        ),
-        const SizedBox(height: 40),
-        Text(
-          'Il y a deux toi.',
-          style: TextStyle(
-            fontFamily: AppTheme.policeTitre,
-            fontSize: 30,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -1,
-            color: t.texte,
+        ],
+      ],
+    );
+    final deuxToi = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ligne(
+          _Recit.deuxToi,
+          Text(
+            'Il y a deux toi.',
+            style: TextStyle(
+              fontFamily: AppTheme.policeTitre,
+              fontSize: 30,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -1,
+              color: t.texte,
+            ),
           ),
         ),
         const SizedBox(height: 16),
         ligne(
-          0.35,
+          _Recit.deuxToi + 0.6,
           const Text.rich(
             TextSpan(
               children: [
@@ -240,7 +271,7 @@ class _IntroScreenState extends State<IntroScreen>
         ),
         const SizedBox(height: 8),
         ligne(
-          0.5,
+          _Recit.deuxToi + 1.2,
           const Text.rich(
             TextSpan(
               children: [
@@ -257,15 +288,50 @@ class _IntroScreenState extends State<IntroScreen>
             style: texte,
           ),
         ),
-        const SizedBox(height: 8),
-        ligne(
-          0.65,
-          Text(
-            'Ils ne se croisent jamais. Ils se laissent des mots.',
-            style: texte.copyWith(color: t.doux),
+      ],
+    );
+    // Toucher l'écran passe directement à la fin de l'animation.
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => _logo.value = 1,
+      child: LayoutBuilder(
+        builder: (context, contraintes) => SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: contraintes.maxHeight),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: AnimatedBuilder(
+                    animation: _logo,
+                    builder: (context, _) {
+                      final s = _logo.value * _Recit.total;
+                      return CustomPaint(
+                        size: const Size(150, 150),
+                        painter: RondDissocie(
+                          naissance: Curves.easeOutCubic.transform(
+                            (s / 0.7).clamp(0.0, 1.0),
+                          ),
+                          fente: Curves.easeInOutCubic.transform(
+                            ((s - _Recit.coupe) / 0.5).clamp(0.0, 1.0),
+                          ),
+                          ecart: Curves.easeInOutCubic.transform(
+                            ((s - _Recit.coupe - 0.5) / 1.1).clamp(0.0, 1.0),
+                          ),
+                          entier: t.texte,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 40),
+                Stack(children: [pourquoi, deuxToi]),
+              ],
+            ),
           ),
         ),
-      ],
+      ),
     );
   }
 
@@ -435,44 +501,103 @@ class _IntroScreenState extends State<IntroScreen>
   );
 }
 
+/// Le minutage de la page 1, en secondes : les lignes du pourquoi une à
+/// une, le rond qui se fend sur la dernière, puis « Il y a deux toi ».
+abstract final class _Recit {
+  static const pourquoi = [
+    'Tu voulais reprendre ta vie en main.',
+    'Tu savais quoi faire. Tu ne le faisais pas.',
+    'Le même toi décidait et faisait. C\'était trop pour un seul.',
+    'Alors tu as séparé les deux.',
+  ];
+
+  static double entree(int i) => 0.8 + i * 1.9;
+  static final coupe = entree(pourquoi.length - 1) + 0.5;
+  static final sortie = coupe + 2.2;
+  static final deuxToi = sortie + 0.6;
+  static final bouton = deuxToi + 2.1;
+  static final total = bouton + 0.6;
+
+  /// De 0 à 1 en [duree] secondes à partir de [debut], selon [valeur]
+  /// (l'avancée de l'animation, de 0 à 1).
+  static double apparition(double valeur, double debut, {double duree = 0.6}) =>
+      Curves.easeInOutCubic.transform(
+        ((valeur * total - debut) / duree).clamp(0.0, 1.0),
+      );
+}
+
 /// Le logo : un rond coupé en deux, moitié gauche ambre (le soir) plus
-/// haute, moitié droite bleu-vert (le jour) plus basse. `ecart` de 0
-/// (rond entier) à 1 (dissocié).
+/// haute, moitié droite bleu-vert (le jour) plus basse. Pour l'intro :
+/// `naissance` le fait apparaître, `fente` le fend de haut en bas, et
+/// `ecart` de 0 (rond entier, couleur `entier`) à 1 (dissocié, en
+/// couleurs).
 class RondDissocie extends CustomPainter {
+  final double naissance;
+  final double fente;
   final double ecart;
+  final Color entier;
   final Color gauche;
   final Color droite;
 
   const RondDissocie({
+    this.naissance = 1,
+    this.fente = 1,
     this.ecart = 1,
+    this.entier = const Color(0xFFF5F5F2),
     this.gauche = AppTheme.ambre,
     this.droite = AppTheme.bleuVert,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final r = size.shortestSide * 0.38;
+    if (naissance <= 0) return;
+    final r = size.shortestSide * 0.38 * (0.85 + 0.15 * naissance);
     final c = size.center(Offset.zero);
     final dx = r * 0.07 * ecart + 1;
     final dy = r * 0.09 * ecart;
+    Paint peinture(Color couleur) => Paint()
+      ..color = Color.lerp(
+        entier,
+        couleur,
+        ecart,
+      )!.withValues(alpha: naissance);
     canvas.drawArc(
       Rect.fromCircle(center: c.translate(-dx, -dy), radius: r),
       math.pi / 2,
       math.pi,
       true,
-      Paint()..color = gauche,
+      peinture(gauche),
     );
     canvas.drawArc(
       Rect.fromCircle(center: c.translate(dx, dy), radius: r),
       -math.pi / 2,
       math.pi,
       true,
-      Paint()..color = droite,
+      peinture(droite),
     );
+    // Tant que la fente n'est pas allée au bout, le bas reste soudé.
+    if (fente < 1 && ecart == 0) {
+      canvas.save();
+      canvas.clipPath(Path()..addOval(Rect.fromCircle(center: c, radius: r)));
+      canvas.drawRect(
+        Rect.fromLTRB(
+          c.dx - 1.5,
+          c.dy - r + 2 * r * fente,
+          c.dx + 1.5,
+          c.dy + r,
+        ),
+        peinture(gauche),
+      );
+      canvas.restore();
+    }
   }
 
   @override
-  bool shouldRepaint(RondDissocie ancien) => ancien.ecart != ecart;
+  bool shouldRepaint(RondDissocie ancien) =>
+      ancien.ecart != ecart ||
+      ancien.fente != fente ||
+      ancien.naissance != naissance ||
+      ancien.entier != entier;
 }
 
 /// Cadran de 24 heures : le soir en ambre, le jour en bleu-vert.

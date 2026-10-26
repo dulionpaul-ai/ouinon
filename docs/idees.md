@@ -16,6 +16,10 @@ c'est le passage de l'un à l'autre. Elle remplacerait ou précéderait
 l'intro actuelle en 3 pages (APK n° 14), qui dit le « quoi » mais pas le
 « pourquoi ». Style à choisir avec Paul (maquettes d'abord).
 
+Fait en partie le 26/10/2026 : le pourquoi en 4 lignes au début de la
+page 1, avec le rond qui se sépare (texte B). Paul n'est pas encore
+convaincu par la formulation : à retravailler ensemble.
+
 ### Des notes échangées avec soi-même (Paul, 26/10/2026)
 
 Comme dans la série : se laisser des notes d'un toi à l'autre, et se

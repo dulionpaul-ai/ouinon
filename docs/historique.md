@@ -260,3 +260,21 @@ demain »).
   Logo : le « rond dissocié » (ambre en haut à gauche, bleu-vert en bas
   à droite). Réglages : section « Les deux toi ». 89 tests.
 
+
+## Après l'APK n° 14 : l'intro raconte le pourquoi (26/10/2026)
+
+- Paul : retirer « Ils ne se croisent jamais. Ils se laissent des
+  mots. », ajouter un petit contexte (tu voulais prendre ta vie en main,
+  ça ne marchait pas, tu t'es séparé en deux), et une animation du logo
+  (un rond entier qui se sépare en deux couleurs). Maquette
+  (https://claude.ai/artifact/6uwN74rtwMFmdVsCiuppJ7) avec trois textes ;
+  comparaison avec la série. Paul choisit le texte B (« le même toi
+  décidait et faisait »), sans être convaincu par la formulation : à
+  retravailler plus tard.
+- Codé : page 1 de l'intro en deux temps (environ 12 secondes, toucher
+  l'écran ou le bouton passe à la fin) : le pourquoi s'écrit ligne par
+  ligne sous un rond blanc ; sur « Alors tu as séparé les deux. », le
+  rond se fend de haut en bas, ses moitiés s'écartent et prennent leurs
+  couleurs ; puis « Il y a deux toi », « Le soir, l'un décide », « Le
+  jour, l'autre exécute » et le bouton « Faire connaissance ». Deux
+  captures de plus (au moment de la coupe, petit téléphone).

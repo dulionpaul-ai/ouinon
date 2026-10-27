@@ -19,6 +19,8 @@ gardé ; les écrans sont refaits.
 - Une notification ratée reste affichée jusqu'à ce qu'on réponde. Sans
   réponse, le jour compte comme « pas de réponse ».
 
-À confirmer : une question sans aucun jour coché ne sonne jamais (en
-pause) ; la notification ratée reste jusqu'à la suivante de la même
-question.
+- Une question sans aucun jour coché ne sonne jamais (en pause).
+- La notification ratée reste jusqu'à la suivante de la même question,
+  qui la remplace.
+
+**Validé par Paul le 27/10/2026.**

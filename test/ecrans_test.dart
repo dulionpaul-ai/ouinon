@@ -147,7 +147,8 @@ void main() {
     await tester.enterText(find.byType(TextField).first, 'Stressé ?');
     await tester.tap(find.text('3 réponses'));
     await tester.pump();
-    expect(find.text('Moyen'), findsOneWidget);
+    // Pas de modèle : trois champs à remplir soi-même.
+    expect(find.byKey(const ValueKey('reponse2')), findsOneWidget);
     await tester.enterText(
       find.byKey(const ValueKey('reponse0')),
       'Pas du tout',
@@ -155,12 +156,12 @@ void main() {
     await tester.enterText(find.byKey(const ValueKey('reponse1')), 'Un peu');
     await tester.enterText(find.byKey(const ValueKey('reponse2')), 'Beaucoup');
     await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('jour6')),
+      find.widgetWithText(PiluleChoix, 'Semaine'),
       200,
       scrollable: find.byType(Scrollable).first,
     );
-    await tester.tap(find.byKey(const ValueKey('jour5')));
-    await tester.tap(find.byKey(const ValueKey('jour6')));
+    // Aucun jour par défaut ; le raccourci « Semaine ».
+    await tester.tap(find.widgetWithText(PiluleChoix, 'Semaine'));
     await tester.pump();
     expect(
       tester
@@ -175,52 +176,6 @@ void main() {
     expect(q.texte, 'Stressé ?');
     expect(q.reponses, ['Pas du tout', 'Un peu', 'Beaucoup']);
     expect(q.jours, 0x1F);
-  });
-
-  testWidgets('suggestions : créer « 1 / 2 / 3 », puis la supprimer', (
-    tester,
-  ) async {
-    await ouvre(tester, EditionQuestionScreen(base: base));
-    await tester.tap(find.text('3 réponses'));
-    await attends(tester);
-    expect(find.text('Bien / Moyen / Pas bien'), findsOneWidget);
-    expect(find.text('Oui / Non'), findsNothing);
-
-    await tester.tap(find.text('+ Autre'));
-    await tester.pumpAndSettle();
-    final champs = find.descendant(
-      of: find.byType(AlertDialog),
-      matching: find.byType(TextField),
-    );
-    await tester.enterText(champs.at(0), '3');
-    await tester.enterText(champs.at(1), '2');
-    await tester.enterText(champs.at(2), '1');
-    await tester.tap(
-      find.descendant(
-        of: find.byType(AlertDialog),
-        matching: find.text('Enregistrer'),
-      ),
-    );
-    await attends(tester);
-    await tester.pumpAndSettle();
-    // Gardée, et appliquée aux réponses.
-    expect(find.text('3 / 2 / 1'), findsOneWidget);
-    expect(
-      tester
-          .widget<TextField>(find.byKey(const ValueKey('reponse0')))
-          .controller!
-          .text,
-      '3',
-    );
-    final prefs = await SharedPreferences.getInstance();
-    expect(prefs.getString('suggestions_reponses'), contains('"3","2","1"'));
-
-    await tester.longPress(find.text('3 / 2 / 1'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Supprimer').last);
-    await attends(tester);
-    await tester.pumpAndSettle();
-    expect(find.text('3 / 2 / 1'), findsNothing);
   });
 
   testWidgets('heure : cadran sans clavier, Enregistrer caché', (tester) async {

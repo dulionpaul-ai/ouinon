@@ -21,6 +21,11 @@ class Question {
   /// Place dans la liste.
   final int ordre;
 
+  /// Famille (Paul, 27/10/2026), facultative : les questions d'une même
+  /// famille (« Sport » : Cardio ?, Muscu ?) restent séparées mais
+  /// s'additionnent dans le Suivi.
+  final String? famille;
+
   static const tousLesJours = 0x7F;
   static const longueurMaxReponse = 16;
 
@@ -32,6 +37,7 @@ class Question {
     this.jours = tousLesJours,
     this.active = true,
     this.ordre = 0,
+    this.famille,
   });
 
   /// La question revient-elle ce jour-là (1 = lundi … 7 = dimanche) ?
@@ -47,6 +53,7 @@ class Question {
     int? jours,
     bool? active,
     int? ordre,
+    String? Function()? famille,
   }) => Question(
     id: id ?? this.id,
     texte: texte ?? this.texte,
@@ -55,6 +62,7 @@ class Question {
     jours: jours ?? this.jours,
     active: active ?? this.active,
     ordre: ordre ?? this.ordre,
+    famille: famille == null ? this.famille : famille(),
   );
 
   Map<String, Object?> versLigne() => {
@@ -65,6 +73,7 @@ class Question {
     'jours': jours,
     'active': active ? 1 : 0,
     'ordre': ordre,
+    'famille': famille,
   };
 
   factory Question.depuisLigne(Map<String, Object?> l) => Question(
@@ -75,6 +84,7 @@ class Question {
     jours: l['jours'] as int,
     active: (l['active'] as int) == 1,
     ordre: l['ordre'] as int,
+    famille: l['famille'] as String?,
   );
 }
 

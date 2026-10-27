@@ -19,7 +19,7 @@ import '../utils/stats.dart';
 class Base {
   /// 2 : planning ; 3 : liste « À faire » ; 4 : choisies pour un jour et
   /// créneaux fixes (24/10/2026).
-  static const version = 5;
+  static const version = 6;
 
   final Database db;
 
@@ -90,6 +90,10 @@ class Base {
           if (ancienne >= 3 && ancienne < 5) {
             await db.execute('ALTER TABLE liste ADD COLUMN heure INTEGER');
           }
+          // Version 6 : la famille d'une question (27/10/2026).
+          if (ancienne < 6) {
+            await db.execute('ALTER TABLE questions ADD COLUMN famille TEXT');
+          }
         },
         singleInstance: instanceUnique,
       ),
@@ -105,7 +109,8 @@ class Base {
         heure INTEGER NOT NULL,
         jours INTEGER NOT NULL,
         active INTEGER NOT NULL DEFAULT 1,
-        ordre INTEGER NOT NULL DEFAULT 0
+        ordre INTEGER NOT NULL DEFAULT 0,
+        famille TEXT
       )''');
     await db.execute('''
       CREATE TABLE reponses (

@@ -241,7 +241,10 @@ void main() {
               'NOT NULL, choix INTEGER NOT NULL, repondu_le TEXT NOT NULL, '
               'PRIMARY KEY (question_id, jour))',
             );
-            await db.insert('questions', questionsDeDepart.first.versLigne());
+            await db.insert(
+              'questions',
+              questionsDeDepart.first.versLigne()..remove('famille'),
+            );
           },
         ),
       );

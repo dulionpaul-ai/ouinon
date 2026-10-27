@@ -6,6 +6,7 @@ import '../models/question.dart';
 import '../models/tache.dart';
 import '../theme/app_theme.dart';
 import '../utils/courbes.dart';
+import '../utils/familles.dart';
 import '../utils/date_fr.dart';
 import '../utils/jour.dart';
 import '../utils/planning.dart';
@@ -45,6 +46,10 @@ class _StatsScreenState extends State<StatsScreen> {
 
   List<Question> _questions = const [];
 
+  /// Les familles (« Sport » : Cardio ? + Muscu ?), comptées comme des
+  /// questions dans les courbes et les liens.
+  List<Famille> _familles = const [];
+
   /// Les questions, et le planning s'il a des réponses : tout ce qui se
   /// compare.
   List<Question> _courbes = const [];
@@ -83,10 +88,19 @@ class _StatsScreenState extends State<StatsScreen> {
     if (!mounted) return;
     final planning = reponsesPlanning(taches);
     if (planning.isNotEmpty) reponses[idPlanning] = planning;
-    final courbes = [...questions, if (planning.isNotEmpty) questionPlanning];
+    final fams = familles(questions, reponses);
+    for (final f in fams) {
+      reponses[f.commeQuestion.id!] = f.reponses;
+    }
+    final courbes = [
+      ...questions,
+      for (final f in fams) f.commeQuestion,
+      if (planning.isNotEmpty) questionPlanning,
+    ];
     final ressemblances = toutesLesRessemblances(courbes, reponses);
     setState(() {
       _questions = questions;
+      _familles = fams;
       _courbes = courbes;
       _taches = taches;
       _liste = liste;
@@ -219,6 +233,31 @@ class _StatsScreenState extends State<StatsScreen> {
                   ),
                 ),
               ),
+            // Les familles : leurs questions additionnées, jour par jour.
+            if (_familles.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              const _Section('Familles'),
+              for (final f in _familles)
+                Padding(
+                  key: ValueKey('famille-${f.nom}'),
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _CarteQuestion(
+                    question: f.commeQuestion,
+                    sousTitre: [for (final q in f.questions) q.texte]
+                        .join(' + '),
+                    courbe: _courbe(f.commeQuestion, 91),
+                    debut: ajouteJours(_aujourdhui, -90),
+                    bilan: bilan(
+                      f.commeQuestion,
+                      f.reponses,
+                      debut: ajouteJours(_aujourdhui, -90),
+                      fin: _aujourdhui,
+                    ),
+                    serie: serie(f.commeQuestion, f.reponses, _aujourdhui),
+                    onTap: () {},
+                  ),
+                ),
+            ],
             const SizedBox(height: 18),
             const _Section('Découvertes'),
             if (_decouvertes.isEmpty)
@@ -874,6 +913,9 @@ class _CarteQuestion extends StatelessWidget {
   final Serie serie;
   final VoidCallback onTap;
 
+  /// Sous le titre : les questions d'une famille (« Cardio ? + Muscu ? »).
+  final String? sousTitre;
+
   const _CarteQuestion({
     required this.question,
     required this.courbe,
@@ -881,6 +923,7 @@ class _CarteQuestion extends StatelessWidget {
     required this.bilan,
     required this.serie,
     required this.onTap,
+    this.sousTitre,
   });
 
   @override
@@ -911,9 +954,17 @@ class _CarteQuestion extends StatelessWidget {
                         ),
                       ),
                       if (serie.actuelle >= 2) PastilleSerie(serie.actuelle),
-                      Icon(Icons.chevron_right_rounded, color: t.doux),
+                      if (sousTitre == null)
+                        Icon(Icons.chevron_right_rounded, color: t.doux),
                     ],
                   ),
+                  if (sousTitre case final st?)
+                    Text(
+                      st,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: t.doux, fontSize: 13),
+                    ),
                   const SizedBox(height: 4),
                   Courbes(
                     debut: debut,

@@ -174,7 +174,7 @@ class _StatsScreenState extends State<StatsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const GrandTitre('Suivi'),
+                  const GrandTitre('Analyse'),
                   const SizedBox(height: 4),
                   Text(
                     'Tes questions, et ce qu\'elles racontent.',

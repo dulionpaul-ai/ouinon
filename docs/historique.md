@@ -391,3 +391,19 @@ demain »).
   To-do : on tire une chose vers la languette « Aujourd'hui » au milieu à
   droite, elle est casée aujourd'hui (plus d'appui long pour « fait »).
   Version 1.0.0+26.
+
+## APK n° 27 (1.0.0+27) : le jeu « Synchro », étape 1
+
+- Paul valide tout `docs/jeu.md` (« Ok pour tout ») : noms de pages,
+  5 jauges, ordre des étapes.
+- Les points : chose faite 10 à 35 selon la durée (+5 si « D'abord »),
+  réponse +3 quelle qu'elle soit, plan de vol validé +15, synchro du jour
+  jusqu'à +50, séries +5 par jour. Jamais de points en moins. Tout se
+  recalcule depuis l'historique : le passé compte déjà.
+- Bandeau du jeu en haut de chaque page : niveau, stade, barre de points,
+  anneau de synchro, points du jour ; « +N » qui s'envole ; écran plein
+  « NIVEAU » avec chiffres qui basculent comme un panneau de gare (et le
+  nouveau stade) ; toucher le bandeau détaille les points du jour.
+- Pages renommées : Réserve, Missions, Analyse, Plan de vol. Chaque
+  mission affiche ses points.
+

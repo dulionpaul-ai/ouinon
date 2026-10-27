@@ -140,3 +140,30 @@ abstract final class DeuxMoi {
 /// « C'est fait ? », avec « Pas fait · Reporter · Fait ». Avec une seule
 /// notification, elle porte les trois boutons.
 enum NotifsPlanning { debutEtFin, debut, fin }
+
+/// Le jeu « Synchro » (docs/jeu.md) : ce qu'il faut garder en plus de
+/// l'historique pour calculer les points.
+abstract final class PrefsJeu {
+  static const _clePlans = 'jeu_plans';
+  static const _cleNiveauVu = 'jeu_niveau_vu';
+
+  /// Les soirs (« 2026-10-27 ») où le plan du lendemain a été validé.
+  static Future<Set<String>> plans() async =>
+      ((await SharedPreferences.getInstance()).getStringList(_clePlans) ??
+              const [])
+          .toSet();
+
+  static Future<void> ajoutePlan(DateTime soir) async {
+    final p = await SharedPreferences.getInstance();
+    final plans = (p.getStringList(_clePlans) ?? const []).toSet()
+      ..add(cleJour(soir));
+    await p.setStringList(_clePlans, plans.toList()..sort());
+  }
+
+  /// Le dernier niveau fêté par l'animation (nul : jamais ouvert).
+  static Future<int?> niveauVu() async =>
+      (await SharedPreferences.getInstance()).getInt(_cleNiveauVu);
+
+  static Future<void> changeNiveauVu(int niveau) async =>
+      (await SharedPreferences.getInstance()).setInt(_cleNiveauVu, niveau);
+}

@@ -235,7 +235,7 @@ class _TodoScreenState extends State<TodoScreen> {
             ),
           ),
         ),
-        GrandTitre(bonjour ? 'Bonjour, Décideur.' : 'To-do'),
+        GrandTitre(bonjour ? 'Bonjour, Décideur.' : 'Réserve'),
         Arrivee(
           rang: 1,
           child: Padding(

@@ -1,6 +1,7 @@
 # Ouinon, le jeu : « Synchro »
 
-Proposition du 27/10/2026, à valider par Paul avant de coder. Le jeu
+Proposition du 27/10/2026, validée par Paul le jour même (« Ok pour
+tout ») : noms de pages façon jeu, 5 jauges, étape 1 d'abord. Le jeu
 s'ajoute à l'appli sans rien casser : les questions, la to-do et le
 planning restent les mêmes, mais tout ce que tu fais rapporte quelque
 chose et fait avancer une histoire dont tu es le personnage principal.
@@ -52,7 +53,7 @@ d'expérience, comme dans un jeu).
 | 1 h 30 et plus | 35 |
 
 - **Bonus « à l'heure »** : +5 si tu dis « Fait » depuis la notification
-  « C'est fait ? », donc pendant la journée.
+  « C'est fait ? », donc pendant la journée (pas encore codé).
 - **Bonus « D'abord »** : +5 si la chose venait de la case D'abord
   (urgent et important).
 - « Pas fait » ou « Reporter » : 0 point, **jamais de points en moins**.

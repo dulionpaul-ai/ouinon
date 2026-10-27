@@ -5,15 +5,11 @@ Mis à jour le 27/10/2026.
 
 ## Reprendre ici (27/10/2026)
 
-- **On est reparti de zéro.** Lire d'abord `docs/cahier.md` : l'appli
-  se construit écran par écran, chacun validé par Paul avant d'être
-  codé. L'ancienne appli est dans `ancien/` (APK n° 22).
-- Codé : écran 1 « Mes questions » (version 1.0.0+23). Suite : demander
-  à Paul ce qu'il veut sur l'écran 2.
-- Prochain APK : 1.0.0+23 (ou +24 si le 23 est déjà parti), **toujours
-  demander à Paul avant**.
-- Les sections ci-dessous décrivent surtout l'ancienne appli ; les
-  outils et la fabrication de l'APK restent valables.
+- Appli complète au style Orbite, avec le jeu « Synchro » (`docs/jeu.md`,
+  validé par Paul). Étape 1 faite (points, bandeau, niveaux) : APK n° 27
+  (1.0.0+27). Suite : étape 2, la page « Unité » (personnage, stade,
+  jauges).
+- Prochain APK : 1.0.0+28, **toujours demander à Paul avant**.
 
 ## En une minute
 

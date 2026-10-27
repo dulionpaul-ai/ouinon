@@ -80,23 +80,17 @@ Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
   remet une heure après l'appui, jamais après minuit. Tirée de la liste
   (`listeId`) : « Fait » la sort de la liste, sinon elle revient « à
   placer ». Cases : D'abord, À planifier, Vite fait, Peut-être jamais.
-- Toujours sombre ; style et couleurs dans `lib/theme/app_theme.dart`
-  (`Teintes`) et `lib/widgets/rond.dart`, pas de puces Material.
-- Le parcours (refonte validée par Paul le 27/10/2026, maquette
-  « Ouinon, le rituel du soir ») : la journée tourne seule avec les
-  notifications ; on ouvre l'appli une fois, le soir. Accueil
-  (`BilanScreen`) : « Bonsoir. », l'anneau du jour, la journée en lignes,
-  les questions sans réponse, « Préparer demain » (l'ascenseur monte, à
-  garder pour l'animation), « Mon suivi » (`StatsScreen` : questions,
-  courbes, liens) et la roue des Réglages. Étape 1 (`ChoisirScreen`) :
-  saisie en vrac, matrice d'Eisenhower en aimants, un toucher choisit et
-  ouvre les réglages en bas (durée, Important, Urgent, heure), une case
-  trop pleine se replie en « + 3 autres ». Étape 2 (`PlacerScreen`) :
-  toute la journée dans l'écran, glisser sans appui long, « Caser pour
-  moi », « C'est prêt ». Puis `PretScreen` : « Demain est prêt. », les
-  rappels de demain, « Bonne nuit ». Un seul thème, `AppTheme.soir`
-  (accent ambre, bleu-vert pour « fait »). Le Décideur et l'Exécutant
-  restent dans l'intro et le ton, plus comme rôles. Les heures de la
-  journée (Réglages) servent aux notifications et à « Caser pour moi ».
-  Rien de la série Severance (nom, logo, vocabulaire).
+- Repartie de zéro le 27/10/2026, à la demande de Paul : l'appli se
+  construit écran par écran d'après `docs/cahier.md`, rien n'est codé
+  avant que Paul ait validé l'écran. L'ancienne appli (APK n° 22) est
+  rangée dans `ancien/` (ni compilée ni analysée) ; on y pioche si un
+  écran du cahier en a besoin. Le moteur est gardé : `data/base.dart`,
+  `data/notifications.dart` (questions seulement), `utils/planification.dart`.
+- Thème « pas IA » (Paul, 27/10/2026) : papier clair, encre noire, un
+  bleu d'encre, police du téléphone (Roboto), lignes et traits fins ; pas
+  de fond noir à néons, pas de dégradés ni de lueurs
+  (`lib/theme/theme.dart`).
+- Une notification ratée reste affichée jusqu'à la suivante de la même
+  question (Android : `timeoutAfter`) ; sans réponse, rien n'est
+  enregistré. Une question sans aucun jour ne sonne jamais (en pause).
 - Identifiant de l'appli : `fr.ouinon.app`, nom affiché « Ouinon ».

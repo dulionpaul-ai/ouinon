@@ -2,7 +2,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ouinon/data/base.dart';
 import 'package:ouinon/data/notifications.dart';
-import 'package:ouinon/models/question.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 /// Base en mémoire, neuve à chaque appel (avec ou sans les questions de
@@ -23,7 +22,6 @@ Future<Base> ouvreBase({bool depart = true}) async {
 class FaussesNotifications extends Notifications {
   int replanifications = 0;
   final retirees = <String>[];
-  final retireesTaches = <int>[];
   bool precise = true;
   int demandesHeurePrecise = 0;
 
@@ -41,9 +39,6 @@ class FaussesNotifications extends Notifications {
   }
 
   @override
-  Future<void> retireTache(int id) async => retireesTaches.add(id);
-
-  @override
   Future<bool?> autorisees() async => true;
 
   @override
@@ -54,12 +49,6 @@ class FaussesNotifications extends Notifications {
 
   @override
   Future<void> demandeHeurePrecise() async => demandesHeurePrecise++;
-
-  @override
-  Future<int> enAttente() async => 27;
-
-  @override
-  Future<void> essaie(Question q) async {}
 }
 
 NotificationResponse reponseBouton(String action, String contenu) =>

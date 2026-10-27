@@ -10,6 +10,22 @@ class NotifPrevue {
   final DateTime quand;
 
   const NotifPrevue(this.id, this.question, this.jour, this.quand);
+
+  /// Temps d'affichage : jusqu'à la suivante de la même question, qui la
+  /// remplace (cahier, écran 1, validé par Paul le 27/10/2026).
+  Duration get duree => prochaineFois(question, quand).difference(quand);
+}
+
+/// La prochaine fois que la question est posée, strictement après
+/// [apres] (dans les 7 jours qui suivent, à son heure).
+DateTime prochaineFois(Question q, DateTime apres) {
+  final jour = jourDe(apres);
+  for (var n = 0; n <= 7; n++) {
+    final j = ajouteJours(jour, n);
+    final quand = DateTime(j.year, j.month, j.day, q.heure ~/ 60, q.heure % 60);
+    if (q.revientLe(j.weekday) && quand.isAfter(apres)) return quand;
+  }
+  return apres.add(const Duration(days: 7));
 }
 
 /// Jours programmés d'avance : au-delà, il faut une réponse ou une
@@ -18,27 +34,6 @@ const horizonJours = 14;
 
 /// Identifiant de la notification « Ouvre Ouinon pour continuer ».
 const idRappelContinuer = 1;
-
-/// Identifiant du bilan du dimanche soir.
-const idBilanDimanche = 2;
-
-/// Heure du bilan du dimanche (en minutes) : 20 h.
-const heureBilan = 20 * 60;
-
-/// Le prochain dimanche à 20 h, strictement après `maintenant`.
-DateTime prochainBilan(DateTime maintenant) {
-  final aujourdhui = jourDe(maintenant);
-  var jour = ajouteJours(
-    aujourdhui,
-    (DateTime.sunday - aujourdhui.weekday) % 7,
-  );
-  var quand = DateTime(jour.year, jour.month, jour.day, heureBilan ~/ 60);
-  if (!quand.isAfter(maintenant)) {
-    jour = ajouteJours(jour, 7);
-    quand = DateTime(jour.year, jour.month, jour.day, heureBilan ~/ 60);
-  }
-  return quand;
-}
 
 /// Identifiant d'une notification : la question et le jour, pour la
 /// retrouver (et l'effacer) quand on répond dans l'appli.

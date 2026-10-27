@@ -369,3 +369,8 @@ demain »).
   d'Eisenhower, puis la journée entière dans l'écran, glisser sans appui
   long), « Demain est prêt. », « Mon suivi » pour les questions et les
   stats. APK n° 22 (1.0.0+22).
+- 27/10/2026 : Paul a l'impression d'avoir perdu le contrôle. On repart
+  de zéro, écran par écran, dans `docs/cahier.md`. Écran 1 « Mes
+  questions » validé puis codé seul, avec un thème clair « pas IA ».
+  L'ancienne appli est rangée dans `ancien/`. APK n° 23 (1.0.0+23) à
+  fabriquer avec l'accord de Paul.

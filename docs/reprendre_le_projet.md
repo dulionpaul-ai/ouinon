@@ -3,19 +3,17 @@
 À lire en premier dans une nouvelle session Claude (avec `CLAUDE.md`).
 Mis à jour le 27/10/2026.
 
-## Reprendre ici (fin de session du 27/10/2026)
+## Reprendre ici (27/10/2026)
 
-- Dernier APK envoyé : **n° 22** (1.0.0+22, 27/10/2026) : la refonte
-  « rituel du soir » (accueil « Bonsoir. », Préparer demain en 2 étapes,
-  Demain est prêt, Mon suivi). Avant : n° 19 (deux rôles), n° 20
-  (intitulés des cases), n° 21 (questions dans Stats). **Attendre les
-  retours de Paul, « à l'usage ».**
-- Maquette de référence : https://claude.ai/artifact/C3vS83VsCbicqnxiDfY3DM
-  (« Ouinon, le rituel du soir », validée le 27/10/2026).
-- Idée retenue pour Android (`docs/idees.md`) : après « Fait » dans une
-  notification, remplacer son texte par un message calculé (« Bravo,
-  3 sur 10 »), puis la faire disparaître.
-- Prochain APK : 1.0.0+23, **toujours demander à Paul avant**.
+- **On est reparti de zéro.** Lire d'abord `docs/cahier.md` : l'appli
+  se construit écran par écran, chacun validé par Paul avant d'être
+  codé. L'ancienne appli est dans `ancien/` (APK n° 22).
+- Codé : écran 1 « Mes questions » (version 1.0.0+23). Suite : demander
+  à Paul ce qu'il veut sur l'écran 2.
+- Prochain APK : 1.0.0+23 (ou +24 si le 23 est déjà parti), **toujours
+  demander à Paul avant**.
+- Les sections ci-dessous décrivent surtout l'ancienne appli ; les
+  outils et la fabrication de l'APK restent valables.
 
 ## En une minute
 

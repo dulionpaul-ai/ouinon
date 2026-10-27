@@ -1,8 +1,8 @@
-"""Icônes de Ouinon : le « rond dissocié » (thème des deux toi, 26/10/2026),
-un rond coupé en deux, moitié gauche ambre (le soir, celui qui décide)
-plus haute, moitié droite bleu-vert (le jour, celui qui exécute) plus
-basse, sur fond sombre. Reprend le logo n° 3 de Paul (rond coupé en deux,
-22/10/2026, réduit de 5 %), avec les couleurs des deux toi et le décalage.
+"""Icônes de Ouinon : le « rond dissocié », un rond coupé en deux, moitié
+gauche plus haute, moitié droite plus basse, sur fond sombre. Logo n° 3
+de Paul (22/10/2026, réduit de 5 %) ; couleurs d'origine remises le
+27/10/2026 à sa demande : vert citron (oui) à gauche, corail (non) à
+droite.
 
 Lancement depuis la racine du dépôt : python3 tool/icones.py
 Écrit les icônes Android (classiques, adaptatives, monochrome) et iPhone.
@@ -15,8 +15,8 @@ from PIL import Image, ImageDraw
 
 FOND = (0x17, 0x17, 0x1A, 255)
 TAILLE = 0.95  # part du logo d'origine (réduit de 5 %)
-AMBRE = (0xF2, 0xA5, 0x41, 255)
-BLEU_VERT = (0x5F, 0xE0, 0xC9, 255)
+AMBRE = (0xD4, 0xFF, 0x3A, 255)  # vert citron (oui)
+BLEU_VERT = (0xFF, 0x6B, 0x5E, 255)  # corail (non)
 BLANC = (255, 255, 255, 255)
 SUR = 8  # suréchantillonnage, pour des bords lisses
 

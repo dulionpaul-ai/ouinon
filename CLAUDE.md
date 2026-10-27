@@ -45,10 +45,9 @@ Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
   (`tool/installer_outils.sh`). APK de test fabriqués dans la session ;
   Codemagic pour l'iPhone.
 - Avant chaque APK : regarder les captures (`tool/captures_test.dart`).
-- Garder l'appli simple (demande de Paul du 25/10/2026) : les onglets
-  du rôle actif seulement (Décideur : To-do, Planifier, Stats ;
-  Exécutant : Ma journée), des lignes plutôt que des cartes, pas de
-  textes d'aide permanents, pas de nouveau bouton sans nécessité.
+- Garder l'appli simple (demande de Paul du 25/10/2026) : pas
+  d'onglets (refonte du 27/10/2026), des lignes plutôt que des cartes,
+  pas de textes d'aide permanents, pas de nouveau bouton sans nécessité.
 - Jamais d'appui long (« c'est juste chiant ») : le glisser-déposer part
   dès qu'on pose le doigt. Pas de défilement dans les écrans, surtout
   pas dans celui de la planification de la journée (consignes de Paul
@@ -83,19 +82,21 @@ Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
   placer ». Cases : D'abord, À planifier, Vite fait, Peut-être jamais.
 - Toujours sombre ; style et couleurs dans `lib/theme/app_theme.dart`
   (`Teintes`) et `lib/widgets/rond.dart`, pas de puces Material.
-- Les deux toi (26/10/2026) : le soir, le Décideur (accent ambre,
-  `AppTheme.soir`, to-do en 4 cases) ; le jour, l'Exécutant (Aujourd'hui
-  calme, `AppTheme.jour`, accent bleu-vert, calendrier). Le terminal
-  rétro (`AppTheme.retro`, `lib/widgets/retro.dart`) par petites touches
-  seulement : Paul le trouve fatigant en plein écran. Style « tableau »
-  pour le Décideur (moins rond, matrice en croix), « terminal sobre »
-  pour l'Exécutant (`Teintes.terminal`, `Teintes.rayon`), validés le
-  26/10/2026. Deux rôles séparés (26/10/2026) : le Décideur a ses
-  onglets To-do · Planifier · Stats, l'Exécutant a « Ma journée » ; on
-  passe de l'un à l'autre par le bouton Ascenseur (à droite de la barre
-  du bas), le rôle actif est gardé (`DeuxMoi.role`). Pour l'instant pas
-  de barrière : l'Exécutant peut ajouter une chose ou changer une heure.
-  Les heures de la journée (Réglages) servent aux notifications et à
-  « Caser pour moi ». Rien de la série
-  Severance (nom, logo, vocabulaire).
+- Le parcours (refonte validée par Paul le 27/10/2026, maquette
+  « Ouinon, le rituel du soir ») : la journée tourne seule avec les
+  notifications ; on ouvre l'appli une fois, le soir. Accueil
+  (`BilanScreen`) : « Bonsoir. », l'anneau du jour, la journée en lignes,
+  les questions sans réponse, « Préparer demain » (l'ascenseur monte, à
+  garder pour l'animation), « Mon suivi » (`StatsScreen` : questions,
+  courbes, liens) et la roue des Réglages. Étape 1 (`ChoisirScreen`) :
+  saisie en vrac, matrice d'Eisenhower en aimants, un toucher choisit et
+  ouvre les réglages en bas (durée, Important, Urgent, heure), une case
+  trop pleine se replie en « + 3 autres ». Étape 2 (`PlacerScreen`) :
+  toute la journée dans l'écran, glisser sans appui long, « Caser pour
+  moi », « C'est prêt ». Puis `PretScreen` : « Demain est prêt. », les
+  rappels de demain, « Bonne nuit ». Un seul thème, `AppTheme.soir`
+  (accent ambre, bleu-vert pour « fait »). Le Décideur et l'Exécutant
+  restent dans l'intro et le ton, plus comme rôles. Les heures de la
+  journée (Réglages) servent aux notifications et à « Caser pour moi ».
+  Rien de la série Severance (nom, logo, vocabulaire).
 - Identifiant de l'appli : `fr.ouinon.app`, nom affiché « Ouinon ».

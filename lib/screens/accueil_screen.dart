@@ -7,25 +7,21 @@ import '../data/base.dart';
 import '../data/notifications.dart';
 import '../data/preferences.dart';
 import '../theme/app_theme.dart';
-import '../utils/deux_moi.dart';
-import '../widgets/arrivee.dart';
-import '../widgets/rond.dart';
-import 'aujourdhui_screen.dart';
 import '../utils/jour.dart';
+import 'bilan_screen.dart';
+import 'choisir_screen.dart';
 import 'intro_screen.dart';
 import 'passage_screen.dart';
-import 'preparer_screen.dart';
 import 'rapport_screen.dart';
+import 'reglages_screen.dart';
 import 'stats_screen.dart';
-import 'todo_screen.dart';
 
-/// Écran principal : trois onglets (To-do, Aujourd'hui, Stats ; revue du
-/// 25/10/2026, ordre revu le 26/10/2026). Le rappel du soir ouvre « Préparer demain ».
+/// L'accueil (refait avec Paul le 26/10/2026) : plus d'onglets ni de
+/// rôles. La journée tourne seule avec les notifications ; le soir, on
+/// ouvre l'appli sur « Bonsoir. » et on prépare demain en deux étapes
+/// (l'ascenseur monte à l'étage du Décideur). « Mon suivi » et les
+/// Réglages sont à côté.
 ///
-/// Les deux toi (26/10/2026) : pendant la journée, Aujourd'hui passe en
-/// écran rétro (celui qui exécute) ; le soir, l'appli prend l'accent ambre
-/// (celui qui décide). Le premier passage de la journée se fait en
-/// ascenseur.
 /// Reprogramme les notifications à l'ouverture, au retour dans l'appli et
 /// après chaque modification.
 class AccueilScreen extends StatefulWidget {
@@ -45,23 +41,7 @@ class _AccueilScreenState extends State<AccueilScreen>
 
   Base? _base;
   Object? _erreur;
-  // Deux rôles séparés (Paul, 26/10/2026). Le Décideur a ses onglets :
-  // on liste, on planifie, on regarde. L'Exécutant a sa journée.
-  static const _todo = 0;
-  static const _planifier = 1;
-
-  /// L'onglet du Décideur.
-  int _onglet = _todo;
   Timer? _attente;
-
-  /// Les deux toi sont actifs (intro vue).
-  bool _actifs = false;
-
-  /// Le rôle actif, gardé d'une ouverture à l'autre ; on en change par
-  /// l'ascenseur.
-  Moi _role = Moi.decideur;
-
-  Moi get _moi => _actifs ? _role : Moi.repos;
 
   @override
   void initState() {
@@ -80,7 +60,6 @@ class _AccueilScreenState extends State<AccueilScreen>
       WidgetsBinding.instance.addPostFrameCallback((_) => _ouvreDepuisNotif());
       unawaited(_replanifie());
       WidgetsBinding.instance.addPostFrameCallback((_) => _bienvenue());
-      arriveeAscenseur.addListener(_arrivee);
     } catch (e) {
       if (mounted) setState(() => _erreur = e);
     }
@@ -91,7 +70,6 @@ class _AccueilScreenState extends State<AccueilScreen>
     WidgetsBinding.instance.removeObserver(this);
     _base?.changements.removeListener(_aChange);
     Notifications.instance.ouverture.removeListener(_ouvreDepuisNotif);
-    arriveeAscenseur.removeListener(_arrivee);
     _attente?.cancel();
     super.dispose();
   }
@@ -103,46 +81,25 @@ class _AccueilScreenState extends State<AccueilScreen>
     _base?.signaleChangement();
   }
 
-  /// À l'ouverture : le rôle qu'on avait en partant.
-  Future<void> _premierOnglet() async {
-    final actifs = await DeuxMoi.actifs();
-    final role = await DeuxMoi.role();
-    if (!mounted) return;
-    setState(() {
-      _actifs = actifs;
-      _role = role;
-    });
-  }
-
-  /// Toute arrivée d'ascenseur (bouton Ascenseur, fin de service) met le
-  /// rôle d'arrivée.
-  void _arrivee() {
-    if (!_actifs || !mounted) return;
-    final role = arriveeAscenseur.value.versLeSoir
-        ? Moi.decideur
-        : Moi.executant;
-    if (role != _role) {
-      setState(() {
-        _role = role;
-        _onglet = _todo;
-      });
-    }
-    unawaited(DeuxMoi.changeRole(role));
-  }
-
-  /// Le bouton Ascenseur : on passe à l'autre rôle (les portes se ferment
-  /// sur l'un, s'ouvrent sur l'autre).
-  Future<void> _ascenseur() async {
-    final vers = _role == Moi.decideur ? Moi.executant : Moi.decideur;
+  /// « Préparer demain » : l'ascenseur monte à l'étage du Décideur et
+  /// ses portes s'ouvrent sur l'étape 1.
+  Future<void> _preparer() async {
+    final base = _base;
+    if (base == null) return;
+    final demain = ajouteJours(jourDe(widget.maintenant()), 1);
     await PassageScreen.joue(
       context,
-      versLeSoir: vers == Moi.decideur,
-      auMilieu: () => setState(() {
-        _role = vers;
-        _onglet = _todo;
-      }),
+      versLeSoir: true,
+      destination: ChoisirScreen(
+        base: base,
+        jour: demain,
+        maintenant: widget.maintenant,
+      ),
     );
   }
+
+  void _vers(Widget ecran) =>
+      Navigator.push(context, MaterialPageRoute(builder: (_) => ecran));
 
   /// Rappel du soir touché : « Préparer demain » ; compte rendu touché :
   /// le compte rendu du jour.
@@ -163,12 +120,7 @@ class _AccueilScreenState extends State<AccueilScreen>
     }
     if (ouverture != Notifications.preparer) return;
     Notifications.instance.ouverture.value = null;
-    // Le rappel du soir : chez le Décideur, sur Planifier.
-    setState(() {
-      _role = Moi.decideur;
-      _onglet = _planifier;
-    });
-    unawaited(DeuxMoi.changeRole(Moi.decideur));
+    unawaited(_preparer());
   }
 
   /// Plusieurs changements d'affilée : une seule reprogrammation.
@@ -193,7 +145,6 @@ class _AccueilScreenState extends State<AccueilScreen>
     final prefs = await SharedPreferences.getInstance();
     if (await DeuxMoi.actifs()) {
       await _heurePrecise(prefs);
-      await _premierOnglet();
       return;
     }
     if (!mounted) return;
@@ -211,19 +162,6 @@ class _AccueilScreenState extends State<AccueilScreen>
     } else {
       await _replanifie();
     }
-    // Puis l'ascenseur monte chez le Décideur, sur sa to-do : il n'y a
-    // encore rien à exécuter.
-    await DeuxMoi.changeRole(Moi.decideur);
-    if (!mounted) return;
-    await PassageScreen.joue(
-      context,
-      versLeSoir: true,
-      auMilieu: () => setState(() {
-        _actifs = true;
-        _role = Moi.decideur;
-        _onglet = _todo;
-      }),
-    );
   }
 
   /// Une seule fois : proposer l'heure précise (« Alarmes et rappels »).
@@ -286,58 +224,15 @@ class _AccueilScreenState extends State<AccueilScreen>
         ),
       );
     }
-    final executant = _moi == Moi.executant;
-    final demain = ajouteJours(jourDe(widget.maintenant()), 1);
-    final ecran = Scaffold(
-      body: IndexedStack(
-        // Les écrans des deux rôles restent tous dans l'arbre : passer de
-        // l'un à l'autre ne fait rien perdre.
-        index: executant ? 3 : _onglet,
-        children: [
-          TodoScreen(
-            base: base,
-            moi: _actifs ? Moi.decideur : Moi.repos,
-            maintenant: widget.maintenant,
-          ),
-          PreparerScreen(
-            key: ValueKey('planifier-${cleJour(demain)}'),
-            base: base,
-            jour: demain,
-            maintenant: widget.maintenant,
-            onglet: true,
-          ),
-          StatsScreen(base: base),
-          AujourdhuiScreen(
-            base: base,
-            moi: _actifs ? Moi.executant : Moi.repos,
-            maintenant: widget.maintenant,
-          ),
-        ],
-      ),
-      extendBody: true,
-      bottomNavigationBar: BarreOnglets(
-        index: executant ? 0 : _onglet,
-        libelles: executant
-            ? const ['Ma journée']
-            : const ['To-do', 'Planifier', 'Stats'],
-        onChoix: (i) {
-          if (!executant) setState(() => _onglet = i);
-        },
-        // L'ascenseur, toujours au même endroit, bien visible.
-        ascenseur: _actifs
-            ? BoutonAscenseur(versLeSoir: executant, onTap: _ascenseur)
-            : null,
-      ),
-    );
-    // Même arbre dans tous les modes : changer de toi ou d'onglet ne fait
-    // rien perdre (pages, saisie en cours).
     return Theme(
-      data: executant
-          ? AppTheme.jour()
-          : _moi == Moi.decideur
-          ? AppTheme.soir()
-          : AppTheme.sombre(),
-      child: ecran,
+      data: AppTheme.soir(),
+      child: BilanScreen(
+        base: base,
+        maintenant: widget.maintenant,
+        onPreparer: _preparer,
+        onSuivi: () => _vers(StatsScreen(base: base)),
+        onReglages: () => _vers(ReglagesScreen(base: base)),
+      ),
     );
   }
 }

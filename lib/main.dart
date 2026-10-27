@@ -25,8 +25,8 @@ class OuinonApp extends StatelessWidget {
     return MaterialApp(
       title: 'Ouinon',
       debugShowCheckedModeBanner: false,
-      // Toujours sombre (choix de Paul du 22/10/2026).
-      theme: AppTheme.sombre(),
+      // Toujours sombre (choix de Paul du 22/10/2026), accent ambre.
+      theme: AppTheme.soir(),
       locale: const Locale('fr', 'FR'),
       supportedLocales: const [Locale('fr', 'FR')],
       localizationsDelegates: GlobalMaterialLocalizations.delegates,

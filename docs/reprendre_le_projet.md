@@ -1,23 +1,21 @@
 # Reprendre le projet Ouinon
 
 À lire en premier dans une nouvelle session Claude (avec `CLAUDE.md`).
-Mis à jour le 26/10/2026.
+Mis à jour le 27/10/2026.
 
-## Reprendre ici (fin de session du 26/10/2026)
+## Reprendre ici (fin de session du 27/10/2026)
 
-- Dernier APK envoyé : **n° 19** (1.0.0+21, 26/10/2026) : deux rôles
-  séparés (Décideur : To-do · Planifier · Stats ; Exécutant : Ma
-  journée), bouton Ascenseur, formulaire « Ajouter » avec heure imposée,
-  onglet Planifier. **Attendre les retours de Paul.**
-- En attente de Paul : le choix « Une fois · Chaque jour » dans la
-  To-do (créer des questions qui reviennent).
-- Maquette du parcours : https://claude.ai/artifact/6uwN74rtwMFmdVsCiuppJ7
-  (Paul a validé intro, ascenseur, Décideur, Exécutant le 26/10/2026).
-- Idées pour plus tard notées dans `docs/idees.md` : intro qui raconte
-  le pourquoi (style ascenseur), notes échangées avec soi-même (avec
-  réponse et fil des échanges), et les idées en réserve. Rien n'est à
-  coder sans l'accord de Paul ; maquettes d'abord.
-- Prochain APK : 1.0.0+21, **toujours demander à Paul avant**.
+- Dernier APK envoyé : **n° 22** (1.0.0+22, 27/10/2026) : la refonte
+  « rituel du soir » (accueil « Bonsoir. », Préparer demain en 2 étapes,
+  Demain est prêt, Mon suivi). Avant : n° 19 (deux rôles), n° 20
+  (intitulés des cases), n° 21 (questions dans Stats). **Attendre les
+  retours de Paul, « à l'usage ».**
+- Maquette de référence : https://claude.ai/artifact/C3vS83VsCbicqnxiDfY3DM
+  (« Ouinon, le rituel du soir », validée le 27/10/2026).
+- Idée retenue pour Android (`docs/idees.md`) : après « Fait » dans une
+  notification, remplacer son texte par un message calculé (« Bravo,
+  3 sur 10 »), puis la faire disparaître.
+- Prochain APK : 1.0.0+23, **toujours demander à Paul avant**.
 
 ## En une minute
 
@@ -40,8 +38,8 @@ Mis à jour le 26/10/2026.
   envoyée en **APK n° 13** (1.0.0+13, 26/10/2026). **APK n° 14**
   (1.0.0+14, 26/10/2026) : **les deux toi** (intro, écran rétro le jour,
   ambre le soir, ascenseur, mots, compte rendu, nouveau logo ; voir
-  `docs/fonctionnement.md`). **APK n° 15** (1.0.0+15) : parcours de première ouverture. **APK n° 16** : changer de toi à la main, 8 h – 20 h. **APK n° 17** : nouveau style. **APK n° 18** : le toi suit l'onglet. **APK n° 21** : deux rôles séparés. Pour le
-  prochain, passer `version` à 1.0.0+21 dans `pubspec.yaml` et `lib/utils/version.dart`.
+  `docs/fonctionnement.md`). **APK n° 15** (1.0.0+15) : parcours de première ouverture. **APK n° 16** : changer de toi à la main, 8 h – 20 h. **APK n° 17** : nouveau style. **APK n° 18** : le toi suit l'onglet. **APK n° 19** : deux rôles séparés. **APK n° 22** : refonte « rituel du soir ». Pour le
+  prochain, passer `version` à 1.0.0+23 dans `pubspec.yaml` et `lib/utils/version.dart`.
   Toujours demander à Paul avant de fabriquer un APK. Les boutons de
   notification marchent appli fermée (confirmé par Paul).
 - **Le code est sur `main`** du dépôt `dulionpaul-ai/ouinon` (voir

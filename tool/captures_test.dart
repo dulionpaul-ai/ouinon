@@ -15,22 +15,20 @@ import 'package:ouinon/main.dart';
 import 'package:ouinon/models/creneau.dart';
 import 'package:ouinon/models/tache.dart';
 import 'package:ouinon/screens/accueil_screen.dart';
-import 'package:ouinon/screens/aujourdhui_screen.dart';
+import 'package:ouinon/screens/choisir_screen.dart';
 import 'package:ouinon/screens/edition_a_faire_screen.dart';
 import 'package:ouinon/screens/edition_tache_screen.dart';
 import 'package:ouinon/screens/edition_question_screen.dart';
 import 'package:ouinon/screens/fiche_question_screen.dart';
 import 'package:ouinon/screens/intro_screen.dart';
 import 'package:ouinon/theme/app_theme.dart';
-import 'package:ouinon/utils/deux_moi.dart';
 import 'package:ouinon/screens/rapport_screen.dart';
-import 'package:ouinon/screens/preparer_screen.dart';
-import 'package:ouinon/screens/todo_screen.dart';
+import 'package:ouinon/screens/placer_screen.dart';
+import 'package:ouinon/screens/pret_screen.dart';
 import 'package:ouinon/screens/questions_screen.dart';
 import 'package:ouinon/screens/reglages_screen.dart';
 import 'package:ouinon/screens/stats_screen.dart';
 import 'package:ouinon/widgets/retro.dart';
-import 'package:ouinon/widgets/rond.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../test/outils.dart';
@@ -104,22 +102,6 @@ void main() {
     );
   });
 
-  /// Le rôle actif : l'Exécutant.
-  Future<void> rolExecutant() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('role_actif', 'executant');
-  }
-
-  Widget avecOnglets(Widget ecran, int index) => Scaffold(
-    body: ecran,
-    extendBody: true,
-    bottomNavigationBar: BarreOnglets(
-      index: index,
-      libelles: const ['To-do', 'Aujourd\'hui', 'Stats'],
-      onChoix: (_) {},
-    ),
-  );
-
   Future<void> capture(
     WidgetTester tester,
     String nom,
@@ -160,7 +142,12 @@ void main() {
 
     testWidgets('jour $suffixe', (tester) async {
       await remplit(tester);
-      await capture(tester, '1-jour-$suffixe', const AccueilScreen(), mode);
+      await capture(
+        tester,
+        '1-accueil-$suffixe',
+        AccueilScreen(maintenant: () => DateTime(2026, 10, 22, 21, 45)),
+        mode,
+      );
     });
 
     testWidgets('stats $suffixe', (tester) async {
@@ -168,7 +155,7 @@ void main() {
       await capture(
         tester,
         '2-stats-$suffixe',
-        avecOnglets(StatsScreen(base: base, maintenant: () => maintenant), 2),
+        StatsScreen(base: base, maintenant: () => maintenant),
         mode,
         hauteur: 6200,
       );
@@ -249,27 +236,36 @@ void main() {
       );
     });
 
-    testWidgets('to-do $suffixe', (tester) async {
+    testWidgets('choisir $suffixe', (tester) async {
       await remplit(tester);
       await capture(
         tester,
-        '12-todo-$suffixe',
-        avecOnglets(TodoScreen(base: base, maintenant: () => maintenant), 0),
-        mode,
-      );
-    });
-
-    testWidgets('préparer, étape 1 $suffixe', (tester) async {
-      await remplit(tester);
-      await capture(
-        tester,
-        '17-preparer-1-$suffixe',
-        PreparerScreen(
+        '12-choisir-$suffixe',
+        ChoisirScreen(
           base: base,
           jour: DateTime(2026, 10, 23),
           maintenant: () => maintenant,
         ),
         mode,
+      );
+    });
+
+    testWidgets('choisir, une fiche ouverte $suffixe', (tester) async {
+      await remplit(tester);
+      await capture(
+        tester,
+        '17-choisir-fiche-$suffixe',
+        ChoisirScreen(
+          base: base,
+          jour: DateTime(2026, 10, 23),
+          maintenant: () => maintenant,
+        ),
+        mode,
+        avant: (tester) async {
+          await tester.tap(find.text('Acheter un cadeau'));
+          await attends(tester, 10);
+          await tester.pumpAndSettle();
+        },
       );
     });
 
@@ -289,22 +285,22 @@ void main() {
       );
     });
 
-    testWidgets('préparer, étape 2 $suffixe', (tester) async {
+    testWidgets('placer $suffixe', (tester) async {
       await remplit(tester);
+      await tester.runAsync(() async {
+        for (final a in (await base.liste()).take(3)) {
+          await base.choisitPour(a.id!, DateTime(2026, 10, 23));
+        }
+      });
       await capture(
         tester,
-        '19-preparer-2-$suffixe',
-        PreparerScreen(
+        '19-placer-$suffixe',
+        PlacerScreen(
           base: base,
           jour: DateTime(2026, 10, 23),
           maintenant: () => maintenant,
         ),
         mode,
-        hauteur: 1000,
-        avant: (tester) async {
-          await tester.tap(find.text('Suivant : caser dans la journée'));
-          await tester.pumpAndSettle();
-        },
       );
     });
 
@@ -327,17 +323,13 @@ void main() {
       );
     });
 
-    testWidgets('jour avec planning $suffixe', (tester) async {
+    testWidgets('accueil dans la journée $suffixe', (tester) async {
       await remplit(tester);
       await capture(
         tester,
-        '16-jour-prevu-$suffixe',
-        avecOnglets(
-          AujourdhuiScreen(base: base, maintenant: () => maintenant),
-          1,
-        ),
+        '16-accueil-jour-$suffixe',
+        AccueilScreen(maintenant: () => DateTime(2026, 10, 22, 12, 35)),
         mode,
-        hauteur: 1000,
       );
     });
   }
@@ -402,8 +394,12 @@ void main() {
     await remplit(tester);
     await capture(
       tester,
-      '15-petit-todo',
-      avecOnglets(TodoScreen(base: base, maintenant: () => maintenant), 0),
+      '15-petit-choisir',
+      ChoisirScreen(
+        base: base,
+        jour: DateTime(2026, 10, 23),
+        maintenant: () => maintenant,
+      ),
       ThemeMode.dark,
       largeur: 360,
       hauteur: 900,
@@ -469,34 +465,27 @@ void main() {
     );
   });
 
-  for (final (nom, largeur, texte) in [
-    ('23-executant', 390.0, 1.0),
-    ('24-petit-executant', 360.0, 1.3),
-  ]) {
-    testWidgets('le jour, l\'Exécutant ($nom)', (tester) async {
-      await rolExecutant();
-      await remplit(tester);
-      await capture(
-        tester,
-        nom,
-        AccueilScreen(maintenant: () => DateTime(2026, 10, 22, 12, 35)),
-        ThemeMode.dark,
-        largeur: largeur,
-        hauteur: 1500,
-        texte: texte,
-      );
-    });
-  }
+  testWidgets('accueil du soir, petit téléphone', (tester) async {
+    await remplit(tester);
+    await capture(
+      tester,
+      '24-petit-accueil',
+      AccueilScreen(maintenant: () => DateTime(2026, 10, 22, 21, 45)),
+      ThemeMode.dark,
+      largeur: 360,
+      texte: 1.3,
+    );
+  });
 
-  testWidgets('l\'ascenseur, vers l\'Exécutant', (tester) async {
+  testWidgets('l\'ascenseur, vers l\'étape 1', (tester) async {
     await remplit(tester);
     await capture(
       tester,
       '25-ascenseur',
-      AccueilScreen(maintenant: () => DateTime(2026, 10, 22, 12, 35)),
+      AccueilScreen(maintenant: () => DateTime(2026, 10, 22, 21, 45)),
       ThemeMode.dark,
       avant: (tester) async {
-        await tester.tap(find.byKey(const ValueKey('ascenseur')));
+        await tester.tap(find.byKey(const ValueKey('preparer-demain')));
         for (var i = 0; i < 17; i++) {
           await tester.pump(const Duration(milliseconds: 100));
         }
@@ -504,22 +493,34 @@ void main() {
     );
   });
 
-  testWidgets('le Décideur, première fois', (tester) async {
+  testWidgets('étape 1, liste vide', (tester) async {
     await capture(
       tester,
-      '28-decideur-vide',
-      avecOnglets(TodoScreen(base: base, moi: Moi.decideur), 0),
+      '28-choisir-vide',
+      ChoisirScreen(base: base, jour: DateTime(2026, 10, 23)),
       ThemeMode.dark,
     );
   });
 
-  testWidgets('le Décideur, sa to-do', (tester) async {
+  testWidgets('placer, petit téléphone', (tester) async {
     await remplit(tester);
+    await tester.runAsync(() async {
+      for (final a in (await base.liste()).take(4)) {
+        await base.choisitPour(a.id!, DateTime(2026, 10, 23));
+      }
+    });
     await capture(
       tester,
-      '29-decideur',
-      AccueilScreen(maintenant: () => DateTime(2026, 10, 22, 21, 45)),
+      '29-petit-placer',
+      PlacerScreen(
+        base: base,
+        jour: DateTime(2026, 10, 23),
+        maintenant: () => maintenant,
+      ),
       ThemeMode.dark,
+      largeur: 360,
+      hauteur: 740,
+      texte: 1.3,
     );
   });
 
@@ -534,18 +535,17 @@ void main() {
     );
   });
 
-  testWidgets('le soir', (tester) async {
+  testWidgets('demain est prêt', (tester) async {
     await remplit(tester);
     await capture(
       tester,
-      '27-planifier',
-      AccueilScreen(maintenant: () => DateTime(2026, 10, 22, 21, 45)),
+      '27-pret',
+      PretScreen(
+        base: base,
+        jour: DateTime(2026, 10, 23),
+        maintenant: () => maintenant,
+      ),
       ThemeMode.dark,
-      hauteur: 1000,
-      avant: (tester) async {
-        await tester.tap(find.byKey(const ValueKey('onglet-1')));
-        await tester.pumpAndSettle();
-      },
     );
   });
 

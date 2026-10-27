@@ -17,14 +17,17 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 | `models/tache.dart` | Une chose prévue du planning : jour, début et durée (minutes), texte, réponse (`fait` = 0, `pasFait` = 1, ou nulle), nombre de reports, marque « test », chose de la liste d'où elle vient (`listeId`, nulle pour un impératif) et sa case au moment du placement (`quadrant`). |
 | `models/creneau.dart` | Un créneau fixe qui revient chaque semaine (texte, début, fin, jours). |
 | `widgets/grille_journee.dart` | La journée heure par heure (52 px par heure, 8 h – 23 h, élargie si besoin) : blocs à leur vraie taille (couleur de leur case, blanc pour un impératif), créneaux hachurés, trait « maintenant » ; dépôt d'une chose du bac ou d'un bloc (au quart d'heure, d'après le haut de ce qu'on glisse), durée en tirant le bas, toucher une heure vide. |
+| `screens/bilan_screen.dart` | L'accueil (27/10/2026) : « Bonsoir. » ou « Bonjour. », l'anneau du jour (faites, pas faites, sans réponse), la chose en cours (Pas fait · Reporter · Fait), la journée en lignes (toucher : répondre ou modifier), les questions sans réponse, « Préparer demain » (lueur trois fois le soir), « Mon suivi », Réglages. |
+| `screens/choisir_screen.dart` | Le soir, étape 1 : saisie en vrac (`lisAjout`), matrice d'Eisenhower en aimants (un toucher choisit et ouvre les réglages en bas, un second retire), case trop pleine repliée en « + 3 autres », jauge du temps libre. |
+| `screens/placer_screen.dart` | Le soir, étape 2 : toute la journée dans l'écran (hauteur d'heure calculée), aimants à placer sur une ligne qui défile de côté (on les tire vers le bas, sans appui long), « Caser pour moi », « C'est prêt » (case le reste, rend ce qui ne rentre pas). |
+| `screens/pret_screen.dart` | « Demain est prêt. » : les deux moitiés du rond se rejoignent et respirent trois fois, les rappels de demain dans l'ordre, « Bonne nuit » (retour à l'accueil). |
+| `widgets/etape.dart` | `BarreEtape` (retour, « ÉTAPE 1 SUR 2 »), `TitreEcran` (Unbounded), `BoutonSuite` (gros bouton ambre, lueur facultative), `LogoRond`. |
 | `screens/edition_creneau_screen.dart` | Ajout ou modification d'un créneau fixe. |
 | `utils/deux_moi.dart` | Les deux toi (testé) : qui est là (`moiA` : exécutant, décideur, repos ; plages qui passent minuit), chose en cours (`enCours`), textes du matin et du compte rendu. |
 | `screens/intro_screen.dart` | Intro en 3 pages, cadran des heures. Page 1 minutée par `_Recit` : le pourquoi, puis le logo (`RondDissocie` : naissance, fente, écart du blanc aux deux couleurs), puis « Il y a deux toi ». |
 | `screens/passage_screen.dart` | L'ascenseur, posé par-dessus l'écran (`PassageScreen.joue`) : portes, afficheur DÉCIDEUR / EXÉCUTANT qui défile dans le sens de la flèche ; portes fermées, `auMilieu` change l'écran derrière et `arriveeAscenseur` prévient ; 3,2 s. |
 | `widgets/arrivee.dart` | `arriveeAscenseur` et `Arrivee` : à l'arrivée, le « Bonjour » seul, puis le reste de l'écran morceau par morceau. |
-| `theme/app_theme.dart` (formes) | `Teintes.rayon` : arrondi des boutons et champs (14 partout, 3 pour l'Exécutant) ; `Teintes.terminal` : style de l'Exécutant (étiquettes en IBM Plex Mono, titres en VT323). `BarreOnglets` : mots soulignés, ou touches carrées chez l'Exécutant. |
-| `widgets/qui_est_la.dart` | En haut à gauche : demi-rond et nom (DÉCIDEUR ambre, EXÉCUTANT bleu-vert, AU REPOS), date. Toucher le nom (⇅) fait changer de toi en ascenseur. |
-| `widgets/calendrier_jour.dart` | La journée de l'Exécutant en calendrier : heures régulières, cases transparentes, créneaux hachurés, trait de l'heure. |
+| `theme/app_theme.dart` (formes) | `Teintes.rayon` : arrondi des boutons et champs (14 partout, 3 pour l'Exécutant) ; `Teintes.terminal` : style de l'Exécutant (étiquettes en IBM Plex Mono, titres en VT323). |
 | `screens/rapport_screen.dart` | Compte rendu de fin de journée (rétro, `AppTheme.retro`), mot pour le soir, « Fin de service » (ascenseur vers le Décideur, le compte rendu part portes fermées). |
 | `widgets/retro.dart` | Briques rétro : fond à lignes de balayage, curseur (`Curseur.clignote` coupé dans les tests), bouton rectangulaire, barre « [████░░] », heures « 09:05 ». |
 | `data/base.dart` | Base `ouinon.sqlite` (version 5 : colonne `heure` de `liste`, l'heure imposée ; version 4 : colonne `choisie_pour` et table `creneaux`) : tables `questions` (rendues dans l'ordre de la journée : heure, puis création), `reponses` (une réponse par question et par jour, effacée avec sa question), `planning` (version 2 ; colonnes `liste_id` et `quadrant` en version 3) et `liste` (version 3), par mise à jour de la base. « Fait » sur une chose tirée de la liste la marque faite dans la liste (`repondTache`) ; `placees` dit ce qui est déjà placé. Reporter une chose (`reporteTache`), raccourcis (`habitudes`). Changement du nombre de réponses avec conversion de l'historique (`enregistreAvecNombre`). |
@@ -218,74 +221,28 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
 - **Stats** : « Les 4 cases » (part du temps fait sur « À planifier »
   sur 30 jours, part faite par case) et « Ce qui attend le plus ».
 
-## Aujourd'hui, To-do, Préparer demain (simplifié le 25/10/2026)
+## Le parcours (refonte du 27/10/2026)
 
-- **Aujourd'hui** : questions en lignes ; répondue, une pastille (la
-  toucher rouvre les boutons). « Ma journée » : choses casées et
-  créneaux fixes dans l'ordre ; le rond coche « Fait » ; toucher une
-  ligne : Pas fait / Fait, Modifier, Remettre dans la to-do. « Préparer »
-  / « Modifier » ouvre Préparer pour ce jour.
-- **To-do** : choses à faire, triées (dernier jour d'une date limite,
-  urgent et important, important, urgent, le reste ; date limite proche
-  puis plus ancienne). Rond = fait (avec « Annuler »). Barre « Ajouter… »
-  : « Papiers 1 h », « Banque 30 min », « Garage 1h30 » (`lisAjout`),
-  30 min sinon. Écran d'une chose : durée, Important et Urgent sur une
-  ligne, date limite (urgente à moins de 2 jours).
-- **Préparer** (un jour) : étape 1, cocher (`choisitPour`) ; jauge =
-  durées choisies face au temps libre de la journée (Réglages, 8 h –
-  20 h) moins rendez-vous et créneaux fixes ; citron, orange dès 85 %,
-  rouge au-delà. Étape 2 : journée (40 px par heure), glisser les
-  choses, « Caser pour moi » (`remplitJournee`), toucher une heure vide
-  = rendez-vous. « Terminer » case le reste ; ce qui ne rentre pas n'est
-  plus choisi et reste dans la to-do.
-- **Après le jour** : une chose casée pas faite reste dans la to-do
-  (« Fait » seul l'en sort).
+Objectif de Paul : la journée tourne seule avec les notifications, et il
+n'ouvre l'appli qu'une fois, le soir, pour placer demain, comme sur son
+tableau blanc. Plus d'onglets ni de rôles ; un seul thème
+(`AppTheme.soir`, accent ambre, bleu-vert pour « fait »).
 
-## Les deux toi (26/10/2026)
+1. **Accueil** (`BilanScreen`, posé par `AccueilScreen`, qui garde
+   l'ouverture de la base, les notifications et l'intro).
+2. **Préparer demain** : l'ascenseur (`PassageScreen.joue` avec
+   `destination`) monte à l'étage DÉCIDEUR et ses portes s'ouvrent sur
+   l'étape 1. Le rappel du soir (notification) mène au même endroit.
+3. **Étape 1** (`ChoisirScreen`) puis **étape 2** (`PlacerScreen`), puis
+   **Demain est prêt** (`PretScreen`), « Bonne nuit » revient à l'accueil.
+4. **Mon suivi** (`StatsScreen`, ouvert depuis l'accueil) : les
+   questions (« + Ajouter », toucher une carte pour sa fiche), puis les
+   courbes, les liens trouvés et le planning.
 
-- **Deux rôles séparés** (Paul, 26/10/2026) : le **Décideur** a trois
-  onglets : To-do (bouton « Ajouter » → formulaire d'une page : titre,
-  durée, Important / Urgent, heure imposée ; les 4 cases ; le compte
-  rendu remonté), Planifier (`PreparerScreen(onglet: true)` : toute la
-  to-do sur deux lignes qui défilent, la journée de demain dessous, on
-  glisse ; blocs translucides ; une heure imposée place la chose à son
-  heure ; « Caser pour moi » ; « Transmettre » avec un mot) et Stats.
-  L'**Exécutant** a « Ma journée » (Aujourd'hui) : il peut ajouter une
-  chose (« Ajouter ») et changer une heure (toucher la chose). On passe
-  de l'un à l'autre par le bouton **Ascenseur** (`BoutonAscenseur`, à
-  droite de la barre du bas) ; le rôle actif est gardé (`DeuxMoi.role`
-  / `changeRole`, clé `role_actif`). Toute arrivée d'ascenseur (bouton,
-  fin de service) met le rôle d'arrivée. Le rappel du soir ouvre
-  Planifier chez le Décideur. `Moi.repos` : avant l'intro seulement.
-  Pas encore de barrière entre les rôles (voir `docs/idees.md`).
-- **Le jour** (revu le 26/10/2026, le terminal était trop chargé) :
-  l'onglet Aujourd'hui seul devient l'écran de l'Exécutant, thème
-  `AppTheme.jour` (style habituel, accent bleu-vert ; même arbre de
-  widgets dans tous les modes). « Bonjour, Exécutant. », le mot du soir
-  en police de terminal (seule touche rétro), « Maintenant » : la chose
-  en cours ou la prochaine en grand avec Pas fait · Reporter · Fait, les
-  questions, puis la journée en calendrier (`CalendrierJour`) et
-  « Compte rendu de la journée ».
-- **Le Décideur** : accent ambre partout. « Transmettre » (Planifier)
-  demande un mot pour demain, puis « Transmis à l'Exécutant ».
-- **To-do du Décideur** : « Bonjour, Décideur. » à l'arrivée de
-  l'ascenseur et tant que la to-do est vide (avec « Ici, tu ne fais
-  rien : tu décides… »), sinon « To-do ».
-- **Première ouverture** : intro en 2 pages (le pourquoi, le rond qui
-  se brise, « l'exécutant… s'exécute. », bouton « Qui fait quoi ? » ;
-  puis qui fait quoi et où, et les notifications), puis l'ascenseur monte chez le Décideur, sur la to-do,
-  quelle que soit l'heure, jusqu'à ce qu'on quitte l'appli.
-- **Changer de toi à la main** : toucher le nom en haut à gauche
-  (Aujourd'hui ou To-do). De l'Exécutant vers le Décideur, sinon vers
-  l'Exécutant ; en ascenseur ; ce toi reste jusqu'à ce qu'on quitte
-  l'appli, puis l'heure décide à nouveau.
-- **Ascenseur du matin** : la première fois que l'appli est ouverte dans
-  la plage du jour (une fois par jour), l'ascenseur descend chez
-  l'Exécutant.
-- **Notifications** (si l'intro a été vue, et seulement si quelque chose
-  est prévu) : id 4 au début de la journée, « Ta journée t'attend » ;
-  id 5 à la fin, « Fin de service » (contenu caché `rapport` : ouvre le
-  compte rendu). Le rappel du soir devient « Et demain, tu fais quoi ? ».
+Consignes de Paul : jamais d'appui long (les blocs de la grille et les
+aimants suivent le doigt), pas de défilement vertical dans l'étape 2.
+Supprimés : `TodoScreen`, `AujourdhuiScreen`, `PreparerScreen`,
+`QuiEstLa`, `CalendrierJour`, `BarreOnglets`, `BoutonAscenseur`.
 
 ## Vérifications et compilation
 
@@ -313,7 +270,3 @@ téléphone, même appli fermée. L'appli lit ensuite cette base pour les
   `https://maven-central.storage-download.googleapis.com/maven2/`.
 - Codemagic (`codemagic.yaml`, lancement à la main) : APK et TestFlight.
 - Flutter 3.47.7 partout.
-
-## Questions (26/10/2026)
-
-Les questions se gèrent chez le Décideur, en haut de l'onglet Stats : « + Ajouter » (`ajouter-question`) ouvre `EditionQuestionScreen`, toucher une carte ouvre sa fiche (bouton Modifier). Plus de ligne « Mes questions » dans les Réglages. Chez l'Exécutant, la barre du bas n'a plus d'onglet : seulement le bouton Ascenseur.

@@ -19,7 +19,7 @@ const _largeurHeures = 46.0;
 /// grisés.
 ///
 /// On y dépose une chose du bac (glisser-déposer) ou on y déplace un bloc
-/// (appui long, puis glisser) ; on change la durée en tirant le bas d'un
+/// (glisser, sans appui long) ; on change la durée en tirant le bas d'un
 /// bloc. Tout tombe au quart d'heure.
 class GrilleJournee extends StatefulWidget {
   final List<Tache> taches;
@@ -199,7 +199,10 @@ class _GrilleJourneeState extends State<GrilleJournee> {
                             child: Transform.translate(
                               offset: const Offset(0, -8),
                               child: Text(
-                                heureFr((widget.heureDebut + i) * 60),
+                                // Serré (petit écran) : une heure sur deux.
+                                widget.heure < 30 && i.isOdd
+                                    ? ''
+                                    : heureFr((widget.heureDebut + i) * 60),
                                 textAlign: TextAlign.right,
                                 maxLines: 1,
                                 style: TextStyle(
@@ -312,9 +315,10 @@ class _GrilleJourneeState extends State<GrilleJournee> {
       width: l - (nb > 1 ? 3 : 0),
       top: _y(tache.debut),
       height: hauteur,
-      child: LongPressDraggable<Object>(
+      // Pas d'appui long (Paul, 26/10/2026) : le bloc suit le doigt dès
+      // qu'il bouge ; un simple toucher l'ouvre.
+      child: Draggable<Object>(
         data: tache,
-        hapticFeedbackOnStart: true,
         onDragUpdate: (d) => widget.onGlisse?.call(d.globalPosition),
         onDragEnd: (_) => widget.onFinGlisse?.call(),
         onDraggableCanceled: (_, _) => widget.onFinGlisse?.call(),

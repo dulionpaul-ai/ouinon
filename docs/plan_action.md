@@ -63,9 +63,11 @@ fait, version par version : `docs/historique.md`.
    APK n° 17 : style « tableau » et « terminal sobre », onglets
    To-do · Aujourd'hui · Stats.
    APK n° 18 : le toi suit l'onglet, intro en 2 pages.
-   APK n° 21 : deux rôles séparés, Ascenseur, Ajouter, Planifier.
-   Prochain APK : `version: 1.0.0+21`, seulement avec l'accord de
-   Paul.
+   APK n° 19 : deux rôles séparés, Ascenseur, Ajouter, Planifier.
+   APK n° 22 (27/10/2026) : refonte « rituel du soir » (plus d'onglets
+   ni de rôles ; accueil, Préparer demain en 2 étapes, Demain est
+   prêt, Mon suivi). Prochain APK : `version: 1.0.0+23`, seulement
+   avec l'accord de Paul.
 9. [ ] Plus tard (critique du 23/10/2026) : sauvegarde dans un
    fichier, mode « expérience » (tester une habitude 14 jours), objectifs
    tout prêts au démarrage (« Mieux dormir »…), planning sur toute la

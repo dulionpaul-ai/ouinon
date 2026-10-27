@@ -362,3 +362,10 @@ demain »).
 - 26/10/2026 : noms des choses de la To-do en écriture normale (seuls les intitulés des cases restent en gras). APK n° 20 (1.0.0+20).
 - 26/10/2026 : barre de l'Exécutant sans onglet « Ma journée » (seul l'ascenseur reste) ; questions gérées dans Stats chez le Décideur (« Tes questions » en haut, « + Ajouter »), retirées des Réglages (retours de Paul).
 - 26/10/2026 : APK n° 21 (1.0.0+21).
+- 27/10/2026 : refonte complète avec Paul (« l'appli c'est le bordel ») :
+  maquette « Ouinon, le rituel du soir » validée, puis appliquée. Plus
+  d'onglets ni de rôles : accueil « Bonsoir. » avec l'anneau du jour,
+  « Préparer demain » (ascenseur) en 2 étapes (aimants dans la matrice
+  d'Eisenhower, puis la journée entière dans l'écran, glisser sans appui
+  long), « Demain est prêt. », « Mon suivi » pour les questions et les
+  stats. APK n° 22 (1.0.0+22).

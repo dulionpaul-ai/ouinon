@@ -12,6 +12,7 @@ import '../utils/planning.dart';
 import '../utils/stats.dart';
 import '../widgets/cases.dart';
 import '../widgets/graphiques.dart';
+import '../widgets/etape.dart';
 import '../widgets/rond.dart';
 import 'edition_question_screen.dart';
 import 'fiche_question_screen.dart';
@@ -150,26 +151,18 @@ class _StatsScreenState extends State<StatsScreen> {
     final doux = TextStyle(color: t.doux, height: 1.35);
     return Scaffold(
       body: SafeArea(
-        bottom: false,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(14, 12, 14, 120),
+          padding: const EdgeInsets.fromLTRB(14, 0, 14, 40),
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(6, 22, 6, 18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const GrandTitre('Stats'),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Ce que le Décideur apprend de l\'Exécutant.',
-                    style: TextStyle(
-                      color: Teintes.de(context).doux,
-                      fontSize: 15,
-                    ),
-                  ),
-                ],
+            // « Mon suivi », ouvert depuis l'accueil (26/10/2026).
+            if (Navigator.canPop(context))
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: BarreEtape(''),
               ),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(6, 4, 6, 18),
+              child: TitreEcran('Mon suivi'),
             ),
             // Les questions se gèrent ici, chez le Décideur (retour de
             // Paul du 26/10/2026) : ajouter, et toucher une carte pour la

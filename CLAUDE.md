@@ -86,10 +86,13 @@ Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
   rangée dans `ancien/` (ni compilée ni analysée) ; on y pioche si un
   écran du cahier en a besoin. Le moteur est gardé : `data/base.dart`,
   `data/notifications.dart` (questions seulement), `utils/planification.dart`.
-- Thème « pas IA » (Paul, 27/10/2026) : papier clair, encre noire, un
-  bleu d'encre, police du téléphone (Roboto), lignes et traits fins ; pas
-  de fond noir à néons, pas de dégradés ni de lueurs
-  (`lib/theme/theme.dart`).
+- Style (Paul, 27/10/2026) : **toujours sombre, jamais de mode clair** ;
+  ultra moderne, presque futuriste ; animations partout, spectaculaires ;
+  la forme compte autant que le fond (« quelque chose qui donne envie »).
+  Pas de polices trop rondes, pas de look « IA » (violet, halos flous,
+  dégradés). Trois pistes en maquette (D Cockpit, E Monolithe, F Orbite) :
+  https://claude.ai/artifact/CWP5pB9A6G9CYQZ3pj5v1r ; le thème clair
+  actuel (`lib/theme/theme.dart`) est provisoire.
 - Une notification ratée reste affichée jusqu'à la suivante de la même
   question (Android : `timeoutAfter`) ; sans réponse, rien n'est
   enregistré. Une question sans aucun jour ne sonne jamais (en pause).

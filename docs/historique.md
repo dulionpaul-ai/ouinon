@@ -374,3 +374,8 @@ demain »).
   questions » validé puis codé seul, avec un thème clair « pas IA ».
   L'ancienne appli est rangée dans `ancien/`. APK n° 23 (1.0.0+23) à
   fabriquer avec l'accord de Paul.
+- 27/10/2026 : Paul veut l'appli complète tout de suite, au style Orbite
+  (sombre, orange translucide, Michroma + IBM Plex Sans Condensed). Retour
+  au code complet de l'APK n° 21 (sans rôles ni ascenseur), bandeau en bas :
+  To-do · Aujourd'hui · Suivi · Demain ; page Demain sans défilement ni
+  appui long ; une notification ratée reste jusqu'à la suivante. APK n° 24.

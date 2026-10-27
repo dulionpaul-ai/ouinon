@@ -105,27 +105,17 @@ void main() {
     expect(instantProgramme(apres).isAtSameMomentAs(apres), isTrue);
   });
 
-  test('une notification reste jusqu\'à la suivante de la même question', () {
-    // Sport ? à 21 h, lundi, mercredi, vendredi.
-    const sport = Question(
-      id: 3,
-      texte: 'Sport ?',
-      reponses: ['Oui', 'Non'],
-      heure: 21 * 60,
-      jours: 0x15,
+  test('bilan : le prochain dimanche à 20 h', () {
+    // Jeudi 22 octobre → dimanche 25 à 20 h.
+    expect(prochainBilan(midi), DateTime(2026, 10, 25, 20));
+    // Dimanche 25 à 19 h → le soir même ; à 20 h → la semaine suivante.
+    expect(
+      prochainBilan(DateTime(2026, 10, 25, 19)),
+      DateTime(2026, 10, 25, 20),
     );
-    // Mercredi 21 octobre 21 h → vendredi 23 à 21 h.
-    final mercredi = DateTime(2026, 10, 21, 21);
-    expect(prochaineFois(sport, mercredi), DateTime(2026, 10, 23, 21));
-    final n = NotifPrevue(1, sport, DateTime(2026, 10, 21), mercredi);
-    expect(n.duree, const Duration(days: 2));
-    // Tous les jours : le lendemain à la même heure.
-    const tous = Question(
-      texte: 'Sommeil ?',
-      reponses: ['Oui', 'Non'],
-      heure: 9 * 60,
+    expect(
+      prochainBilan(DateTime(2026, 10, 25, 20)),
+      DateTime(2026, 11, 1, 20),
     );
-    final jeudi = DateTime(2026, 10, 22, 9);
-    expect(prochaineFois(tous, jeudi), DateTime(2026, 10, 23, 9));
   });
 }

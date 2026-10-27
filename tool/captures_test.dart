@@ -1,4 +1,4 @@
-// Captures d'écran de l'appli (polices réelles), pour vérifier avant un APK.
+// Captures d'écran de l'appli (polices réelles), pour montrer le style.
 // Lancement : flutter test tool/captures_test.dart --update-goldens
 // Images écrites dans tool/captures/ (non commitées).
 // ignore_for_file: invalid_use_of_visible_for_testing_member
@@ -9,10 +9,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ouinon/data/base.dart';
+import 'package:ouinon/data/donnees_test.dart';
 import 'package:ouinon/data/notifications.dart';
 import 'package:ouinon/main.dart';
-import 'package:ouinon/models/question.dart';
-import 'package:ouinon/screens/question_screen.dart';
+import 'package:ouinon/models/creneau.dart';
+import 'package:ouinon/models/tache.dart';
+import 'package:ouinon/screens/accueil_screen.dart';
+import 'package:ouinon/screens/edition_a_faire_screen.dart';
+import 'package:ouinon/screens/edition_question_screen.dart';
+import 'package:ouinon/screens/fiche_question_screen.dart';
+import 'package:ouinon/screens/reglages_screen.dart';
+import 'package:ouinon/screens/stats_screen.dart';
+import 'package:ouinon/widgets/retro.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../test/outils.dart';
@@ -28,64 +36,79 @@ Future<void> _police(String famille, List<String> fichiers) async {
 
 void main() {
   setUpAll(() async {
-    final sdk = File(Platform.resolvedExecutable).parent.parent.parent.path;
-    // La police du téléphone (Android) : Roboto.
-    await _police('Roboto', [
-      for (final g in ['Regular', 'Medium', 'Bold'])
-        '$sdk/material_fonts/Roboto-$g.ttf',
+    await _police('Michroma', ['assets/fonts/Michroma-Regular.ttf']);
+    await _police('IBMPlexSansCondensed', [
+      for (final g in ['Regular', 'Medium', 'SemiBold', 'Bold'])
+        'assets/fonts/IBMPlexSansCondensed-$g.ttf',
     ]);
+    await _police('Unbounded', [
+      'assets/fonts/Unbounded-500.ttf',
+      'assets/fonts/Unbounded-700.ttf',
+    ]);
+    await _police('Figtree', [
+      for (final w in [500, 600, 700, 800]) 'assets/fonts/Figtree-$w.ttf',
+    ]);
+    await _police('VT323', ['assets/fonts/VT323-400.ttf']);
+    await _police('IBMPlexMono', [
+      'assets/fonts/IBMPlexMono-500.ttf',
+      'assets/fonts/IBMPlexMono-700.ttf',
+    ]);
+    final sdk = File(Platform.resolvedExecutable).parent.parent.parent.path;
     await _police('MaterialIcons', [
       '$sdk/material_fonts/MaterialIcons-Regular.otf',
     ]);
   });
 
   late Base base;
+  final maintenant = DateTime(2026, 10, 22, 12);
 
   setUp(() async {
-    SharedPreferences.setMockInitialValues({'notifs_demandees': true});
-    base = await ouvreBase(depart: false);
+    Curseur.clignote = false;
+    SharedPreferences.setMockInitialValues({
+      'bienvenue_vue': true,
+      'intro_deux_moi_vue': true,
+      'reveil_vu': '2026-10-22',
+      'retour_vu': '2026-10-22',
+      'mot_2026-10-22': 'Appelle maman avant le garage.',
+      'mot_soir_2026-10-22': 'La banque était fermée.',
+    });
+    base = await ouvreBase();
     Base.remplace(base);
     Notifications.instance = FaussesNotifications();
   });
 
   Future<void> remplit(WidgetTester tester) => tester.runAsync(() async {
-    for (final q in const [
-      Question(
-        texte: 'Sommeil ?',
-        reponses: ['8 h et +', '6 à 8 h', 'Moins de 6 h'],
-        heure: 9 * 60,
-      ),
-      Question(
-        texte: 'Sport ?',
-        reponses: ['Oui', 'Non'],
-        heure: 21 * 60,
-        jours: 0x15,
-      ),
-      Question(
-        texte: 'En forme ?',
-        reponses: ['Bien', 'Moyen', 'Pas bien'],
-        heure: 21 * 60,
-        jours: 0x1F,
-      ),
-      Question(
-        texte: 'Lecture ?',
-        reponses: ['Oui', 'Non'],
-        heure: 22 * 60 + 30,
-        jours: 0,
-      ),
+    // Six mois de réponses de test (comme le bouton des Réglages).
+    await ajouteDonneesTest(base, maintenant: maintenant);
+    await base.repond(1, DateTime(2026, 10, 22), 0);
+    await base.repond(2, DateTime(2026, 10, 22), 1);
+    // Le planning du jour et du lendemain.
+    final jeudi = DateTime(2026, 10, 22), vendredi = DateTime(2026, 10, 23);
+    for (final t in [
+      Tache(jour: jeudi, debut: 540, duree: 30, texte: 'Mails', etat: 0),
+      Tache(jour: jeudi, debut: 630, duree: 30, texte: 'Banque', etat: 1),
+      Tache(jour: jeudi, debut: 750, duree: 15, texte: 'Appeler maman'),
+      Tache(jour: jeudi, debut: 1080, texte: 'Garage', reports: 1),
+      Tache(jour: jeudi, debut: 1290, duree: 30, texte: 'Lire'),
+      Tache(jour: vendredi, debut: 540, texte: 'Garage C3'),
     ]) {
-      await base.enregistre(q);
+      await base.enregistreTache(t);
     }
+    await base.enregistreCreneau(
+      const Creneau(texte: 'Enfants', debut: 17 * 60, fin: 23 * 60),
+    );
   });
 
   Future<void> capture(
     WidgetTester tester,
     String nom,
-    Widget? ecran, {
+    Widget ecran,
+    ThemeMode mode, {
     double hauteur = 844,
     double largeur = 390,
     double texte = 1,
     Future<void> Function(WidgetTester)? avant,
+    Duration? arret,
   }) async {
     tester.view.physicalSize = Size(largeur * 2, hauteur * 2);
     tester.platformDispatcher.textScaleFactorTestValue = texte;
@@ -94,7 +117,16 @@ void main() {
     addTearDown(tester.view.reset);
     await tester.pumpWidget(OuinonApp(accueil: ecran));
     await attends(tester, 15);
-    await tester.pumpAndSettle();
+    if (arret != null) {
+      // Arrêt sur image au milieu d'une animation.
+      for (var i = 0; i < arret.inMilliseconds ~/ 100; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    } else {
+      // Laisse les animations des graphiques aller au bout.
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
+    }
     if (avant != null) await avant(tester);
     await expectLater(
       find.byType(MaterialApp),
@@ -102,60 +134,99 @@ void main() {
     );
   }
 
-  testWidgets('mes questions', (tester) async {
+  Widget page(int onglet) => AccueilScreen(
+    maintenant: () => DateTime(2026, 10, 22, 12, 35),
+    ongletDeDepart: onglet,
+  );
+
+  for (final (nom, onglet) in [
+    ('1-todo', 0),
+    ('2-aujourdhui', 1),
+    ('3-suivi', 2),
+    ('4-demain', 3),
+  ]) {
+    testWidgets('page $nom', (tester) async {
+      await remplit(tester);
+      await capture(tester, nom, page(onglet), ThemeMode.dark);
+    });
+  }
+
+  testWidgets('suivi en entier', (tester) async {
     await remplit(tester);
-    await capture(tester, '1-questions', null);
+    await capture(
+      tester,
+      '5-suivi-long',
+      StatsScreen(base: base, maintenant: () => maintenant),
+      ThemeMode.dark,
+      hauteur: 5000,
+    );
   });
 
-  testWidgets('mes questions, vide', (tester) async {
-    await capture(tester, '2-vide', null);
+  testWidgets('une question', (tester) async {
+    await remplit(tester);
+    final q = (await tester.runAsync(() => base.question(2)))!;
+    await capture(
+      tester,
+      '6-fiche',
+      FicheQuestionScreen(
+        base: base,
+        question: q,
+        maintenant: () => maintenant,
+      ),
+      ThemeMode.dark,
+      hauteur: 1600,
+    );
   });
 
   testWidgets('nouvelle question', (tester) async {
     await capture(
       tester,
-      '3-nouvelle',
-      QuestionScreen(base: base),
-      avant: (tester) async {
-        await tester.enterText(find.byKey(const ValueKey('texte')), 'Sport ?');
-        await tester.enterText(
-          find.byKey(const ValueKey('reponse-meilleure')),
-          'Oui',
-        );
-        await tester.enterText(
-          find.byKey(const ValueKey('reponse-moins-bonne')),
-          'Non',
-        );
-        FocusManager.instance.primaryFocus?.unfocus();
-        await tester.pumpAndSettle();
-      },
+      '7-nouvelle-question',
+      EditionQuestionScreen(base: base),
+      ThemeMode.dark,
+      hauteur: 1250,
     );
   });
 
-  testWidgets('modifier une question', (tester) async {
-    await remplit(tester);
-    final q = (await tester.runAsync(base.questions))!.first;
+  testWidgets('une chose à faire', (tester) async {
     await capture(
       tester,
-      '4-modifier',
-      QuestionScreen(base: base, question: q),
+      '8-chose',
+      EditionAFaireScreen(base: base),
+      ThemeMode.dark,
+    );
+  });
+
+  testWidgets('réglages', (tester) async {
+    await capture(
+      tester,
+      '9-reglages',
+      ReglagesScreen(base: base),
+      ThemeMode.dark,
+      hauteur: 1100,
     );
   });
 
   testWidgets('petit téléphone, gros texte', (tester) async {
     await remplit(tester);
-    await capture(tester, '5-petit', null, largeur: 360, texte: 1.3);
-  });
-
-  testWidgets('petit téléphone, gros texte, modifier', (tester) async {
-    await remplit(tester);
-    final q = (await tester.runAsync(base.questions))!.first;
     await capture(
       tester,
-      '6-petit-modifier',
-      QuestionScreen(base: base, question: q),
+      '10-petit-aujourdhui',
+      page(1),
+      ThemeMode.dark,
       largeur: 360,
-      hauteur: 1000,
+      texte: 1.3,
+    );
+  });
+
+  testWidgets('petit téléphone, gros texte, to-do', (tester) async {
+    await remplit(tester);
+    await capture(
+      tester,
+      '11-petit-todo',
+      page(0),
+      ThemeMode.dark,
+      largeur: 360,
       texte: 1.3,
     );
   });

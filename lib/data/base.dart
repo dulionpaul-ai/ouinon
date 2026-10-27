@@ -40,8 +40,8 @@ class Base {
 
   static Future<Base>? _ouverture;
 
-  /// Ouvre la base du téléphone (créée vide au premier lancement : on
-  /// repart de zéro le 27/10/2026).
+  /// Ouvre (et crée au premier lancement, avec les questions de départ) la
+  /// base du téléphone.
   static Future<Base> ouvrir() =>
       _ouverture ??= _ouvre().catchError((Object e) {
         _ouverture = null;
@@ -62,7 +62,7 @@ class Base {
     DatabaseFactory fabrique,
     String chemin, {
     bool instanceUnique = true,
-    bool questionsDeDepart = false,
+    bool questionsDeDepart = true,
   }) {
     return fabrique.openDatabase(
       chemin,

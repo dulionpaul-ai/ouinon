@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:speech_to_text/speech_to_text.dart';
 
 import '../data/base.dart';
 import '../models/a_faire.dart';
@@ -6,7 +7,9 @@ import '../models/tache.dart';
 import '../theme/app_theme.dart';
 import '../utils/date_fr.dart';
 import '../utils/jour.dart';
+import '../utils/dictee.dart';
 import '../utils/planning.dart';
+import '../utils/recherche.dart';
 import '../widgets/rond.dart';
 
 /// Ajout ou modification d'une chose de la to-do, sur une seule page
@@ -42,6 +45,13 @@ class _EditionAFaireScreenState extends State<EditionAFaireScreen> {
   int? _heure;
   String? _erreur;
 
+  /// Le reste de la liste, pour signaler les doublons en tapant.
+  List<AFaire> _liste = const [];
+
+  /// Dictée en cours (micro dans le titre).
+  SpeechToText? _voix;
+  bool _ecoute = false;
+
   bool get _nouvelle => widget.aFaire == null;
   DateTime get _aujourdhui => jourDe(widget.maintenant());
 
@@ -55,13 +65,85 @@ class _EditionAFaireScreenState extends State<EditionAFaireScreen> {
     _urgent = a?.urgent ?? false;
     _echeance = a?.echeance;
     _heure = a?.heure;
+    widget.base.liste().then((l) {
+      if (mounted) setState(() => _liste = l);
+    });
   }
 
   @override
   void dispose() {
+    _voix?.stop();
     _texte.dispose();
     super.dispose();
   }
+
+  /// Le micro (Paul, 27/10/2026) : « me couper les ongles et ça prendra
+  /// environ 15 minutes » remplit le titre et la durée.
+  Future<void> _dicte() async {
+    final voix = _voix ??= SpeechToText();
+    if (_ecoute) {
+      await voix.stop();
+      if (mounted) setState(() => _ecoute = false);
+      return;
+    }
+    bool pret;
+    try {
+      pret = await voix.initialize(
+        onStatus: (etat) {
+          if ((etat == 'done' || etat == 'notListening') && mounted) {
+            setState(() => _ecoute = false);
+          }
+        },
+        onError: (_) {
+          if (mounted) setState(() => _ecoute = false);
+        },
+      );
+    } catch (_) {
+      pret = false;
+    }
+    if (!mounted) return;
+    if (!pret) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('La dictée n\'est pas disponible sur ce téléphone.'),
+        ),
+      );
+      return;
+    }
+    setState(() => _ecoute = true);
+    await voix.listen(
+      listenOptions: SpeechListenOptions(
+        partialResults: true,
+        localeId: 'fr_FR',
+      ),
+      onResult: (r) {
+        if (!mounted) return;
+        setState(() {
+          _erreur = null;
+          if (r.finalResult) {
+            final d = lisDictee(r.recognizedWords);
+            _texte.text = d.texte;
+            if (d.duree != null) _duree = d.duree!;
+            _ecoute = false;
+          } else {
+            _texte.text = r.recognizedWords;
+          }
+        });
+      },
+    );
+  }
+
+  /// Ouvre la chose qui existe déjà, à la place de celle-ci.
+  void _ouvreExistante(AFaire a) => Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(
+      builder: (_) => EditionAFaireScreen(
+        base: widget.base,
+        aFaire: a,
+        maintenant: widget.maintenant,
+      ),
+    ),
+  );
 
   AFaire get _brouillon =>
       (widget.aFaire ?? AFaire(texte: '', creeLe: _aujourdhui)).copie(
@@ -182,11 +264,61 @@ class _EditionAFaireScreenState extends State<EditionAFaireScreen> {
             maxLength: Tache.longueurMax,
             onChanged: (_) => setState(() => _erreur = null),
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               hintText: 'Ex. : Papiers, Appeler le garage',
               counterText: '',
+              suffixIcon: IconButton(
+                key: const ValueKey('micro'),
+                tooltip: _ecoute ? 'Arrêter la dictée' : 'Dicter',
+                onPressed: _dicte,
+                icon: Icon(
+                  _ecoute ? Icons.mic_rounded : Icons.mic_none_rounded,
+                  color: _ecoute ? t.accent : t.doux,
+                ),
+              ),
             ),
           ),
+          // Ce qui existe déjà avec les mêmes mots : pas de doublon.
+          if (ressemblantes(
+                _texte.text,
+                _liste,
+                sauf: widget.aFaire?.id,
+              ).take(3).toList()
+              case final pareilles when pareilles.isNotEmpty) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(6, 10, 6, 4),
+              child: Text(
+                'Déjà dans ta liste :',
+                style: TextStyle(color: t.accent, fontSize: 13),
+              ),
+            ),
+            for (final a in pareilles)
+              InkWell(
+                key: ValueKey('existante-${a.id}'),
+                onTap: () => _ouvreExistante(a),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 8,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          a.texte,
+                          style: const TextStyle(fontSize: 15),
+                        ),
+                      ),
+                      Text(
+                        dureeFr(a.duree),
+                        style: TextStyle(color: t.doux, fontSize: 13),
+                      ),
+                      Icon(Icons.chevron_right_rounded, color: t.doux),
+                    ],
+                  ),
+                ),
+              ),
+          ],
           if (_erreur != null)
             Padding(
               padding: const EdgeInsets.fromLTRB(6, 8, 6, 0),

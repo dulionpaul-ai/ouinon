@@ -341,45 +341,8 @@ class _PageJourState extends State<_PageJour> {
                 ),
               const SizedBox(height: 18),
             ],
-            if (_questions.isNotEmpty)
-              Arrivee(
-                rang: 3,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Semantics(
-                      container: true,
-                      label:
-                          '$faites sur ${_questions.length} répondue'
-                          '${faites > 1 ? 's' : ''}',
-                      excludeSemantics: true,
-                      child: Text(
-                        'Questions · $faites sur ${_questions.length}',
-                        style: section,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    for (final q in _questions)
-                      _LigneQuestion(
-                        key: ValueKey('question-${q.id}'),
-                        question: q,
-                        choix: _reponses[q.id],
-                        serie: _series[q.id] ?? 0,
-                        ouverte:
-                            !_reponses.containsKey(q.id) ||
-                            _rouvertes.contains(q.id),
-                        onRouvre: () => setState(() => _rouvertes.add(q.id!)),
-                        onChoix: (c) {
-                          setState(() => _rouvertes.remove(q.id));
-                          _choisit(q, c);
-                        },
-                      ),
-                    const SizedBox(height: 22),
-                  ],
-                ),
-              ),
             Arrivee(
-              rang: 4,
+              rang: 3,
               child: Row(
                 children: [
                   Expanded(
@@ -430,6 +393,44 @@ class _PageJourState extends State<_PageJour> {
               )
             else
               for (final (_, w) in lignes) w,
+            // Les questions en bas, la journée en haut (Paul, 27/10/2026).
+            const SizedBox(height: 26),
+            if (_questions.isNotEmpty)
+              Arrivee(
+                rang: 5,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Semantics(
+                      container: true,
+                      label:
+                          '$faites sur ${_questions.length} répondue'
+                          '${faites > 1 ? 's' : ''}',
+                      excludeSemantics: true,
+                      child: Text(
+                        'Questions · $faites sur ${_questions.length}',
+                        style: section,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    for (final q in _questions)
+                      _LigneQuestion(
+                        key: ValueKey('question-${q.id}'),
+                        question: q,
+                        choix: _reponses[q.id],
+                        serie: _series[q.id] ?? 0,
+                        ouverte:
+                            !_reponses.containsKey(q.id) ||
+                            _rouvertes.contains(q.id),
+                        onRouvre: () => setState(() => _rouvertes.add(q.id!)),
+                        onChoix: (c) {
+                          setState(() => _rouvertes.remove(q.id));
+                          _choisit(q, c);
+                        },
+                      ),
+                  ],
+                ),
+              ),
             if (executant && _taches.isNotEmpty) ...[
               const SizedBox(height: 22),
               OutlinedButton(

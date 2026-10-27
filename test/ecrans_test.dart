@@ -349,6 +349,25 @@ void main() {
     expect(find.text('DEMAIN'), findsOneWidget);
   });
 
+  testWidgets('ajouter : ce qui existe déjà s\'affiche en tapant', (
+    tester,
+  ) async {
+    final ongles = (await tester.runAsync(
+      () => base.enregistreAFaire(
+        AFaire(texte: 'Couper les ongles', creeLe: DateTime(2026, 10, 22)),
+      ),
+    ))!;
+    await ouvre(tester, EditionAFaireScreen(base: base, maintenant: midi));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('micro')), findsOneWidget);
+    await tester.enterText(find.byType(TextField).first, 'Me couper les ongl');
+    await tester.pump();
+    expect(find.text('Déjà dans ta liste :'), findsOneWidget);
+    await tester.tap(find.byKey(ValueKey('existante-${ongles.id}')));
+    await tester.pumpAndSettle();
+    expect(find.text('Modifier'), findsWidgets);
+  });
+
   group('to-do et journée', () {
     final jeudi = DateTime(2026, 10, 22);
     final vendredi = DateTime(2026, 10, 23);

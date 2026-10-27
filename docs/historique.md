@@ -379,3 +379,9 @@ demain »).
   au code complet de l'APK n° 21 (sans rôles ni ascenseur), bandeau en bas :
   To-do · Aujourd'hui · Suivi · Demain ; page Demain sans défilement ni
   appui long ; une notification ratée reste jusqu'à la suivante. APK n° 24.
+- 27/10/2026 : logo aux couleurs d'origine (vert citron, corail) ; familles
+  de questions (Sport = Cardio + Muscu, additionnées dans le Suivi, base
+  version 6) ; Aujourd'hui : la journée en haut, les questions en bas ;
+  to-do : doublons signalés en tapant (mots-clés sans accents) et micro
+  pour dicter (« me couper les ongles et ça prendra environ 15 minutes »).
+  Version 1.0.0+25. Gamification « deux toi » à concevoir avec Paul.

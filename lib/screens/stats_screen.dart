@@ -16,6 +16,7 @@ import '../widgets/graphiques.dart';
 import '../widgets/rond.dart';
 import 'edition_question_screen.dart';
 import 'fiche_question_screen.dart';
+import 'groupe_screen.dart';
 
 /// Les stats en graphiques (demande de Paul du 23/10/2026 : l'outil
 /// trouve les liens tout seul, des courbes à comparer, des graphiques
@@ -236,7 +237,7 @@ class _StatsScreenState extends State<StatsScreen> {
             // Les familles : leurs questions additionnées, jour par jour.
             if (_familles.isNotEmpty) ...[
               const SizedBox(height: 8),
-              const _Section('Familles'),
+              const _Section('Groupes'),
               for (final f in _familles)
                 Padding(
                   key: ValueKey('famille-${f.nom}'),
@@ -254,7 +255,17 @@ class _StatsScreenState extends State<StatsScreen> {
                       fin: _aujourdhui,
                     ),
                     serie: serie(f.commeQuestion, f.reponses, _aujourdhui),
-                    onTap: () {},
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => GroupeScreen(
+                          base: widget.base,
+                          groupe: f,
+                          reponses: _reponses,
+                          maintenant: widget.maintenant,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
             ],
@@ -954,8 +965,7 @@ class _CarteQuestion extends StatelessWidget {
                         ),
                       ),
                       if (serie.actuelle >= 2) PastilleSerie(serie.actuelle),
-                      if (sousTitre == null)
-                        Icon(Icons.chevron_right_rounded, color: t.doux),
+                      Icon(Icons.chevron_right_rounded, color: t.doux),
                     ],
                   ),
                   if (sousTitre case final st?)

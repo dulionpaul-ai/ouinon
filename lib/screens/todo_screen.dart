@@ -105,6 +105,70 @@ class _TodoScreenState extends State<TodoScreen> {
     ),
   );
 
+  /// Une chose tirée vers la cible de droite (Paul, 27/10/2026).
+  bool _glisse = false;
+
+  /// La chose glissée sur « Aujourd'hui » : casée aujourd'hui, à son
+  /// heure imposée, sinon au premier moment libre (sinon au prochain
+  /// quart d'heure).
+  Future<void> _versAujourdhui(AFaire a) async {
+    final jour = _aujourdhui;
+    final dejaLa = _casees[a.id];
+    final messager = ScaffoldMessenger.of(context);
+    if (dejaLa != null && dejaLa.jour == jour) {
+      messager.showSnackBar(
+        SnackBar(
+          content: Text(
+            '« ${a.texte} » est déjà prévu aujourd\'hui à '
+            '${heureFr(dejaLa.debut)}.',
+          ),
+        ),
+      );
+      return;
+    }
+    final now = widget.maintenant();
+    final prevues = await widget.base.tachesDu(jour);
+    final creneaux = await widget.base.creneauxDu(jour);
+    final journee = await Preferences.journee();
+    int debut;
+    if (a.heure != null) {
+      debut = a.heure!;
+    } else {
+      final p = remplitJournee(
+        jour: jour,
+        prevues: prevues,
+        aPlacer: [a],
+        debutJournee: journee.debut,
+        finJournee: journee.fin,
+        maintenant: now,
+        creneaux: creneaux,
+        avecJamais: true,
+      );
+      debut = p.placees.isNotEmpty
+          ? p.placees.first.debut
+          : (((now.hour * 60 + now.minute) + 14) ~/ 15 * 15).clamp(
+              0,
+              24 * 60 - 15,
+            );
+    }
+    await widget.base.enregistreTache(
+      Tache(
+        jour: jour,
+        debut: debut,
+        duree: a.duree,
+        texte: a.texte,
+        listeId: a.id,
+        quadrant: a.caseLe(jour).index,
+      ),
+    );
+    if (!mounted) return;
+    messager.showSnackBar(
+      SnackBar(
+        content: Text('« ${a.texte} » : aujourd\'hui à ${heureFr(debut)}.'),
+      ),
+    );
+  }
+
   Future<void> _faite(AFaire a) async {
     await widget.base.marqueFaite(a.id!, _aujourdhui);
     if (!mounted) return;
@@ -264,32 +328,50 @@ class _TodoScreenState extends State<TodoScreen> {
               casees: _casees,
               onTap: _ouvre,
               onFaite: _faite,
+              onGlisse: (g) => setState(() => _glisse = g),
             ),
           ),
         ),
       ],
     );
     return Scaffold(
-      body: SafeArea(
-        bottom: false,
-        // Les 4 cases tiennent dans l'écran ; sur un trop petit écran (ou
-        // clavier ouvert), la page défile plutôt que d'écraser les cases.
-        child: LayoutBuilder(
-          builder: (context, contraintes) {
-            const minimum = 600.0;
-            final assez = contraintes.maxHeight >= minimum;
-            return SingleChildScrollView(
-              physics: assez ? const NeverScrollableScrollPhysics() : null,
-              child: SizedBox(
-                height: assez ? contraintes.maxHeight : minimum,
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(20, 4, 20, 96 + bas),
-                  child: contenu,
-                ),
+      body: Stack(
+        children: [
+          SafeArea(
+            bottom: false,
+            // Les 4 cases tiennent dans l'écran ; sur un trop petit écran (ou
+            // clavier ouvert), la page défile plutôt que d'écraser les cases.
+            child: LayoutBuilder(
+              builder: (context, contraintes) {
+                const minimum = 600.0;
+                final assez = contraintes.maxHeight >= minimum;
+                return SingleChildScrollView(
+                  physics: assez ? const NeverScrollableScrollPhysics() : null,
+                  child: SizedBox(
+                    height: assez ? contraintes.maxHeight : minimum,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(20, 4, 20, 96 + bas),
+                      child: contenu,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          // La cible « Aujourd'hui », au milieu à droite (Paul,
+          // 27/10/2026) : on y tire une chose pour la faire aujourd'hui.
+          Positioned(
+            right: 0,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: _CibleAujourdhui(
+                actif: _glisse,
+                onRecoit: _versAujourdhui,
               ),
-            );
-          },
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -305,6 +387,7 @@ class _Matrice extends StatelessWidget {
   final Map<int, Tache> casees;
   final void Function(AFaire) onTap;
   final void Function(AFaire) onFaite;
+  final ValueChanged<bool> onGlisse;
 
   const _Matrice({
     required this.liste,
@@ -312,6 +395,7 @@ class _Matrice extends StatelessWidget {
     required this.casees,
     required this.onTap,
     required this.onFaite,
+    required this.onGlisse,
   });
 
   @override
@@ -330,6 +414,7 @@ class _Matrice extends StatelessWidget {
           casees: casees,
           onTap: onTap,
           onFaite: onFaite,
+          onGlisse: onGlisse,
         ),
       ),
     );
@@ -379,6 +464,7 @@ class _Case extends StatelessWidget {
   final Map<int, Tache> casees;
   final void Function(AFaire) onTap;
   final void Function(AFaire) onFaite;
+  final ValueChanged<bool> onGlisse;
 
   const _Case({
     required this.kase,
@@ -387,6 +473,7 @@ class _Case extends StatelessWidget {
     required this.casees,
     required this.onTap,
     required this.onFaite,
+    required this.onGlisse,
   });
 
   @override
@@ -461,6 +548,7 @@ class _Case extends StatelessWidget {
                           casee: casees[a.id],
                           onTap: () => onTap(a),
                           onFaite: () => onFaite(a),
+                          onGlisse: onGlisse,
                         ),
                     ],
                   ),
@@ -480,6 +568,7 @@ class _ChoseCase extends StatelessWidget {
   final Tache? casee;
   final VoidCallback onTap;
   final VoidCallback onFaite;
+  final ValueChanged<bool> onGlisse;
 
   /// Dans « Peut-être jamais » : en gris.
   final bool kaseJamais;
@@ -492,17 +581,58 @@ class _ChoseCase extends StatelessWidget {
     required this.casee,
     required this.onTap,
     required this.onFaite,
+    required this.onGlisse,
   });
 
   @override
   Widget build(BuildContext context) {
     final t = Teintes.de(context);
     final a = aFaire;
+    // Tirée vers la droite (sans appui long), la chose part vers la cible
+    // « Aujourd'hui » ; un toucher l'ouvre.
+    return Draggable<AFaire>(
+      data: a,
+      affinity: Axis.horizontal,
+      onDragStarted: () => onGlisse(true),
+      onDragEnd: (_) => onGlisse(false),
+      onDraggableCanceled: (_, _) => onGlisse(false),
+      feedback: Material(
+        type: MaterialType.transparency,
+        child: Transform.rotate(
+          angle: -0.04,
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 240),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: t.accent.withValues(alpha: 0.28),
+              borderRadius: BorderRadius.circular(t.rayon),
+              border: Border.all(color: t.accent),
+            ),
+            child: Text(
+              a.texte,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: t.texte,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+      ),
+      childWhenDragging: Opacity(opacity: 0.3, child: _ligne(context)),
+      child: _ligne(context),
+    );
+  }
+
+  Widget _ligne(BuildContext context) {
+    final t = Teintes.de(context);
+    final a = aFaire;
     final c = casee;
     final enRetard = a.echeance != null && a.echeance!.isBefore(aujourdhui);
     return InkWell(
       onTap: onTap,
-      onLongPress: onFaite,
       borderRadius: BorderRadius.circular(6),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 5),
@@ -540,6 +670,82 @@ class _ChoseCase extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// La cible au bord droit : une languette « Aujourd'hui » discrète, qui
+/// s'élargit et s'allume quand on tire une chose, et se remplit d'orange
+/// quand la chose passe dessus.
+class _CibleAujourdhui extends StatelessWidget {
+  final bool actif;
+  final void Function(AFaire) onRecoit;
+
+  const _CibleAujourdhui({required this.actif, required this.onRecoit});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Teintes.de(context);
+    return DragTarget<AFaire>(
+      onAcceptWithDetails: (d) => onRecoit(d.data),
+      builder: (context, candidats, _) {
+        final dessus = candidats.isNotEmpty;
+        return AnimatedContainer(
+          key: const ValueKey('cible-aujourdhui'),
+          duration: const Duration(milliseconds: 260),
+          curve: Curves.easeOutBack,
+          width: dessus ? 84 : (actif ? 66 : 26),
+          height: dessus ? 170 : (actif ? 150 : 96),
+          decoration: BoxDecoration(
+            color: t.accent.withValues(
+              alpha: dessus ? 0.55 : (actif ? 0.22 : 0.12),
+            ),
+            border: Border.all(
+              color: t.accent.withValues(alpha: actif || dessus ? 1 : 0.5),
+            ),
+            borderRadius: const BorderRadius.horizontal(
+              left: Radius.circular(14),
+            ),
+            boxShadow: dessus
+                ? [
+                    BoxShadow(
+                      color: t.accent.withValues(alpha: 0.35),
+                      blurRadius: 24,
+                    ),
+                  ]
+                : null,
+          ),
+          // Réduite plutôt que débordante pendant qu'elle grandit.
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.arrow_forward_rounded,
+                  size: actif ? 26 : 16,
+                  color: dessus ? t.surAccent : t.accent,
+                ),
+                if (actif) ...[
+                  const SizedBox(height: 8),
+                  RotatedBox(
+                    quarterTurns: 1,
+                    child: Text(
+                      'AUJOURD\'HUI',
+                      style: TextStyle(
+                        fontFamily: AppTheme.policeTitre,
+                        fontSize: 10,
+                        letterSpacing: 1.5,
+                        color: dessus ? t.surAccent : t.accent,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

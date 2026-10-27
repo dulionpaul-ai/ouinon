@@ -4,6 +4,8 @@ import 'package:ouinon/data/base.dart';
 import 'package:ouinon/data/donnees_test.dart';
 import 'package:ouinon/data/notifications.dart';
 import 'package:ouinon/main.dart';
+import 'package:ouinon/models/question.dart';
+import 'package:ouinon/screens/groupe_screen.dart';
 import 'package:ouinon/models/a_faire.dart';
 import 'package:ouinon/models/tache.dart';
 import 'package:ouinon/models/creneau.dart';
@@ -368,6 +370,91 @@ void main() {
     expect(find.text('Modifier'), findsWidgets);
   });
 
+  testWidgets('to-do : tirer une chose vers « Aujourd\'hui »', (tester) async {
+    final papiers = (await tester.runAsync(
+      () => base.enregistreAFaire(
+        AFaire(
+          texte: 'Papiers',
+          duree: 60,
+          important: true,
+          urgent: true,
+          creeLe: DateTime(2026, 10, 22),
+        ),
+      ),
+    ))!;
+    await ouvre(tester, TodoScreen(base: base, maintenant: midi));
+    await tester.pumpAndSettle();
+    final chose = find.byKey(ValueKey('todo-${papiers.id}'));
+    final depart = tester.getCenter(chose);
+    final cible = tester.getCenter(
+      find.byKey(const ValueKey('cible-aujourdhui')),
+    );
+    final geste = await tester.startGesture(depart);
+    for (var k = 1; k <= 12; k++) {
+      await geste.moveTo(Offset.lerp(depart, cible, k / 12)!);
+      await tester.pump(const Duration(milliseconds: 30));
+    }
+    // La cible s'est élargie : on vise son nouveau centre.
+    await geste.moveTo(
+      tester.getCenter(find.byKey(const ValueKey('cible-aujourdhui'))),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    await geste.up();
+    await attends(tester);
+    final jeudi = (await tester.runAsync(
+      () => base.tachesDu(DateTime(2026, 10, 22)),
+    ))!;
+    expect(jeudi.single.texte, 'Papiers');
+    expect(jeudi.single.listeId, papiers.id);
+    expect(jeudi.single.debut, greaterThanOrEqualTo(12 * 60));
+  });
+
+  testWidgets('Suivi : un groupe s\'ouvre sur son analyse et son détail', (
+    tester,
+  ) async {
+    final ids = <int>[];
+    for (final texte in ['Cardio ?', 'Muscu ?']) {
+      final q = (await tester.runAsync(
+        () => base.enregistre(
+          Question(
+            texte: texte,
+            reponses: const ['Oui', 'Non'],
+            heure: 1260,
+            famille: 'Sport',
+          ),
+        ),
+      ))!;
+      ids.add(q.id!);
+    }
+    await tester.runAsync(() async {
+      await base.repond(ids[0], DateTime(2026, 10, 21), 0);
+      await base.repond(ids[1], DateTime(2026, 10, 21), 0);
+      await base.repond(ids[0], DateTime(2026, 10, 22), 0);
+      await base.repond(ids[1], DateTime(2026, 10, 22), 1);
+    });
+    await ouvre(tester, StatsScreen(base: base, maintenant: midi));
+    await tester.pumpAndSettle();
+    final carte = find.byKey(const ValueKey('famille-Sport'));
+    await tester.scrollUntilVisible(
+      carte,
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(carte);
+    await tester.pumpAndSettle();
+    expect(find.byType(GroupeScreen), findsOneWidget);
+    // 2 puis 1 : 1,5 sur 2 en moyenne.
+    expect(find.text('1,5 sur 2'), findsOneWidget);
+    for (final id in ids) {
+      await tester.scrollUntilVisible(
+        find.byKey(ValueKey('membre-$id')),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.byKey(ValueKey('membre-$id')), findsOneWidget);
+    }
+  });
+
   group('to-do et journée', () {
     final jeudi = DateTime(2026, 10, 22);
     final vendredi = DateTime(2026, 10, 23);
@@ -405,14 +492,6 @@ void main() {
           ),
           findsOneWidget,
         );
-        // Appui long : fait, puis Annuler.
-        await tester.longPress(find.byKey(ValueKey('todo-${liste.single.id}')));
-        await attends(tester);
-        expect((await tester.runAsync(base.liste))!, isEmpty);
-        await tester.pumpAndSettle();
-        await tester.tap(find.text('Annuler'));
-        await attends(tester);
-        expect((await tester.runAsync(base.liste))!, hasLength(1));
       },
     );
 

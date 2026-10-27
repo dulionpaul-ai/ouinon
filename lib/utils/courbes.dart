@@ -234,3 +234,16 @@ String phraseDecouverte(Decouverte d) {
 String ligneBilan(Decouverte d) =>
     '${d.a.texte} et ${d.b.texte} : ${phraseDecouverte(d).toLowerCase()} '
     '(${(d.r.abs() * 100).round()} %)';
+
+/// Courbe lissée (moyenne sur 7 jours) d'une question sur les [jours]
+/// derniers jours jusqu'à [aujourdhui] compris.
+List<double?> courbeLissee(
+  Question q,
+  Reponses reponses,
+  DateTime aujourdhui,
+  int jours,
+) {
+  final debut = ajouteJours(aujourdhui, -(jours - 1));
+  final notes = notesParJour(q, reponses, ajouteJours(debut, -6), aujourdhui);
+  return moyenneGlissante(notes).sublist(6);
+}

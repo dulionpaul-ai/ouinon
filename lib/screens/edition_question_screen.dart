@@ -23,7 +23,8 @@ class EditionQuestionScreen extends StatefulWidget {
 class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
   late final TextEditingController _texte;
 
-  /// Famille facultative (« Sport »), et celles qui existent déjà.
+  /// Groupe facultatif (« Sport » : questions évaluées ensemble), et
+  /// ceux qui existent déjà.
   late final TextEditingController _famille;
   List<String> _familles = const [];
   late List<TextEditingController> _reponses;
@@ -255,14 +256,14 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
               counterText: '',
             ),
           ),
-          titre('Famille'),
+          titre('Groupe'),
           TextField(
             key: const ValueKey('famille'),
             controller: _famille,
             textCapitalization: TextCapitalization.sentences,
             maxLength: 24,
             decoration: const InputDecoration(
-              hintText: 'Facultatif. Ex. : Sport',
+              hintText: 'Facultatif. Ex. : Sport (avec Cardio, Muscu)',
               counterText: '',
             ),
           ),

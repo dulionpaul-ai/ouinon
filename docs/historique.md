@@ -385,3 +385,9 @@ demain »).
   to-do : doublons signalés en tapant (mots-clés sans accents) et micro
   pour dicter (« me couper les ongles et ça prendra environ 15 minutes »).
   Version 1.0.0+25. Gamification « deux toi » à concevoir avec Paul.
+- 27/10/2026 : « Famille » devient « Groupe » (questions évaluées
+  ensemble) ; toucher un groupe dans Suivi ouvre son analyse (moyenne,
+  courbe, les deux courbes superposées, puis le détail de chaque question).
+  To-do : on tire une chose vers la languette « Aujourd'hui » au milieu à
+  droite, elle est casée aujourd'hui (plus d'appui long pour « fait »).
+  Version 1.0.0+26.

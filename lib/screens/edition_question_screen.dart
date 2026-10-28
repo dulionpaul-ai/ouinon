@@ -65,7 +65,9 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
     // Aucun jour par défaut ; sans jour, la question est en pause
     // (cahier, écran 1, validé par Paul le 27/10/2026).
     _jours = q?.jours ?? 0;
-    _redemande = q?.redemande;
+    // Nouvelle question : interrupteur éteint par défaut (Paul,
+    // 28/10/2026) ; on l'allume si besoin.
+    _redemande = q == null ? false : q.redemande;
   }
 
   @override
@@ -453,8 +455,8 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
             ),
           ),
           // Pas fait : redemandée le lendemain (« Me raser ? » le lundi,
-          // « Non » : elle revient mardi). Automatique : oui si elle ne
-          // revient pas tous les jours (Paul, 28/10/2026).
+          // « Non » : elle revient mardi). Éteint pour une nouvelle
+          // question (Paul, 28/10/2026).
           const SizedBox(height: 4),
           SwitchListTile(
             key: const ValueKey('redemande'),

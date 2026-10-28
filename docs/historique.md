@@ -485,4 +485,6 @@ demain »).
   ligne, pause et suppression en haut ; champs plus serrés partout ;
   textes d'aide permanents retirés). « Impératif » devient
   « Rendez-vous ».
-
+- 28/10/2026 : « Redemander le lendemain » éteint par défaut pour une
+  nouvelle question (modifiable).
+- APK n° 31 (1.0.0+31) : réglages rangés, formulaires sur un écran.

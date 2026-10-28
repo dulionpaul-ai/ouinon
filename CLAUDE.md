@@ -113,8 +113,8 @@ Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
   réponse ou avec la moins bonne, revient les jours suivants (« de
   lundi ») jusqu'à la meilleure ou jusqu'à son prochain jour ; la réponse
   compte pour le jour d'origine (`jourARattraper`). Interrupteur dans la
-  fiche (automatique par défaut ; jamais pour une question de tous les
-  jours, sauf si on l'allume).
+  fiche, éteint pour une nouvelle question (Paul, 28/10/2026). On dit
+  « vert » et « orange » à Paul (pas « vert d'eau »).
 - Une notification ratée reste affichée jusqu'à la suivante de la même
   question (Android : `timeoutAfter`) ; sans réponse, rien n'est
   enregistré. Une question sans aucun jour ne sonne jamais (en pause).

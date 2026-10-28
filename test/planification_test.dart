@@ -46,7 +46,7 @@ void main() {
   });
 
   test('seulement les jours choisis, rien pour une question en pause', () {
-    final weekend = sport.copie(jours: 0x60);
+    final weekend = sport.copie(jours: 0x60, redemande: () => false);
     final pause = sommeil.copie(active: false);
     final plan = planifie(
       questions: [weekend, pause],
@@ -116,6 +116,59 @@ void main() {
     expect(
       prochainBilan(DateTime(2026, 10, 25, 20)),
       DateTime(2026, 11, 1, 20),
+    );
+  });
+
+  group('redemander le lendemain si pas fait', () {
+    // « Me raser ? » le lundi seulement.
+    final raser = sport.copie(id: 3, texte: 'Me raser ?', jours: 0x01);
+    final lundi = DateTime(2026, 10, 26);
+    final mardi = DateTime(2026, 10, 27);
+    final mercredi = DateTime(2026, 10, 28);
+
+    test('automatique : oui sauf tous les jours', () {
+      expect(raser.redemandee, isTrue);
+      expect(sport.redemandee, isFalse);
+      expect(raser.copie(redemande: () => false).redemandee, isFalse);
+    });
+
+    test('« Non » lundi : redemandée mardi, mercredi… jusqu\'à « Oui »', () {
+      expect(jourARattraper(raser, {'2026-10-26': 1}, mardi), lundi);
+      expect(jourARattraper(raser, {'2026-10-26': 1}, mercredi), lundi);
+      // Pas de réponse : pareil.
+      expect(jourARattraper(raser, {}, mardi), lundi);
+      // « Oui » : fini.
+      expect(jourARattraper(raser, {'2026-10-26': 0}, mardi), isNull);
+      // Le lundi lui-même : la question normale.
+      expect(jourARattraper(raser, {}, lundi), isNull);
+      // Tous les jours : jamais redemandée.
+      expect(jourARattraper(sport, {}, mardi), isNull);
+    });
+
+    test(
+      'notifications : « (de lundi) » programmée mardi, après un « Non »',
+      () {
+        final plan = planifie(
+          questions: [raser],
+          repondues: {'3|2026-10-26'},
+          maintenant: DateTime(2026, 10, 26, 22),
+          reponses: {
+            3: {'2026-10-26': 1},
+          },
+        );
+        final rattrapages = [
+          for (final n in plan.notifs)
+            if (n.rattrapage && n.jour == lundi) n,
+        ];
+        expect(rattrapages.first.quand, DateTime(2026, 10, 27, 21));
+        expect(rattrapages.first.jour, lundi);
+        // Jusqu'au dimanche ; le lundi suivant, la question normale.
+        expect(rattrapages, hasLength(6));
+        expect(
+          plan.notifs.map((n) => n.id).toSet(),
+          hasLength(plan.notifs.length),
+        );
+      },
     );
   });
 }

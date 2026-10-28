@@ -26,6 +26,11 @@ class Question {
   /// s'additionnent dans le Suivi.
   final String? famille;
 
+  /// Redemander le lendemain si pas fait (Paul, 28/10/2026) : nul =
+  /// automatique, oui pour une question qui ne revient pas tous les
+  /// jours (« Me raser ? » le lundi), non pour les autres.
+  final bool? redemande;
+
   static const tousLesJours = 0x7F;
   static const longueurMaxReponse = 16;
 
@@ -38,7 +43,11 @@ class Question {
     this.active = true,
     this.ordre = 0,
     this.famille,
+    this.redemande,
   });
+
+  /// Redemandée le lendemain si pas faite (voir [redemande]).
+  bool get redemandee => redemande ?? jours != tousLesJours;
 
   /// La question revient-elle ce jour-là (1 = lundi … 7 = dimanche) ?
   bool revientLe(int weekday) => jours & (1 << (weekday - 1)) != 0;
@@ -54,6 +63,7 @@ class Question {
     bool? active,
     int? ordre,
     String? Function()? famille,
+    bool? Function()? redemande,
   }) => Question(
     id: id ?? this.id,
     texte: texte ?? this.texte,
@@ -63,6 +73,7 @@ class Question {
     active: active ?? this.active,
     ordre: ordre ?? this.ordre,
     famille: famille == null ? this.famille : famille(),
+    redemande: redemande == null ? this.redemande : redemande(),
   );
 
   Map<String, Object?> versLigne() => {
@@ -74,6 +85,7 @@ class Question {
     'active': active ? 1 : 0,
     'ordre': ordre,
     'famille': famille,
+    'redemande': redemande == null ? null : (redemande! ? 1 : 0),
   };
 
   factory Question.depuisLigne(Map<String, Object?> l) => Question(
@@ -85,6 +97,11 @@ class Question {
     active: (l['active'] as int) == 1,
     ordre: l['ordre'] as int,
     famille: l['famille'] as String?,
+    redemande: switch (l['redemande']) {
+      1 => true,
+      0 => false,
+      _ => null,
+    },
   );
 }
 

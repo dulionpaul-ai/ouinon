@@ -8,6 +8,7 @@ import '../models/question.dart';
 import '../theme/app_theme.dart';
 import '../utils/date_fr.dart';
 import '../utils/jour.dart';
+import '../utils/planification.dart';
 import '../widgets/boutons_reponse.dart';
 import '../widgets/vivant.dart';
 import 'edition_question_screen.dart';
@@ -15,7 +16,8 @@ import 'fiche_question_screen.dart';
 import 'reglages_screen.dart';
 
 /// Onglet 3, les questions du jour (maquette validée par Paul le
-/// 28/10/2026) : celles qui sonnent aujourd'hui, par heure ; celles dont
+/// 28/10/2026) : celles qui sonnent aujourd'hui, par heure, et celles
+/// pas faites un jour d'avant, redemandées (« Me raser ? · de lundi ») ; celles dont
 /// l'heure n'est pas encore venue sont plus pâles, mais on peut déjà y
 /// répondre. La moins bonne réponse à gauche, la meilleure à droite. Une
 /// réponse donnée se verrouille avec une onde ; la toucher l'efface et
@@ -39,7 +41,16 @@ class QuestionsDuJourScreen extends StatefulWidget {
 
 class _QuestionsDuJourScreenState extends State<QuestionsDuJourScreen> {
   List<Question> _questions = const [];
+
+  /// Réponse montrée, par question.
   Map<int, int> _reponses = const {};
+
+  /// Réponse enregistrée, par question (pour « Annuler »).
+  Map<int, int> _stockees = const {};
+
+  /// Le jour dont parle chaque question : aujourd'hui, ou un jour passé
+  /// pour une question pas faite, redemandée (« de lundi »).
+  Map<int, DateTime> _jours = const {};
 
   DateTime get _jour => jourDe(widget.maintenant());
 
@@ -59,20 +70,50 @@ class _QuestionsDuJourScreenState extends State<QuestionsDuJourScreen> {
   Future<void> _recharge() async {
     final jour = _jour;
     final questions = await widget.base.questions();
-    final reponses = await widget.base.reponsesDuJour(jour);
+    final toutes = await widget.base.toutesLesReponses();
+    final repondues = await widget.base.reponduesLe(jour);
     if (!mounted) return;
+    final liste = <Question>[];
+    final jours = <int, DateTime>{};
+    final montrees = <int, int>{};
+    final stockees = <int, int>{};
+    for (final q in questions) {
+      if (!q.active || q.id == null) continue;
+      final r = toutes[q.id] ?? const {};
+      DateTime? d;
+      var montree = true;
+      if (q.revientLe(jour.weekday)) {
+        d = jour;
+      } else if (jourARattraper(q, r, jour) case final retard?) {
+        d = retard;
+        // « Non » lundi : redemandée mardi, boutons ouverts.
+        montree = repondues.contains('${q.id}|${cleJour(retard)}');
+      } else if (q.redemandee) {
+        // Rattrapée aujourd'hui : elle reste là, avec sa réponse.
+        final prevu = jourPrevuAvant(q, jour);
+        if (prevu != null && repondues.contains('${q.id}|${cleJour(prevu)}')) {
+          d = prevu;
+        }
+      }
+      if (d == null) continue;
+      liste.add(q);
+      jours[q.id!] = d;
+      if (r[cleJour(d)] case final c?) {
+        stockees[q.id!] = c;
+        if (montree) montrees[q.id!] = c;
+      }
+    }
     setState(() {
-      _questions = [
-        for (final q in questions)
-          if (q.active && q.revientLe(jour.weekday)) q,
-      ]..sort((a, b) => a.heure.compareTo(b.heure));
-      _reponses = reponses;
+      _questions = liste..sort((a, b) => a.heure.compareTo(b.heure));
+      _jours = jours;
+      _reponses = montrees;
+      _stockees = stockees;
     });
   }
 
   Future<void> _choisit(Question q, int? choix) async {
-    final jour = _jour;
-    final avant = _reponses[q.id];
+    final jour = _jours[q.id] ?? _jour;
+    final avant = _stockees[q.id];
     // Tout de suite à l'écran, sans attendre la base : l'animation part
     // dès le toucher.
     setState(() {
@@ -82,9 +123,16 @@ class _QuestionsDuJourScreenState extends State<QuestionsDuJourScreen> {
     if (choix == null) {
       await widget.base.efface(q.id!, jour);
     } else {
-      await widget.base.repond(q.id!, jour, choix);
+      await widget.base.repond(
+        q.id!,
+        jour,
+        choix,
+        maintenant: widget.maintenant(),
+      );
       try {
         await Notifications.instance.retire(q.id!, jour);
+        // Redemandée aujourd'hui : sa notification d'aujourd'hui aussi.
+        if (jour != _jour) await Notifications.instance.retire(q.id!, _jour);
       } catch (_) {}
     }
     if (!mounted) return;
@@ -172,7 +220,10 @@ class _QuestionsDuJourScreenState extends State<QuestionsDuJourScreen> {
                               choix: _reponses[q.id],
                               ouverte: !_reponses.containsKey(q.id),
                               // Pas encore l'heure : plus pâle.
-                              aVenir: q.heure > minute,
+                              aVenir: _jours[q.id] == _jour && q.heure > minute,
+                              deJour: _jours[q.id] == _jour
+                                  ? null
+                                  : nomJour(_jours[q.id]!.weekday),
                               onChoix: (c) => _choisit(q, c),
                               // Toucher la réponse donnée l'efface et
                               // rouvre les boutons, prêts pour une autre
@@ -205,6 +256,9 @@ class _LigneQuestion extends StatelessWidget {
   final int? choix;
   final bool ouverte;
   final bool aVenir;
+
+  /// Redemandée : le jour dont elle parle (« lundi »).
+  final String? deJour;
   final ValueChanged<int?> onChoix;
   final VoidCallback onRouvre;
   final VoidCallback onFiche;
@@ -214,6 +268,7 @@ class _LigneQuestion extends StatelessWidget {
     required this.choix,
     required this.ouverte,
     required this.aVenir,
+    this.deJour,
     required this.onChoix,
     required this.onRouvre,
     required this.onFiche,
@@ -254,11 +309,15 @@ class _LigneQuestion extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    aVenir ? 'à ${_hhmm(q.heure)}' : _hhmm(q.heure),
+                    deJour != null
+                        ? 'de $deJour'
+                        : aVenir
+                        ? 'à ${_hhmm(q.heure)}'
+                        : _hhmm(q.heure),
                     style: TextStyle(
                       fontFamily: AppTheme.policeMono,
                       fontSize: 12,
-                      color: t.doux,
+                      color: deJour != null ? t.accent : t.doux,
                     ),
                   ),
                 ],

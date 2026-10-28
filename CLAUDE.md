@@ -106,6 +106,13 @@ Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
   (Aujourd'hui, ce qui est fait, la meilleure réponse) ; gris pour la
   réponse du milieu. **Une seule police partout : Oxanium** (choix de Paul
   du 28/10/2026, `lib/theme/app_theme.dart`).
+- Redemander le lendemain si pas fait (Paul, 28/10/2026) : une question
+  qui ne revient pas tous les jours (« Me raser ? » le lundi), sans
+  réponse ou avec la moins bonne, revient les jours suivants (« de
+  lundi ») jusqu'à la meilleure ou jusqu'à son prochain jour ; la réponse
+  compte pour le jour d'origine (`jourARattraper`). Interrupteur dans la
+  fiche (automatique par défaut ; jamais pour une question de tous les
+  jours, sauf si on l'allume).
 - Une notification ratée reste affichée jusqu'à la suivante de la même
   question (Android : `timeoutAfter`) ; sans réponse, rien n'est
   enregistré. Une question sans aucun jour ne sonne jamais (en pause).

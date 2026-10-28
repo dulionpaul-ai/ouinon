@@ -91,6 +91,42 @@ void main() {
     semantique.dispose();
   });
 
+  testWidgets('Questions : pas faite lundi, redemandée mardi', (tester) async {
+    final raser = (await tester.runAsync(
+      () => base.enregistre(
+        const Question(
+          texte: 'Me raser ?',
+          reponses: ['Fait', 'Pas fait'],
+          heure: 21 * 60,
+          jours: 0x01,
+        ),
+      ),
+    ))!;
+    final lundi = DateTime(2026, 10, 19);
+    await tester.runAsync(() => base.repond(raser.id!, lundi, 1));
+    // Mardi 20 octobre, midi.
+    await ouvre(
+      tester,
+      QuestionsDuJourScreen(
+        base: base,
+        maintenant: () => DateTime(2026, 10, 20, 12),
+      ),
+    );
+    await tester.ensureVisible(find.text('Fait'));
+    await tester.pumpAndSettle();
+    expect(find.text('Me raser ?'), findsOneWidget);
+    expect(find.text('de lundi'), findsOneWidget);
+    // Les boutons sont ouverts : on peut dire « Fait ».
+    await tester.tap(find.text('Fait'));
+    await attends(tester);
+    await tester.pumpAndSettle();
+    expect((await tester.runAsync(() => base.reponsesDe(raser.id!)))!, {
+      '2026-10-19': 0,
+    });
+    // Elle reste là, avec sa réponse.
+    expect(find.text('de lundi'), findsOneWidget);
+  });
+
   testWidgets('Questions : « Annuler » efface la réponse donnée', (
     tester,
   ) async {

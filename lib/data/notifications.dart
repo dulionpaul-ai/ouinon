@@ -5,6 +5,7 @@ import 'package:timezone/timezone.dart' as tz;
 import '../models/question.dart';
 import '../models/tache.dart';
 import '../utils/courbes.dart';
+import '../utils/date_fr.dart';
 import '../utils/jour.dart';
 import '../utils/planification.dart';
 import '../utils/planning.dart';
@@ -254,6 +255,7 @@ class Notifications {
       questions: questions,
       repondues: await base.reponduesDepuis(jourDe(now)),
       maintenant: now,
+      reponses: await base.toutesLesReponses(),
       // iPhone : 64 notifications programmées au plus (cinq gardées pour
       // le rappel « continuer », le bilan, le rappel du soir, le matin et
       // le compte rendu, plus le planning). Android : 500 alarmes.
@@ -275,7 +277,9 @@ class Notifications {
     for (final n in plan.notifs) {
       await _plugin.zonedSchedule(
         id: n.id,
-        title: n.question.texte,
+        title: n.rattrapage
+            ? '${n.question.texte} (de ${nomJour(n.jour.weekday)})'
+            : n.question.texte,
         scheduledDate: _tz(n.quand),
         notificationDetails: _details(n.question, n.duree),
         androidScheduleMode: mode,

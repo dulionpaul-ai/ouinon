@@ -30,6 +30,10 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
   late List<TextEditingController> _reponses;
   late int _heure;
   late int _jours;
+
+  /// Redemander le lendemain si pas fait : nul = automatique (oui si la
+  /// question ne revient pas tous les jours).
+  bool? _redemande;
   String? _erreur;
 
   /// Cadran de l'heure ouvert : « Enregistrer » est caché.
@@ -61,6 +65,7 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
     // Aucun jour par défaut ; sans jour, la question est en pause
     // (cahier, écran 1, validé par Paul le 27/10/2026).
     _jours = q?.jours ?? 0;
+    _redemande = q?.redemande;
   }
 
   @override
@@ -129,6 +134,7 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
           reponses: reponses,
           heure: _heure,
           jours: _jours,
+          redemande: () => _redemande,
           famille: () =>
               _famille.text.trim().isEmpty ? null : _famille.text.trim(),
         );
@@ -291,7 +297,7 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(6, 0, 6, 12),
             child: Text(
-              'La meilleure en haut (vert), la moins bonne en bas (rouge).',
+              'La meilleure en haut (vert d\'eau), la moins bonne en bas (orange).',
               style: doux,
             ),
           ),
@@ -424,6 +430,17 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
                 ),
               ],
             ),
+          ),
+          // Pas fait : redemandée le lendemain (« Me raser ? » le lundi,
+          // « Non » : elle revient mardi). Automatique : oui si elle ne
+          // revient pas tous les jours (Paul, 28/10/2026).
+          const SizedBox(height: 10),
+          SwitchListTile(
+            key: const ValueKey('redemande'),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 6),
+            title: const Text('Redemander le lendemain si pas fait'),
+            value: _redemande ?? _jours != Question.tousLesJours,
+            onChanged: (oui) => setState(() => _redemande = oui),
           ),
           if (_erreur != null) ...[
             const SizedBox(height: 16),

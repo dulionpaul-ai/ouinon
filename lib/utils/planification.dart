@@ -1,5 +1,6 @@
 import '../models/question.dart';
 import 'jour.dart';
+import 'stats.dart';
 
 /// Une notification à programmer : une question, le jour dont elle parle,
 /// et le moment où elle s'affiche.
@@ -9,11 +10,50 @@ class NotifPrevue {
   final DateTime jour;
   final DateTime quand;
 
-  const NotifPrevue(this.id, this.question, this.jour, this.quand);
+  /// Redemandée un jour après [jour], parce que pas faite (« Me raser ?
+  /// (de lundi) »).
+  final bool rattrapage;
+
+  const NotifPrevue(
+    this.id,
+    this.question,
+    this.jour,
+    this.quand, {
+    this.rattrapage = false,
+  });
 
   /// Temps d'affichage : jusqu'à la suivante de la même question, qui la
-  /// remplace (Paul, 27/10/2026).
-  Duration get duree => prochaineFois(question, quand).difference(quand);
+  /// remplace (Paul, 27/10/2026) ; une journée au plus pour une question
+  /// redemandée le lendemain (la suivante prend sa place).
+  Duration get duree {
+    final jusqua = prochaineFois(question, quand).difference(quand);
+    if (!question.redemandee) return jusqua;
+    return jusqua < const Duration(days: 1) ? jusqua : const Duration(days: 1);
+  }
+}
+
+/// Le dernier jour prévu de [q] strictement avant [jour] (6 jours avant
+/// au plus), ou nul.
+DateTime? jourPrevuAvant(Question q, DateTime jour) {
+  for (var n = 1; n <= 6; n++) {
+    final d = ajouteJours(jourDe(jour), -n);
+    if (q.revientLe(d.weekday)) return d;
+  }
+  return null;
+}
+
+/// Le jour en retard que [q] redemande le [jour] (Paul, 28/10/2026), ou
+/// nul : une question redemandée ([Question.redemandee]) qui ne revient
+/// pas ce jour-là, dont le dernier jour prévu attend encore : pas de
+/// réponse, ou la moins bonne (« Me raser ? » le lundi, « Non » : elle
+/// revient mardi, puis mercredi… jusqu'à « Oui » ou au lundi suivant).
+DateTime? jourARattraper(Question q, Reponses reponses, DateTime jour) {
+  if (!q.active || q.jours == 0 || !q.redemandee) return null;
+  if (q.revientLe(jour.weekday)) return null;
+  final d = jourPrevuAvant(q, jour);
+  if (d == null) return null;
+  final r = reponses[cleJour(d)];
+  return r == null || r == q.nbReponses - 1 ? d : null;
 }
 
 /// La prochaine fois que la question est posée, strictement après
@@ -71,6 +111,7 @@ int idNotification(int questionId, DateTime jour) =>
   required Set<String> repondues,
   required DateTime maintenant,
   int maxNotifs = 400,
+  Map<int, Reponses> reponses = const {},
 }) {
   final actives = [
     for (final q in questions)
@@ -94,6 +135,30 @@ int idNotification(int questionId, DateTime jour) =>
       );
       if (!quand.isAfter(maintenant)) continue;
       notifs.add(NotifPrevue(idNotification(q.id!, jour), q, jour, quand));
+    }
+    // Les questions pas faites, redemandées les jours suivants (en
+    // supposant qu'elles restent sans réponse : une réponse reprogramme
+    // tout).
+    for (final q in actives) {
+      final enRetard = jourARattraper(q, reponses[q.id] ?? const {}, jour);
+      if (enRetard == null) continue;
+      final quand = DateTime(
+        jour.year,
+        jour.month,
+        jour.day,
+        q.heure ~/ 60,
+        q.heure % 60,
+      );
+      if (!quand.isAfter(maintenant)) continue;
+      notifs.add(
+        NotifPrevue(
+          idNotification(q.id!, jour),
+          q,
+          enRetard,
+          quand,
+          rattrapage: true,
+        ),
+      );
     }
   }
   notifs.sort((a, b) => a.quand.compareTo(b.quand));

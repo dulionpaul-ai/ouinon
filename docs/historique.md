@@ -467,4 +467,10 @@ demain »).
 - 28/10/2026 : Questions : toucher la réponse déjà donnée l'efface et
   rouvre les boutons, prêts pour une autre (un seul toucher au lieu de
   deux).
+- 28/10/2026 : « Redemander le lendemain si pas fait » : une question qui
+  ne revient pas tous les jours, sans réponse ou avec la moins bonne,
+  revient le lendemain (notification « Me raser ? (de lundi) », ligne
+  « de lundi » dans Questions), jusqu'à « fait » ou son prochain jour.
+  Interrupteur dans le formulaire (automatique). Base version 7.
+- APK n° 30 (1.0.0+30).
 

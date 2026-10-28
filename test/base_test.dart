@@ -243,7 +243,9 @@ void main() {
             );
             await db.insert(
               'questions',
-              questionsDeDepart.first.versLigne()..remove('famille'),
+              questionsDeDepart.first.versLigne()
+                ..remove('famille')
+                ..remove('redemande'),
             );
           },
         ),

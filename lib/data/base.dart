@@ -19,7 +19,7 @@ import '../utils/stats.dart';
 class Base {
   /// 2 : planning ; 3 : liste « À faire » ; 4 : choisies pour un jour et
   /// créneaux fixes (24/10/2026).
-  static const version = 6;
+  static const version = 7;
 
   final Database db;
 
@@ -94,6 +94,12 @@ class Base {
           if (ancienne < 6) {
             await db.execute('ALTER TABLE questions ADD COLUMN famille TEXT');
           }
+          // Version 7 : redemander le lendemain si pas fait (28/10/2026).
+          if (ancienne < 7) {
+            await db.execute(
+              'ALTER TABLE questions ADD COLUMN redemande INTEGER',
+            );
+          }
         },
         singleInstance: instanceUnique,
       ),
@@ -110,7 +116,8 @@ class Base {
         jours INTEGER NOT NULL,
         active INTEGER NOT NULL DEFAULT 1,
         ordre INTEGER NOT NULL DEFAULT 0,
-        famille TEXT
+        famille TEXT,
+        redemande INTEGER
       )''');
     await db.execute('''
       CREATE TABLE reponses (
@@ -487,6 +494,18 @@ class Base {
       );
     }),
   );
+
+  /// Les réponses données ce jour-là (quel que soit le jour dont elles
+  /// parlent) : « id|2026-10-26 ».
+  Future<Set<String>> reponduesLe(DateTime jour) async {
+    final lignes = await db.query(
+      'reponses',
+      columns: ['question_id', 'jour'],
+      where: 'repondu_le LIKE ?',
+      whereArgs: ['${cleJour(jour)}%'],
+    );
+    return {for (final l in lignes) '${l['question_id']}|${l['jour']}'};
+  }
 
   /// Pas de réponse = reportée (Paul, 28/10/2026) : une chose prévue d'un
   /// jour passé restée sans réponse compte « pas fait » ; tirée de la

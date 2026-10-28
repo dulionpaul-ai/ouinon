@@ -459,14 +459,15 @@ void main() {
     await geste.up();
     await attends(tester);
     await tester.pumpAndSettle();
-    // Finie à 14 h 07 : de 13 h 37 à 14 h 07 ; sortie de la to-do.
+    // Finie à 14 h 07, au quart d'heure : de 13 h 30 à 14 h ; sortie de
+    // la to-do.
     final jeudi = (await tester.runAsync(
       () => base.tachesDu(DateTime(2026, 10, 22)),
     ))!;
     expect(jeudi.single.texte, 'Papiers');
     expect(jeudi.single.etat, Tache.fait);
-    expect(jeudi.single.debut, 13 * 60 + 37);
-    expect(jeudi.single.fin, 14 * 60 + 7);
+    expect(jeudi.single.debut, 13 * 60 + 30);
+    expect(jeudi.single.fin, 14 * 60);
     expect((await tester.runAsync(base.liste))!, isEmpty);
     expect(find.byKey(ValueKey('todo-${papiers.id}')), findsNothing);
   });

@@ -102,14 +102,14 @@ class _TodoScreenState extends State<TodoScreen> {
 
   /// Tirée sur « Fait » (Paul, 28/10/2026) : je viens de la finir. Elle
   /// arrive dans la journée d'aujourd'hui, cochée, de « maintenant moins
-  /// sa durée » à maintenant, et compte dans les stats ; elle sort de la
-  /// to-do.
+  /// sa durée » à maintenant (au quart d'heure), et compte dans les
+  /// stats ; elle sort de la to-do.
   Future<void> _fait(AFaire a) async {
     setState(() => _faites++);
-    // Elle se termine maintenant, à la minute près : elle a commencé il
-    // y a sa durée.
+    // Elle se termine maintenant, au quart d'heure le plus proche (le
+    // planning est au quart d'heure) : elle a commencé il y a sa durée.
     final now = widget.maintenant();
-    final fin = now.hour * 60 + now.minute;
+    final fin = (now.hour * 60 + now.minute + 7) ~/ 15 * 15;
     final t = await widget.base.enregistreTache(
       Tache(
         jour: _aujourdhui,

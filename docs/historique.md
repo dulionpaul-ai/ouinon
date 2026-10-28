@@ -434,4 +434,6 @@ demain »).
   sans jamais changer sa durée (la poignée de durée, qui se déclenchait
   sur les petits blocs, est retirée). Toucher un bloc ouvre sa fiche
   (heure, durée, texte) ; un rond à gauche du bloc sert à cocher « fait ».
+- 28/10/2026 : toucher un créneau fixe (« Enfants ») dans le planning
+  ouvre sa fiche pour le modifier.
 

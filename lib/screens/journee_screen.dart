@@ -13,6 +13,7 @@ import '../utils/planning.dart';
 import '../utils/remplissage.dart';
 import '../widgets/grille_journee.dart';
 import '../widgets/vivant.dart';
+import 'edition_creneau_screen.dart';
 import 'edition_tache_screen.dart';
 import 'reglages_screen.dart';
 
@@ -27,6 +28,7 @@ import 'reglages_screen.dart';
 ///   décoche) ; toucher le reste du bloc ouvre sa fiche.
 /// - Glisser un bloc le déplace, sans changer sa durée (sans appui
 ///   long) ; le glisser en haut, sur « À placer », lui enlève son heure.
+/// - Toucher un créneau fixe (« Enfants ») ouvre sa fiche.
 /// - Toucher une heure vide : un rendez-vous à cette heure.
 ///
 /// Chaque geste a son animation, sa vibration et son « Annuler ».
@@ -226,6 +228,14 @@ class _JourneeScreenState extends State<JourneeScreen> {
     ),
   );
 
+  /// Toucher un créneau fixe (« Enfants ») : sa fiche, pour le modifier.
+  void _ouvreCreneau(Creneau c) => Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => EditionCreneauScreen(base: widget.base, creneau: c),
+    ),
+  );
+
   void _rendezVousA(int debut) => Navigator.push(
     context,
     MaterialPageRoute(
@@ -360,7 +370,7 @@ class _JourneeScreenState extends State<JourneeScreen> {
                               .enregistreTache(tache.copie(debut: debut)),
                           onTapTache: _ouvre,
                           onCocheTache: _coche,
-                          onTapCreneau: (_) {},
+                          onTapCreneau: _ouvreCreneau,
                           onTapVide: _rendezVousA,
                         ),
                       ),

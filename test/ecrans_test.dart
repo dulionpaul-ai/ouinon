@@ -548,6 +548,12 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Aujourd\'hui'), findsOneWidget);
       expect(find.text('Enfants'), findsOneWidget);
+      // Toucher le créneau fixe ouvre sa fiche.
+      await tester.tap(find.text('Enfants'));
+      await tester.pumpAndSettle();
+      expect(find.byType(EditionCreneauScreen), findsOneWidget);
+      Navigator.of(tester.element(find.byType(EditionCreneauScreen))).pop();
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(ValueKey('acaser-${papiers.id}')));
       await attends(tester);
       await tester.pumpAndSettle();

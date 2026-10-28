@@ -425,4 +425,7 @@ demain »).
 - Police : une seule partout, **Oxanium** (Paul a choisi la n° 2 parmi
   six propositions, 28/10/2026). Les anciennes polices (Chakra Petch,
   IBM Plex, Michroma, VT323, Unbounded, Figtree) sont retirées.
+- Logo passé aux deux couleurs de l'appli (vert d'eau à gauche, orange
+  à droite, fond noir de l'appli) ; texte un peu plus petit dans les
+  cases de la to-do (28/10/2026).
 

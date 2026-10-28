@@ -1,8 +1,8 @@
 """Icônes de Ouinon : le « rond dissocié », un rond coupé en deux, moitié
 gauche plus haute, moitié droite plus basse, sur fond sombre. Logo n° 3
 de Paul (22/10/2026, réduit de 5 %) ; couleurs d'origine remises le
-27/10/2026 à sa demande : vert citron (oui) à gauche, corail (non) à
-droite.
+27/10/2026 à sa demande, puis passées aux deux couleurs de l'appli le
+28/10/2026 : vert d'eau (oui) à gauche, orange (non) à droite.
 
 Lancement depuis la racine du dépôt : python3 tool/icones.py
 Écrit les icônes Android (classiques, adaptatives, monochrome) et iPhone.
@@ -13,10 +13,10 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
-FOND = (0x17, 0x17, 0x1A, 255)
+FOND = (0x05, 0x07, 0x0A, 255)
 TAILLE = 0.95  # part du logo d'origine (réduit de 5 %)
-AMBRE = (0xD4, 0xFF, 0x3A, 255)  # vert citron (oui)
-BLEU_VERT = (0xFF, 0x6B, 0x5E, 255)  # corail (non)
+AMBRE = (0x34, 0xE0, 0xB0, 255)  # vert d'eau (oui)
+BLEU_VERT = (0xFF, 0x8A, 0x2A, 255)  # orange (non)
 BLANC = (255, 255, 255, 255)
 SUR = 8  # suréchantillonnage, pour des bords lisses
 

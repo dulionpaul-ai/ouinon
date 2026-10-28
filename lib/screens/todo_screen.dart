@@ -345,7 +345,7 @@ class _Chose extends StatelessWidget {
     final ligne = InkWell(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: 6),
         decoration: BoxDecoration(
           border: Border(bottom: BorderSide(color: t.puce)),
         ),
@@ -358,16 +358,16 @@ class _Chose extends StatelessWidget {
               a.texte,
               style: TextStyle(
                 color: jamais ? t.doux : t.texte,
-                fontSize: 15,
+                fontSize: 13.5,
                 height: 1.2,
               ),
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 1),
             Text(
               dureeFr(a.duree),
               style: TextStyle(
                 fontFamily: AppTheme.policeMono,
-                fontSize: 11,
+                fontSize: 10.5,
                 color: t.doux,
               ),
             ),

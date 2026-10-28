@@ -440,7 +440,10 @@ void main() {
         AFaire(texte: 'Papiers', duree: 30, creeLe: DateTime(2026, 10, 22)),
       ),
     ))!;
-    await ouvre(tester, TodoScreen(base: base, maintenant: midi));
+    await ouvre(
+      tester,
+      TodoScreen(base: base, maintenant: () => DateTime(2026, 10, 22, 14, 7)),
+    );
     await tester.pumpAndSettle();
     final depart = tester.getCenter(find.byKey(ValueKey('todo-${papiers.id}')));
     final geste = await tester.startGesture(depart);
@@ -456,13 +459,14 @@ void main() {
     await geste.up();
     await attends(tester);
     await tester.pumpAndSettle();
-    // Faite aujourd'hui, juste avant midi, et sortie de la to-do.
+    // Finie à 14 h 07 : de 13 h 37 à 14 h 07 ; sortie de la to-do.
     final jeudi = (await tester.runAsync(
       () => base.tachesDu(DateTime(2026, 10, 22)),
     ))!;
     expect(jeudi.single.texte, 'Papiers');
     expect(jeudi.single.etat, Tache.fait);
-    expect(jeudi.single.debut, 11 * 60 + 30);
+    expect(jeudi.single.debut, 13 * 60 + 37);
+    expect(jeudi.single.fin, 14 * 60 + 7);
     expect((await tester.runAsync(base.liste))!, isEmpty);
     expect(find.byKey(ValueKey('todo-${papiers.id}')), findsNothing);
   });

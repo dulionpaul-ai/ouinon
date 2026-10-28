@@ -5,6 +5,7 @@ import 'package:ouinon/data/donnees_test.dart';
 import 'package:ouinon/data/notifications.dart';
 import 'package:ouinon/main.dart';
 import 'package:ouinon/models/question.dart';
+import 'package:ouinon/screens/fiche_question_screen.dart';
 import 'package:ouinon/screens/groupe_screen.dart';
 import 'package:ouinon/models/a_faire.dart';
 import 'package:ouinon/models/tache.dart';
@@ -100,6 +101,20 @@ void main() {
     await tester.tap(find.text('Annuler'));
     await attends(tester);
     expect(await tester.runAsync(() => base.reponsesDuJour(jour)), isEmpty);
+  });
+
+  testWidgets('Questions : toucher la question ouvre sa fiche, '
+      'puis « Modifier la question »', (tester) async {
+    await ouvre(tester, QuestionsDuJourScreen(base: base, maintenant: midi));
+    await tester.tap(find.byKey(const ValueKey('fiche-1')));
+    await tester.pumpAndSettle();
+    expect(find.byType(FicheQuestionScreen), findsOneWidget);
+    expect(find.textContaining('Tous les jours'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('modifier-question')));
+    await tester.pumpAndSettle();
+    expect(find.byType(EditionQuestionScreen), findsOneWidget);    // Laisse finir les lectures de la base.
+    await attends(tester);
+    await tester.pump(const Duration(seconds: 11));
   });
 
   testWidgets('Questions : le + ouvre le formulaire', (tester) async {

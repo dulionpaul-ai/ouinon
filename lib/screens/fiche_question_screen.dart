@@ -153,6 +153,61 @@ class _FicheQuestionScreenState extends State<FicheQuestionScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(14, 8, 14, 32),
         children: [
+          // Ce qui se règle : heure, jours, réponses, groupe ; un bouton
+          // pour tout modifier (Paul, 28/10/2026).
+          CarteRonde(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.schedule_rounded, size: 18, color: t.doux),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        _q.active && _q.jours != 0
+                            ? '${heureFr(_q.heure)} · ${joursFr(_q.jours)}'
+                            : 'En pause',
+                        style: const TextStyle(fontSize: 15),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  // De la moins bonne à la meilleure, comme les boutons.
+                  _q.reponses.reversed.join('  ·  '),
+                  style: doux,
+                ),
+                if (_q.famille case final g? when g.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text('Groupe : $g', style: doux),
+                ],
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  key: const ValueKey('modifier-question'),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => EditionQuestionScreen(
+                        base: widget.base,
+                        question: _q,
+                      ),
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(48),
+                    foregroundColor: t.accent,
+                    backgroundColor: t.accent.withValues(alpha: 0.12),
+                    side: BorderSide(color: t.accent),
+                  ),
+                  icon: const Icon(Icons.edit_outlined, size: 18),
+                  label: const Text('Modifier la question'),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
           _series(context, serie(_q, _reponses, auj)),
           const SizedBox(height: 10),
           ChoixPilules<_Periode>(

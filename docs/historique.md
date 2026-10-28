@@ -436,4 +436,8 @@ demain »).
   (heure, durée, texte) ; un rond à gauche du bloc sert à cocher « fait ».
 - 28/10/2026 : toucher un créneau fixe (« Enfants ») dans le planning
   ouvre sa fiche pour le modifier.
+- 28/10/2026 : dans l'onglet Questions, toucher une question (pas ses
+  réponses) ouvre sa fiche : en haut l'heure, les jours, les réponses,
+  le groupe et « Modifier la question » ; en dessous ses stats (séries,
+  anneau, courbe, jours de la semaine, 6 mois, calendrier).
 

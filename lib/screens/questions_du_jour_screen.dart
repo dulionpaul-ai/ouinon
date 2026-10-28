@@ -11,6 +11,7 @@ import '../utils/jour.dart';
 import '../widgets/boutons_reponse.dart';
 import '../widgets/vivant.dart';
 import 'edition_question_screen.dart';
+import 'fiche_question_screen.dart';
 import 'reglages_screen.dart';
 
 /// Onglet 3, les questions du jour (maquette validée par Paul le
@@ -18,7 +19,8 @@ import 'reglages_screen.dart';
 /// l'heure n'est pas encore venue sont plus pâles, mais on peut déjà y
 /// répondre. La moins bonne réponse à gauche, la meilleure à droite. Une
 /// réponse donnée se verrouille avec une onde ; « Changer » rouvre les
-/// boutons. Le « + » crée une question. L'anneau en haut se remplit.
+/// boutons. Toucher la question elle-même ouvre sa fiche (la modifier,
+/// ses stats). Le « + » crée une question. L'anneau en haut se remplit.
 class QuestionsDuJourScreen extends StatefulWidget {
   final Base base;
 
@@ -174,6 +176,16 @@ class _QuestionsDuJourScreenState extends State<QuestionsDuJourScreen> {
                               onChoix: (c) => _choisit(q, c),
                               onRouvre: () =>
                                   setState(() => _rouvertes.add(q.id!)),
+                              onFiche: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => FicheQuestionScreen(
+                                    base: widget.base,
+                                    question: q,
+                                    maintenant: widget.maintenant,
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
                       ],
@@ -193,6 +205,7 @@ class _LigneQuestion extends StatelessWidget {
   final bool aVenir;
   final ValueChanged<int?> onChoix;
   final VoidCallback onRouvre;
+  final VoidCallback onFiche;
 
   const _LigneQuestion({
     required this.question,
@@ -201,6 +214,7 @@ class _LigneQuestion extends StatelessWidget {
     required this.aVenir,
     required this.onChoix,
     required this.onRouvre,
+    required this.onFiche,
   });
 
   @override
@@ -218,28 +232,35 @@ class _LigneQuestion extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                Expanded(
-                  child: Text(
-                    q.texte,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
+            // Toucher la question (pas les réponses) : sa fiche, pour la
+            // modifier et voir ses stats.
+            GestureDetector(
+              key: ValueKey('fiche-${q.id}'),
+              behavior: HitTestBehavior.opaque,
+              onTap: onFiche,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Expanded(
+                    child: Text(
+                      q.texte,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
-                ),
-                Text(
-                  aVenir ? 'à ${_hhmm(q.heure)}' : _hhmm(q.heure),
-                  style: TextStyle(
-                    fontFamily: AppTheme.policeMono,
-                    fontSize: 12,
-                    color: t.doux,
+                  Text(
+                    aVenir ? 'à ${_hhmm(q.heure)}' : _hhmm(q.heure),
+                    style: TextStyle(
+                      fontFamily: AppTheme.policeMono,
+                      fontSize: 12,
+                      color: t.doux,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             const SizedBox(height: 10),
             AnimatedSwitcher(

@@ -304,6 +304,7 @@ class _AccueilScreenState extends State<AccueilScreen>
                       child: TodoScreen(
                         base: base,
                         maintenant: widget.maintenant,
+                        onOuvreAujourdhui: () => _va(1),
                       ),
                     ),
                   ),

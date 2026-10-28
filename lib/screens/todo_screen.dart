@@ -26,10 +26,14 @@ class TodoScreen extends StatefulWidget {
   /// Moment présent imposé (tests).
   final DateTime Function() maintenant;
 
+  /// Toucher le bandeau « Aujourd'hui » : ouvrir l'onglet Aujourd'hui.
+  final VoidCallback? onOuvreAujourdhui;
+
   const TodoScreen({
     super.key,
     required this.base,
     this.maintenant = DateTime.now,
+    this.onOuvreAujourdhui,
   });
 
   @override
@@ -246,6 +250,7 @@ class _TodoScreenState extends State<TodoScreen> {
                       attend: _attend,
                       envois: _envois,
                       onRecoit: _versAujourdhui,
+                      onTap: widget.onOuvreAujourdhui,
                     ),
                     const SizedBox(height: 14),
                     _Bande(
@@ -533,6 +538,9 @@ class _Bande extends StatelessWidget {
   final int envois;
   final void Function(AFaire) onRecoit;
 
+  /// Toucher le bandeau (sans rien y tirer).
+  final VoidCallback? onTap;
+
   const _Bande({
     required this.libelle,
     required this.cle,
@@ -542,6 +550,7 @@ class _Bande extends StatelessWidget {
     this.attend = 0,
     required this.envois,
     required this.onRecoit,
+    this.onTap,
   });
 
   @override
@@ -556,81 +565,86 @@ class _Bande extends StatelessWidget {
           clipBehavior: Clip.none,
           alignment: Alignment.centerRight,
           children: [
-            AnimatedContainer(
-              key: ValueKey(cle),
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeOutCubic,
-              width: dessus ? 64 : (actif ? 52 : 28),
-              height: hauteur,
-              decoration: BoxDecoration(
-                color: c.withValues(alpha: dessus ? 0.28 : 0.08),
-                border: Border(
-                  left: BorderSide(
-                    color: c.withValues(alpha: actif ? 1 : 0.45),
+            GestureDetector(
+              onTap: onTap,
+              child: AnimatedContainer(
+                key: ValueKey(cle),
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeOutCubic,
+                width: dessus ? 64 : (actif ? 52 : 28),
+                height: hauteur,
+                decoration: BoxDecoration(
+                  color: c.withValues(alpha: dessus ? 0.28 : 0.08),
+                  border: Border(
+                    left: BorderSide(
+                      color: c.withValues(alpha: actif ? 1 : 0.45),
+                    ),
+                    top: BorderSide(
+                      color: c.withValues(alpha: actif ? 1 : 0.45),
+                    ),
+                    bottom: BorderSide(
+                      color: c.withValues(alpha: actif ? 1 : 0.45),
+                    ),
                   ),
-                  top: BorderSide(color: c.withValues(alpha: actif ? 1 : 0.45)),
-                  bottom: BorderSide(
-                    color: c.withValues(alpha: actif ? 1 : 0.45),
+                  borderRadius: const BorderRadius.horizontal(
+                    left: Radius.circular(8),
                   ),
                 ),
-                borderRadius: const BorderRadius.horizontal(
-                  left: Radius.circular(8),
-                ),
-              ),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    fait
-                        ? const Icon(Icons.check_rounded, size: 18, color: c)
-                        : _Chevron(actif: actif),
-                    const SizedBox(height: 10),
-                    RotatedBox(
-                      quarterTurns: 1,
-                      child: Text(
-                        libelle.toUpperCase(),
-                        style: TextStyle(
-                          fontFamily: AppTheme.policeTitre,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 10,
-                          letterSpacing: 3,
-                          color: t.texte,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      fait
+                          ? const Icon(Icons.check_rounded, size: 18, color: c)
+                          : _Chevron(actif: actif),
+                      const SizedBox(height: 10),
+                      RotatedBox(
+                        quarterTurns: 1,
+                        child: Text(
+                          libelle.toUpperCase(),
+                          style: TextStyle(
+                            fontFamily: AppTheme.policeTitre,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 10,
+                            letterSpacing: 3,
+                            color: t.texte,
+                          ),
                         ),
                       ),
-                    ),
-                    if (attend > 0) ...[
-                      const SizedBox(height: 10),
-                      TweenAnimationBuilder<double>(
-                        key: ValueKey('attend-$attend'),
-                        tween: Tween(begin: 1.8, end: 1),
-                        duration: const Duration(milliseconds: 450),
-                        curve: Curves.elasticOut,
-                        builder: (context, v, enfant) =>
-                            Transform.scale(scale: v, child: enfant),
-                        child: Container(
-                          width: 20,
-                          height: 20,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: c.withValues(alpha: 0.22),
-                            border: Border.all(color: c),
-                          ),
-                          child: Text(
-                            '$attend',
-                            style: const TextStyle(
-                              fontFamily: AppTheme.policeMono,
-                              fontSize: 11,
-                              color: c,
+                      if (attend > 0) ...[
+                        const SizedBox(height: 10),
+                        TweenAnimationBuilder<double>(
+                          key: ValueKey('attend-$attend'),
+                          tween: Tween(begin: 1.8, end: 1),
+                          duration: const Duration(milliseconds: 450),
+                          curve: Curves.elasticOut,
+                          builder: (context, v, enfant) =>
+                              Transform.scale(scale: v, child: enfant),
+                          child: Container(
+                            width: 20,
+                            height: 20,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: c.withValues(alpha: 0.22),
+                              border: Border.all(color: c),
+                            ),
+                            child: Text(
+                              '$attend',
+                              style: const TextStyle(
+                                fontFamily: AppTheme.policeMono,
+                                fontSize: 11,
+                                color: c,
+                              ),
                             ),
                           ),
                         ),
-                      ),
+                      ],
+                      const SizedBox(height: 10),
+                      fait ? const SizedBox.shrink() : _Chevron(actif: actif),
                     ],
-                    const SizedBox(height: 10),
-                    fait ? const SizedBox.shrink() : _Chevron(actif: actif),
-                  ],
+                  ),
                 ),
               ),
             ),

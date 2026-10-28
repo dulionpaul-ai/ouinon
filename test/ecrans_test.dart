@@ -392,6 +392,20 @@ void main() {
     }
     expect(find.text('TO-DO'), findsOneWidget);
     expect(find.text('QUESTIONS'), findsOneWidget);
+    // Dans la to-do, toucher le bandeau « Aujourd'hui » ouvre l'onglet.
+    await tester.tap(find.byKey(const ValueKey('onglet-0')));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('cible-aujourdhui')).hitTestable(),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(
+        of: find.byType(Offstage).hitTestable(),
+        matching: find.byType(JourneeScreen),
+      ),
+      findsWidgets,
+    );
     // Les stats sont dans les Réglages.
     await tester.tap(find.byIcon(Icons.tune_rounded).hitTestable().first);
     await tester.pumpAndSettle();

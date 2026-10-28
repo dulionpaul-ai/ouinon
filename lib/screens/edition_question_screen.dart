@@ -51,8 +51,10 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
       }.toList()..sort();
       if (mounted) setState(() => _familles = noms);
     });
+    // Nouvelle question : « Fait » et « Pas fait » par défaut, à changer
+    // si besoin (Paul, 28/10/2026).
     _reponses = [
-      for (final r in q?.reponses ?? const ['', ''])
+      for (final r in q?.reponses ?? const ['Fait', 'Pas fait'])
         TextEditingController(text: r),
     ];
     _heure = q?.heure ?? 21 * 60;

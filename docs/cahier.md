@@ -9,7 +9,8 @@ gardé ; les écrans sont refaits.
 - La liste de mes questions : pour chacune, son texte, son heure, ses
   jours.
 - Créer une question : le texte (« Sport ? »), les 2 ou 3 réponses
-  écrites à la main à chaque fois (pas de modèles), l'heure, les jours.
+  écrites à la main (pas de modèles ; « Fait » et « Pas fait » écrits par
+  défaut, modifiables, depuis le 28/10/2026), l'heure, les jours.
 - Les jours : aucun coché par défaut. Raccourcis : « Tous les jours »,
   « En semaine », « Le week-end ». Chaque jour se coche ou se décoche.
 - Toucher une question : la modifier (texte, réponses, heure, jours)

@@ -458,4 +458,6 @@ demain »).
   dans la journée de « maintenant moins sa durée » à maintenant, au
   quart d'heure le plus proche, cochée, comptée dans les stats)
   et sort de la to-do ; « Annuler » la remet.
+- 28/10/2026 : nouvelle question : réponses « Fait » (meilleure) et
+  « Pas fait » écrites par défaut, modifiables.
 

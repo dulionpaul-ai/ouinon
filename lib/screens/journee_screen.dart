@@ -326,7 +326,6 @@ class _PageJourState extends State<_PageJour>
                     : '${dateCourte(_jour)} · $nbReste à faire · '
                           '${dureeFr(resteMin)}',
                 titre: widget.decalage == 0 ? 'Aujourd\'hui' : 'Demain',
-                sous: _Points(page: widget.page, onPage: widget.onPage),
                 actions: [
                   BoutonRond(
                     icone: Icons.tune_rounded,
@@ -340,7 +339,11 @@ class _PageJourState extends State<_PageJour>
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
+              // Aujourd'hui, demain : centrés sur la page.
+              Center(
+                child: _Points(page: widget.page, onPage: widget.onPage),
+              ),
+              const SizedBox(height: 8),
               // « À placer » reçoit aussi un bloc qu'on y remonte.
               DragTarget<Object>(
                 onWillAcceptWithDetails: (d) => d.data is Tache,
@@ -512,7 +515,10 @@ class _Points extends StatelessWidget {
                 behavior: HitTestBehavior.opaque,
                 onTap: () => onPage(i),
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(i == 0 ? 2 : 4, 6, 4, 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 6,
+                  ),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 250),
                     width: i == page ? 18 : 7,

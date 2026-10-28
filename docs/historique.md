@@ -506,4 +506,4 @@ demain »).
   le titre, la date toujours sur une ligne (même en-tête sur les deux
   pages), les pages gardées en mémoire (rien ne se redessine en
   glissant), les choses à placer déjà là ne s'animent plus.
-
+- 28/10/2026 : les deux points Aujourd'hui / Demain centrés sur la page, sous l'en-tête.

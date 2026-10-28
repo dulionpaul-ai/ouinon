@@ -76,7 +76,13 @@ class _QuestionsDuJourScreenState extends State<QuestionsDuJourScreen> {
   Future<void> _choisit(Question q, int? choix) async {
     final jour = _jour;
     final avant = _reponses[q.id];
-    setState(() => _rouvertes.remove(q.id));
+    // Tout de suite à l'écran, sans attendre la base : l'animation part
+    // dès le toucher.
+    setState(() {
+      _rouvertes.remove(q.id);
+      _reponses = {..._reponses}..remove(q.id);
+      if (choix != null) _reponses[q.id!] = choix;
+    });
     if (choix == null) {
       await widget.base.efface(q.id!, jour);
     } else {
@@ -263,32 +269,220 @@ class _LigneQuestion extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 350),
-              switchInCurve: Curves.easeOutBack,
-              transitionBuilder: (enfant, anim) => FadeTransition(
-                opacity: anim,
-                child: ScaleTransition(
-                  scale: Tween(begin: 0.9, end: 1.0).animate(anim),
-                  alignment: Alignment.centerLeft,
-                  child: enfant,
-                ),
-              ),
-              child: ouverte || choix == null
-                  ? BoutonsReponse(
-                      key: ValueKey('boutons-${q.id}'),
-                      question: q,
-                      choix: choix,
-                      onChoix: onChoix,
-                    )
-                  : _Repondu(
-                      key: ValueKey('repondu-${q.id}-$choix'),
-                      question: q,
-                      choix: choix!,
-                      onTap: onRouvre,
-                    ),
+            _Reponse(
+              question: q,
+              choix: choix,
+              verrouillee: !ouverte && choix != null,
+              onChoix: onChoix,
+              onRouvre: onRouvre,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Les réponses d'une question, en un seul mouvement continu (Paul,
+/// 28/10/2026, « pas hyper fluide ») : au toucher, la réponse choisie
+/// s'allume tout de suite ; un court instant après, les boutons
+/// s'effacent pendant que la pastille arrive en glissant, puis l'onde
+/// part. La hauteur ne change jamais (rien ne saute). « Changer » refait
+/// le chemin à l'envers, plus vite.
+class _Reponse extends StatefulWidget {
+  final Question question;
+  final int? choix;
+  final bool verrouillee;
+  final ValueChanged<int?> onChoix;
+  final VoidCallback onRouvre;
+
+  const _Reponse({
+    required this.question,
+    required this.choix,
+    required this.verrouillee,
+    required this.onChoix,
+    required this.onRouvre,
+  });
+
+  @override
+  State<_Reponse> createState() => _ReponseState();
+}
+
+class _ReponseState extends State<_Reponse>
+    with SingleTickerProviderStateMixin {
+  late final _anim = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1000),
+    value: widget.verrouillee ? 1 : 0,
+  );
+
+  @override
+  void didUpdateWidget(_Reponse ancien) {
+    super.didUpdateWidget(ancien);
+    if (widget.verrouillee && !ancien.verrouillee) {
+      _anim.forward(from: 0);
+    } else if (!widget.verrouillee && ancien.verrouillee) {
+      _anim.animateBack(0, duration: const Duration(milliseconds: 280));
+    }
+  }
+
+  @override
+  void dispose() {
+    _anim.dispose();
+    super.dispose();
+  }
+
+  static double _part(
+    double v,
+    double debut,
+    double fin, [
+    Curve c = Curves.linear,
+  ]) => c.transform(((v - debut) / (fin - debut)).clamp(0.0, 1.0));
+
+  static const _ecart = 6.0;
+  static const _style = TextStyle(
+    fontFamily: AppTheme.policeTexte,
+    fontSize: 14,
+    fontWeight: FontWeight.w800,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Teintes.de(context);
+    final q = widget.question;
+    final nb = q.nbReponses;
+    return SizedBox(
+      height: 46,
+      child: LayoutBuilder(
+        builder: (context, contraintes) => AnimatedBuilder(
+          animation: _anim,
+          builder: (context, _) {
+            final v = _anim.value;
+            final choix = widget.choix;
+            final boutons = BoutonsReponse(
+              question: q,
+              choix: choix,
+              onChoix: widget.onChoix,
+            );
+            if (v == 0 || choix == null) return boutons;
+            // Les autres réponses s'effacent, puis la choisie se
+            // transforme en pastille en glissant à gauche ; « Changer »
+            // apparaît, l'onde part.
+            final efface = _part(v, 0.08, 0.32, Curves.easeOut);
+            final morph = _part(v, 0.22, 0.68, Curves.easeInOutCubic);
+            final changer = _part(v, 0.5, 0.8, Curves.easeOut);
+            final onde = _part(v, 0.62, 1, Curves.easeOut);
+            final largeur = contraintes.maxWidth;
+            final bouton = (largeur - _ecart * (nb - 1)) / nb;
+            // De gauche à droite : la moins bonne d'abord.
+            final xBouton = (nb - 1 - choix) * (bouton + _ecart);
+            final texte = q.reponses[choix];
+            final mesure = TextPainter(
+              text: TextSpan(text: texte, style: _style),
+              textDirection: TextDirection.ltr,
+              textScaler: MediaQuery.textScalerOf(context),
+            )..layout();
+            final pastille = (mesure.width + 30).clamp(0.0, bouton);
+            double entre(double a, double b) => a + (b - a) * morph;
+            final c = AppTheme.couleurReponse(context, choix, nb);
+            final x = entre(xBouton, 0);
+            final w = entre(bouton, pastille);
+            final h = entre(46, 34);
+            final rayon = entre(t.rayon, 17);
+            final forme = RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(rayon),
+              side: BorderSide(color: c),
+            );
+            return Semantics(
+              button: true,
+              label: '$texte, changer',
+              excludeSemantics: true,
+              child: GestureDetector(
+                key: ValueKey('changer-${q.id}'),
+                behavior: HitTestBehavior.opaque,
+                onTap: widget.verrouillee ? widget.onRouvre : null,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    if (efface < 1)
+                      Opacity(
+                        opacity: 1 - efface,
+                        child: IgnorePointer(child: boutons),
+                      ),
+                    // La réponse choisie, pleine (rien ne transparaît).
+                    Positioned(
+                      left: x,
+                      top: (46 - h) / 2,
+                      width: w,
+                      height: h,
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Positioned.fill(
+                            child: DecoratedBox(
+                              decoration: ShapeDecoration(
+                                color: Color.alphaBlend(
+                                  c.withValues(alpha: 0.22),
+                                  t.fond,
+                                ),
+                                shape: forme,
+                              ),
+                              child: Center(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    texte,
+                                    maxLines: 1,
+                                    style: _style.copyWith(color: c),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          if (onde > 0 && onde < 1)
+                            Positioned.fill(
+                              child: IgnorePointer(
+                                child: Transform.scale(
+                                  scaleX: 1 + 0.5 * onde,
+                                  scaleY: 1 + 1.1 * onde,
+                                  child: DecoratedBox(
+                                    decoration: ShapeDecoration(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                          rayon,
+                                        ),
+                                        side: BorderSide(
+                                          color: c.withValues(alpha: 1 - onde),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    if (changer > 0)
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        bottom: 0,
+                        child: Opacity(
+                          opacity: changer,
+                          child: Center(
+                            child: Text(
+                              'Changer',
+                              style: TextStyle(color: t.doux, fontSize: 13),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -299,87 +493,6 @@ class _LigneQuestion extends StatelessWidget {
 String _hhmm(int minutes) =>
     '${(minutes ~/ 60).toString().padLeft(2, '0')}:'
     '${(minutes % 60).toString().padLeft(2, '0')}';
-
-/// La réponse donnée, verrouillée : une pastille à sa couleur, une onde
-/// qui part autour ; « Changer » rouvre les boutons.
-class _Repondu extends StatelessWidget {
-  final Question question;
-  final int choix;
-  final VoidCallback onTap;
-
-  const _Repondu({
-    super.key,
-    required this.question,
-    required this.choix,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final t = Teintes.de(context);
-    final c = AppTheme.couleurReponse(context, choix, question.nbReponses);
-    final pastille = Container(
-      height: 34,
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: c.withValues(alpha: 0.18),
-        border: Border.all(color: c),
-        borderRadius: BorderRadius.circular(17),
-      ),
-      child: Text(
-        question.reponses[choix],
-        style: TextStyle(color: c, fontSize: 15, fontWeight: FontWeight.w600),
-      ),
-    );
-    return Semantics(
-      button: true,
-      label: '${question.reponses[choix]}, changer',
-      excludeSemantics: true,
-      child: GestureDetector(
-        key: ValueKey('changer-${question.id}'),
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: Row(
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                pastille,
-                // L'onde, une seule fois.
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: TweenAnimationBuilder<double>(
-                      tween: Tween(begin: 0, end: 1),
-                      duration: const Duration(milliseconds: 900),
-                      curve: Curves.easeOut,
-                      builder: (context, v, _) => v >= 1
-                          ? const SizedBox.shrink()
-                          : Transform.scale(
-                              scaleX: 1 + 0.5 * v,
-                              scaleY: 1 + 1.1 * v,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: c.withValues(alpha: 1 - v),
-                                  ),
-                                  borderRadius: BorderRadius.circular(17),
-                                ),
-                              ),
-                            ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const Spacer(),
-            Text('Changer', style: TextStyle(color: t.doux, fontSize: 13)),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 /// L'anneau des réponses du jour : il se remplit à chaque réponse.
 class _Anneau extends StatelessWidget {

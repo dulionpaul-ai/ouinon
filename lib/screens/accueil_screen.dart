@@ -81,6 +81,10 @@ class _AccueilScreenState extends State<AccueilScreen>
     duration: const Duration(milliseconds: 420),
     value: 1,
   );
+  late final _courbe = CurvedAnimation(
+    parent: _arrivee,
+    curve: Curves.easeOutCubic,
+  );
 
   @override
   void initState() {
@@ -113,6 +117,7 @@ class _AccueilScreenState extends State<AccueilScreen>
     _base?.changements.removeListener(_compte);
     Notifications.instance.ouverture.removeListener(_ouvreDepuisNotif);
     _attente?.cancel();
+    _courbe.dispose();
     _arrivee.dispose();
     super.dispose();
   }
@@ -270,36 +275,49 @@ class _AccueilScreenState extends State<AccueilScreen>
       // de l'onglet touché et s'éclaire ; un trait balaie l'écran.
       body: Stack(
         children: [
-          AnimatedBuilder(
-            animation: _arrivee,
-            builder: (context, enfant) {
-              final v = Curves.easeOutCubic.transform(_arrivee.value);
-              return Opacity(
-                opacity: 0.25 + 0.75 * v,
-                child: Transform.translate(
-                  offset: Offset(_sens * 36 * (1 - v), 0),
-                  child: enfant,
-                ),
-              );
-            },
-            child: IndexedStack(
-              // Toutes les pages restent dans l'arbre : passer de l'une à
-              // l'autre ne fait rien perdre.
-              index: _onglet,
-              children: [
-                page(0, TodoScreen(base: base, maintenant: widget.maintenant)),
-                page(
-                  1,
-                  JourneeScreen(base: base, maintenant: widget.maintenant),
-                ),
-                page(
-                  2,
-                  QuestionsDuJourScreen(
-                    base: base,
-                    maintenant: widget.maintenant,
+          // Fondu et glissé sans reconstruire les pages à chaque image.
+          FadeTransition(
+            opacity: Tween(begin: 0.25, end: 1.0).animate(_courbe),
+            child: AnimatedBuilder(
+              animation: _courbe,
+              builder: (context, enfant) => Transform.translate(
+                offset: Offset(_sens * 36 * (1 - _courbe.value), 0),
+                child: enfant,
+              ),
+              child: IndexedStack(
+                // Toutes les pages restent dans l'arbre : passer de l'une à
+                // l'autre ne fait rien perdre.
+                index: _onglet,
+                children: [
+                  page(
+                    0,
+                    RepaintBoundary(
+                      child: TodoScreen(
+                        base: base,
+                        maintenant: widget.maintenant,
+                      ),
+                    ),
                   ),
-                ),
-              ],
+                  page(
+                    1,
+                    RepaintBoundary(
+                      child: JourneeScreen(
+                        base: base,
+                        maintenant: widget.maintenant,
+                      ),
+                    ),
+                  ),
+                  page(
+                    2,
+                    RepaintBoundary(
+                      child: QuestionsDuJourScreen(
+                        base: base,
+                        maintenant: widget.maintenant,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           Positioned.fill(

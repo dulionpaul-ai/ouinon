@@ -57,44 +57,52 @@ class _Pilule extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      selected: choisie,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        curve: Curves.easeOut,
-        height: 46,
-        decoration: ShapeDecoration(
-          color: couleur.withValues(alpha: choisie ? 0.26 : 0.08),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(Teintes.de(context).rayon),
-            side: BorderSide(
-              color: couleur.withValues(alpha: choisie ? 1 : 0.5),
+    // Choisie : elle se gonfle un instant, comme une touche qui répond.
+    return TweenAnimationBuilder<double>(
+      key: ValueKey(choisie),
+      tween: Tween(begin: choisie ? 0.9 : 1, end: 1),
+      duration: const Duration(milliseconds: 380),
+      curve: Curves.easeOutBack,
+      builder: (context, v, enfant) => Transform.scale(scale: v, child: enfant),
+      child: Semantics(
+        button: true,
+        selected: choisie,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOut,
+          height: 46,
+          decoration: ShapeDecoration(
+            color: couleur.withValues(alpha: choisie ? 0.26 : 0.08),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(Teintes.de(context).rayon),
+              side: BorderSide(
+                color: couleur.withValues(alpha: choisie ? 1 : 0.5),
+              ),
             ),
           ),
-        ),
-        child: Material(
-          type: MaterialType.transparency,
-          child: InkWell(
-            customBorder: Teintes.de(context).forme,
-            onTap: () {
-              HapticFeedback.selectionClick();
-              onTap();
-            },
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                // Réduit plutôt que coupé (« Moins de 6 h »).
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    texte,
-                    maxLines: 1,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: couleur,
-                      fontSize: 14,
-                      fontWeight: choisie ? FontWeight.w800 : FontWeight.w600,
+          child: Material(
+            type: MaterialType.transparency,
+            child: InkWell(
+              customBorder: Teintes.de(context).forme,
+              onTap: () {
+                HapticFeedback.selectionClick();
+                onTap();
+              },
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  // Réduit plutôt que coupé (« Moins de 6 h »).
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      texte,
+                      maxLines: 1,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: couleur,
+                        fontSize: 14,
+                        fontWeight: choisie ? FontWeight.w800 : FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),

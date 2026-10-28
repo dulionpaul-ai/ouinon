@@ -440,4 +440,10 @@ demain »).
   réponses) ouvre sa fiche : en haut l'heure, les jours, les réponses,
   le groupe et « Modifier la question » ; en dessous ses stats (séries,
   anneau, courbe, jours de la semaine, 6 mois, calendrier).
+- 28/10/2026 : animation des réponses refaite (« pas hyper fluide ») :
+  la réponse s'affiche tout de suite (sans attendre la base), la choisie
+  « claque », les autres s'effacent, puis elle se transforme elle-même en
+  pastille en glissant à gauche, « Changer » apparaît et l'onde part ; la
+  hauteur ne bouge plus. Changement d'onglet allégé (fondu sans
+  reconstruire les pages).
 

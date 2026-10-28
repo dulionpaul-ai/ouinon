@@ -398,7 +398,7 @@ class _BlocTacheGrille extends StatelessWidget {
         '${heureFr(tache.debut)} – ${heureFr((tache.debut + duree) % (24 * 60))}';
     final serre = hauteur < 44;
     return Opacity(
-      opacity: tache.etat == Tache.pasFait ? 0.4 : 1,
+      opacity: tache.etat == Tache.pasFait ? 0.55 : 1,
       child: Container(
         decoration: BoxDecoration(
           color: fond,
@@ -423,6 +423,20 @@ class _BlocTacheGrille extends StatelessWidget {
                   Icons.check_circle_rounded,
                   size: 16,
                   color: t.accent,
+                ),
+              ),
+              const SizedBox(width: 5),
+            ] else if (tache.etat == Tache.pasFait) ...[
+              TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.2, end: 1),
+                duration: const Duration(milliseconds: 450),
+                curve: Curves.elasticOut,
+                builder: (context, v, enfant) =>
+                    Transform.scale(scale: v, child: enfant),
+                child: Icon(
+                  Icons.cancel_rounded,
+                  size: 16,
+                  color: t.moinsBonne,
                 ),
               ),
               const SizedBox(width: 5),

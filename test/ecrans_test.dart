@@ -112,7 +112,10 @@ void main() {
     expect(find.textContaining('Tous les jours'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('modifier-question')));
     await tester.pumpAndSettle();
-    expect(find.byType(EditionQuestionScreen), findsOneWidget);    // Laisse finir les lectures de la base.
+    expect(
+      find.byType(EditionQuestionScreen),
+      findsOneWidget,
+    ); // Laisse finir les lectures de la base.
     await attends(tester);
     await tester.pump(const Duration(seconds: 11));
   });
@@ -585,6 +588,19 @@ void main() {
       );
       expect((await tester.runAsync(base.liste))!, isEmpty);
       expect(notifs.retireesTaches, [prevues.single.id]);
+      // Encore : pas fait ; encore : sans réponse.
+      await tester.tap(find.byKey(ValueKey('coche-${prevues.single.id}')));
+      await attends(tester);
+      expect(
+        (await tester.runAsync(() => base.tache(prevues.single.id!)))!.etat,
+        Tache.pasFait,
+      );
+      await tester.tap(find.byKey(ValueKey('coche-${prevues.single.id}')));
+      await attends(tester);
+      expect(
+        (await tester.runAsync(() => base.tache(prevues.single.id!)))!.etat,
+        isNull,
+      );
     });
 
     testWidgets('Aujourd\'hui : glisser un bloc le déplace sans changer sa '

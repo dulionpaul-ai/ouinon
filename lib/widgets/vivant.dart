@@ -325,6 +325,8 @@ void annonce(BuildContext context, String texte, {VoidCallback? annuler}) {
   messager.showSnackBar(
     SnackBar(
       duration: const Duration(seconds: 4),
+      // Disparaît tout seul, même avec « Annuler » (Paul, 28/10/2026).
+      persist: false,
       content: Text(texte),
       action: annuler == null
           ? null

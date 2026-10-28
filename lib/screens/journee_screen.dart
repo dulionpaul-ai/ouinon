@@ -24,8 +24,9 @@ import 'reglages_screen.dart';
 ///
 /// - Toucher une chose à placer la case au premier moment libre ; on peut
 ///   aussi la glisser sur une heure. « Caser pour moi » case tout.
-/// - Toucher le rond à gauche d'un bloc le coche « fait » (encore : le
-///   décoche) ; toucher le reste du bloc ouvre sa fiche.
+/// - Le rond à gauche d'un bloc : un toucher « fait » (coche vert d'eau),
+///   un autre « pas fait » (croix orange), un autre « sans réponse » ;
+///   toucher le reste du bloc ouvre sa fiche.
 /// - Glisser un bloc le déplace, sans changer sa durée (sans appui
 ///   long) ; le glisser en haut, sur « À placer », lui enlève son heure.
 /// - Toucher un créneau fixe (« Enfants ») ouvre sa fiche.
@@ -181,10 +182,15 @@ class _JourneeScreenState extends State<JourneeScreen> {
     );
   }
 
-  /// Toucher un bloc : fait, ou plus fait.
+  /// Le rond d'un bloc, à chaque toucher : fait, puis pas fait, puis
+  /// sans réponse. Comme les boutons de la notification, qui s'en va.
   Future<void> _coche(Tache tache) async {
     final avant = tache.etat;
-    final etat = avant == Tache.fait ? null : Tache.fait;
+    final etat = switch (avant) {
+      null => Tache.fait,
+      Tache.fait => Tache.pasFait,
+      _ => null,
+    };
     await widget.base.repondTache(tache.id!, etat);
     if (etat != null) {
       try {
@@ -192,13 +198,11 @@ class _JourneeScreenState extends State<JourneeScreen> {
       } catch (_) {}
     }
     if (!mounted) return;
-    annonce(
-      context,
-      etat == Tache.fait
-          ? 'Fait : ${tache.texte}'
-          : 'Plus fait : ${tache.texte}',
-      annuler: () => widget.base.repondTache(tache.id!, avant),
-    );
+    annonce(context, switch (etat) {
+      Tache.fait => 'Fait : ${tache.texte}',
+      Tache.pasFait => 'Pas fait : ${tache.texte}',
+      _ => 'Sans réponse : ${tache.texte}',
+    }, annuler: () => widget.base.repondTache(tache.id!, avant));
   }
 
   /// Un bloc glissé sur « À placer » : il perd son heure (un rendez-vous

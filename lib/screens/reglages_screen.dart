@@ -9,7 +9,6 @@ import '../utils/date_fr.dart';
 import '../utils/jour.dart';
 import '../utils/planification.dart';
 import '../utils/version.dart';
-import '../widgets/rond.dart';
 import 'creneaux_screen.dart';
 import 'questions_screen.dart';
 import 'stats_screen.dart';
@@ -36,7 +35,6 @@ class _ReglagesScreenState extends State<ReglagesScreen>
     debut: Preferences.debutJourneeParDefaut,
     fin: Preferences.finJourneeParDefaut,
   );
-  NotifsPlanning _notifsPlanning = NotifsPlanning.debutEtFin;
   int _reponsesTest = 0;
   NotifPrevue? _prochaine;
   int? _enAttente;
@@ -77,7 +75,6 @@ class _ReglagesScreenState extends State<ReglagesScreen>
     final rappelPlanning = await Preferences.rappelPlanning();
     final heureRappel = await Preferences.heureRappelPlanning();
     final journee = await Preferences.journee();
-    final notifsPlanning = await Preferences.notifsPlanning();
     final reponsesTest = await widget.base.nombreReponsesTest();
     final creneaux = await widget.base.creneaux();
     final maintenant = DateTime.now();
@@ -96,7 +93,6 @@ class _ReglagesScreenState extends State<ReglagesScreen>
       _rappelPlanning = rappelPlanning;
       _heureRappel = heureRappel;
       _journee = journee;
-      _notifsPlanning = notifsPlanning;
       _reponsesTest = reponsesTest;
       _creneaux = [
         for (final c in creneaux)
@@ -190,14 +186,6 @@ class _ReglagesScreenState extends State<ReglagesScreen>
     }
     setState(() => _journee = nouvelle);
     await Preferences.changeJournee(debut: nouvelle.debut, fin: nouvelle.fin);
-    try {
-      await Notifications.instance.replanifie(widget.base);
-    } catch (_) {}
-  }
-
-  Future<void> _changeNotifsPlanning(NotifsPlanning mode) async {
-    setState(() => _notifsPlanning = mode);
-    await Preferences.changeNotifsPlanning(mode);
     try {
       await Notifications.instance.replanifie(widget.base);
     } catch (_) {}
@@ -348,21 +336,6 @@ class _ReglagesScreenState extends State<ReglagesScreen>
                         'programmée${_enAttente! > 1 ? 's' : ''} sur le téléphone.',
             ),
             _Ligne(titre: 'Essayer une notification', onTap: _essaie),
-            _Ligne(
-              titre: 'Pour une chose de ta journée',
-              bas: Padding(
-                padding: const EdgeInsets.only(top: 10),
-                child: ChoixPilules<NotifsPlanning>(
-                  options: const [
-                    (NotifsPlanning.debutEtFin, 'Début et fin'),
-                    (NotifsPlanning.debut, 'Début'),
-                    (NotifsPlanning.fin, 'Fin'),
-                  ],
-                  valeur: _notifsPlanning,
-                  onChoix: _changeNotifsPlanning,
-                ),
-              ),
-            ),
             _Ligne(
               titre: 'Rappel du soir',
               sousTitre: 'Pour préparer demain',

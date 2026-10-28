@@ -8,11 +8,11 @@ l'appli. L'appli garde les réponses et en tire des stats en graphiques animés 
 courbes, anneaux, barres, calendrier, et liens trouvés seuls entre
 questions (courbes qui se ressemblent, décalées de 0 à 3 jours).
 Deuxième partie, la to-do : une liste (temps de chaque chose, Important
-et Urgent) ; chaque soir, « Préparer demain » en 2 étapes : choisir
-(une jauge dit si ça rentre) puis caser dans la journée (glisser ou
-« Caser pour moi ») ; créneaux fixes grisés (« Enfants 17 h – 23 h ») ; une notification au début (« C'est
-l'heure ») et une à la fin (« C'est fait ? » : Pas fait · Reporter ·
-Fait).
+et Urgent) ; on tire ce qu'on fait aujourd'hui dans l'onglet
+Aujourd'hui, puis on le case dans la journée (toucher, glisser ou
+« Caser pour moi ») ; créneaux fixes grisés (« Enfants 17 h – 23 h ») ;
+une seule notification par chose, à son heure (« C'est l'heure »), avec
+deux boutons : Pas fait · Fait (Paul, 28/10/2026).
 Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
 
 ## Consignes de Paul
@@ -76,8 +76,9 @@ Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
 - De gauche à droite, toujours la moins bonne réponse à gauche et la
   meilleure à droite (notification, boutons, barres).
 - Une chose prévue (planning) : « Fait » = 0, « Pas fait » = 1, sans
-  réponse = nulle (ne compte pas dans le pourcentage) ; « Reporter » la
-  remet une heure après l'appui, jamais après minuit. Tirée de la liste
+  réponse = nulle (ne compte pas dans le pourcentage). Dans Aujourd'hui,
+  le rond d'un bloc passe de « fait » à « pas fait » puis « sans
+  réponse ». Tirée de la liste
   (`listeId`) : « Fait » la sort de la liste, sinon elle revient « à
   placer ». Cases : D'abord, À planifier, Vite fait, Peut-être jamais.
 - Repartie de zéro le 27/10/2026, à la demande de Paul : l'appli se

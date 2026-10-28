@@ -39,11 +39,10 @@ Future<void> reponseNotifArrierePlan(NotificationResponse reponse) =>
 /// à chaque ouverture de l'appli, à chaque modification et à chaque
 /// réponse : les jours déjà répondus sont sautés.
 ///
-/// Planning : chaque chose prévue sans réponse a deux notifications
-/// (choix de Paul du 24/10/2026) : au début, « C'est l'heure » avec
-/// « Reporter » ; à la fin, « C'est fait ? » avec « Pas fait · Reporter ·
-/// Fait » (contenu caché « t|id »). « Reporter » la reprogramme une heure
-/// plus tard. Le soir, un rappel invite à préparer le lendemain.
+/// Planning : une seule notification par chose prévue sans réponse (Paul,
+/// 28/10/2026), à son heure : « C'est l'heure », avec « Pas fait · Fait »
+/// (contenu caché « t|id »). Elle reste affichée jusqu'à la réponse. Le
+/// soir, un rappel invite à remplir la to-do.
 class Notifications {
   /// Remplacé dans les tests (aucun appel au système).
   static Notifications instance = Notifications();
@@ -52,11 +51,7 @@ class Notifications {
 
   /// Boutons des choses prévues, de gauche à droite : la moins bonne
   /// réponse à gauche, la meilleure à droite (choix de Paul).
-  static const _actionsTache = [
-    ('tp', 'Pas fait'),
-    ('tr', 'Reporter'),
-    ('tf', 'Fait'),
-  ];
+  static const _actionsTache = [('tp', 'Pas fait'), ('tf', 'Fait')];
 
   final _plugin = FlutterLocalNotificationsPlugin();
 
@@ -223,7 +218,8 @@ class Notifications {
     await replanifie(base);
   }
 
-  /// Bouton d'une chose prévue : fait, pas fait, ou reportée d'une heure.
+  /// Bouton d'une chose prévue : fait ou pas fait (« Reporter » ne sert
+  /// plus qu'aux anciennes notifications encore affichées).
   Future<void> _traiteTache(String? action, String contenu) async {
     final id = int.tryParse(contenu.substring(2));
     if (id == null || action == null) return;
@@ -251,7 +247,8 @@ class Notifications {
     final taches = rappelsAProgrammer(
       await base.taches(depuis: jourDe(now)),
       now,
-      mode: await Preferences.notifsPlanning(),
+      // Une seule notification, au début, avec les boutons.
+      mode: NotifsPlanning.debut,
     );
     final plan = planifie(
       questions: questions,

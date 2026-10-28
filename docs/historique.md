@@ -446,4 +446,10 @@ demain »).
   pastille en glissant à gauche, « Changer » apparaît et l'onde part ; la
   hauteur ne bouge plus. Changement d'onglet allégé (fondu sans
   reconstruire les pages).
+- 28/10/2026 : le petit encadré du bas (avec « Annuler ») disparaît
+  bien après 4 secondes. Dans Aujourd'hui, le rond d'un bloc : fait
+  (coche vert d'eau), puis pas fait (croix orange), puis sans réponse.
+  Notifications du planning : une seule par chose, à son heure, avec
+  « Pas fait · Fait » (plus de notification de fin ni de « Reporter » ;
+  le réglage « début et fin » est retiré).
 

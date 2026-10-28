@@ -11,7 +11,8 @@ import '../utils/planification.dart';
 import '../utils/version.dart';
 import '../widgets/rond.dart';
 import 'creneaux_screen.dart';
-import 'intro_screen.dart';
+import 'questions_screen.dart';
+import 'stats_screen.dart';
 
 /// Réglages, en lignes simples (revue du 25/10/2026) : tes questions, tes
 /// créneaux fixes, ta journée, les notifications, les données de test.
@@ -278,6 +279,20 @@ class _ReglagesScreenState extends State<ReglagesScreen>
       body: ListView(
         padding: const EdgeInsets.fromLTRB(14, 8, 14, 32),
         children: [
+          _Section('Suivi', [
+            _Ligne(
+              cle: const ValueKey('statistiques'),
+              titre: 'Statistiques',
+              sousTitre: 'Courbes, groupes, liens entre questions',
+              onTap: () => _ouvre(StatsScreen(base: widget.base)),
+            ),
+            _Ligne(
+              cle: const ValueKey('toutes-les-questions'),
+              titre: 'Toutes les questions',
+              sousTitre: 'Les modifier, les mettre en pause',
+              onTap: () => _ouvre(QuestionsScreen(base: widget.base)),
+            ),
+          ]),
           _Section('Ton appli', [
             _Ligne(
               titre: 'Créneaux fixes',
@@ -363,7 +378,7 @@ class _ReglagesScreenState extends State<ReglagesScreen>
               fin: interrupteur('interrupteur-bilan', _bilan, _changeBilan),
             ),
           ]),
-          _Section('Les deux toi', [
+          _Section('Ma journée', [
             _Ligne(
               cle: const ValueKey('debut-journee'),
               titre: 'Début de la journée',
@@ -386,10 +401,6 @@ class _ReglagesScreenState extends State<ReglagesScreen>
               valeur: heureFr(_heureRappel),
               sousTitre: '« Et demain, tu fais quoi ? »',
               onTap: _choisitHeureRappel,
-            ),
-            _Ligne(
-              titre: 'Revoir l\'intro',
-              onTap: () => _ouvre(const IntroScreen()),
             ),
           ]),
           _Section('Données de test', [

@@ -8,27 +8,18 @@ import '../utils/date_fr.dart';
 import '../utils/jour.dart';
 import '../utils/planning.dart';
 import '../utils/remplissage.dart';
-import '../data/preferences.dart';
-import '../utils/deux_moi.dart';
-import '../widgets/arrivee.dart';
-import '../widgets/retro.dart';
-import '../widgets/qui_est_la.dart';
-import '../widgets/rond.dart';
+import '../widgets/vivant.dart';
 import 'edition_a_faire_screen.dart';
-import 'rapport_screen.dart';
 import 'reglages_screen.dart';
 
-/// La to-do du Décideur (refaite avec Paul le 26/10/2026) : en haut,
-/// « Ajouter », qui ouvre le formulaire d'une page ; en dessous, les 4
-/// cases d'Eisenhower, toujours toutes visibles (chaque case défile seule
-/// si elle est pleine). On planifie ensuite dans l'onglet « Planifier ».
-/// À l'arrivée de l'ascenseur, « Bonjour, Décideur. » d'abord, le reste
-/// ensuite.
+/// Onglet 1, la to-do (maquette validée par Paul le 28/10/2026) : les 4
+/// cases d'Eisenhower, toujours toutes visibles, chacune avec son nombre
+/// de choses et leur temps total. On tire une chose vers la droite (sans
+/// appui long) jusqu'au bandeau vert d'eau « Aujourd'hui » : elle part
+/// dans l'onglet Aujourd'hui, à placer. Le « + » ouvre le formulaire
+/// (micro, doublons signalés).
 class TodoScreen extends StatefulWidget {
   final Base base;
-
-  /// Qui est là (choisi par l'accueil).
-  final Moi moi;
 
   /// Moment présent imposé (tests).
   final DateTime Function() maintenant;
@@ -36,7 +27,6 @@ class TodoScreen extends StatefulWidget {
   const TodoScreen({
     super.key,
     required this.base,
-    this.moi = Moi.repos,
     this.maintenant = DateTime.now,
   });
 
@@ -46,11 +36,13 @@ class TodoScreen extends StatefulWidget {
 
 class _TodoScreenState extends State<TodoScreen> {
   List<AFaire> _liste = const [];
-  Map<int, Tache> _casees = const {};
+  List<Tache> _duJour = const [];
 
-  /// Arrivé par l'ascenseur chez le Décideur : « Bonjour, Décideur. »
-  /// jusqu'à la première chose ajoutée.
-  bool _bonjour = false;
+  /// Une chose est en train d'être tirée.
+  bool _glisse = false;
+
+  /// Chaque envoi vers Aujourd'hui lance une traînée.
+  int _envois = 0;
 
   DateTime get _aujourdhui => jourDe(widget.maintenant());
 
@@ -58,144 +50,60 @@ class _TodoScreenState extends State<TodoScreen> {
   void initState() {
     super.initState();
     widget.base.changements.addListener(_recharge);
-    arriveeAscenseur.addListener(_arrive);
     _recharge();
   }
 
   @override
   void dispose() {
     widget.base.changements.removeListener(_recharge);
-    arriveeAscenseur.removeListener(_arrive);
     super.dispose();
-  }
-
-  void _arrive() {
-    if (arriveeAscenseur.value.versLeSoir) setState(() => _bonjour = true);
   }
 
   Future<void> _recharge() async {
     final liste = await widget.base.liste();
-    final casees = await widget.base.placees(_aujourdhui);
     final duJour = await widget.base.tachesDu(_aujourdhui);
-    final motSoir = await DeuxMoi.motDuJour(_aujourdhui);
-    final journee = await Preferences.journee();
     if (!mounted) return;
-    final now = widget.maintenant();
     setState(() {
       _liste = liste;
-      _casees = casees;
-      // Ce que l'Exécutant remonte : après sa journée, ou s'il a laissé
-      // un mot.
-      _remonte =
-          duJour.isNotEmpty &&
-              (motSoir != null || now.hour * 60 + now.minute >= journee.fin)
-          ? (score: scoreJournee(duJour), mot: motSoir)
-          : null;
+      _duJour = duJour;
     });
   }
 
-  /// Le compte rendu de l'Exécutant, à lire par le Décideur (répartition
-  /// du 26/10/2026) : le score du jour et son mot.
-  ({String score, String? mot})? _remonte;
+  /// Ce qui est déjà pour aujourd'hui (à placer, ou prévu) quitte la
+  /// to-do.
+  bool _pourAujourdhui(AFaire a) =>
+      a.choisiePour == _aujourdhui ||
+      _duJour.any((t) => t.listeId == a.id && t.etat != Tache.pasFait);
 
-  void _rapport() => Navigator.push(
+  /// Ce qui attend dans l'onglet Aujourd'hui.
+  int get _attend =>
+      _duJour.where((t) => t.etat == null).length +
+      _liste
+          .where(
+            (a) =>
+                a.choisiePour == _aujourdhui &&
+                !_duJour.any((t) => t.listeId == a.id),
+          )
+          .length;
+
+  Future<void> _versAujourdhui(AFaire a) async {
+    setState(() => _envois++);
+    await widget.base.choisitPour(a.id!, _aujourdhui);
+    if (!mounted) return;
+    annonce(
+      context,
+      '« ${a.texte} » → Aujourd\'hui',
+      annuler: () => widget.base.choisitPour(a.id!, a.choisiePour),
+    );
+  }
+
+  void _nouvelle() => Navigator.push(
     context,
     MaterialPageRoute(
-      builder: (_) => RapportScreen(base: widget.base, jour: _aujourdhui),
+      builder: (_) =>
+          EditionAFaireScreen(base: widget.base, maintenant: widget.maintenant),
     ),
   );
-
-  /// Une chose tirée vers la cible de droite (Paul, 27/10/2026).
-  bool _glisse = false;
-
-  /// La chose glissée sur « Aujourd'hui » : casée aujourd'hui, à son
-  /// heure imposée, sinon au premier moment libre (sinon au prochain
-  /// quart d'heure).
-  Future<void> _versAujourdhui(AFaire a) async {
-    final jour = _aujourdhui;
-    final dejaLa = _casees[a.id];
-    final messager = ScaffoldMessenger.of(context);
-    if (dejaLa != null && dejaLa.jour == jour) {
-      messager.showSnackBar(
-        SnackBar(
-          content: Text(
-            '« ${a.texte} » est déjà prévu aujourd\'hui à '
-            '${heureFr(dejaLa.debut)}.',
-          ),
-        ),
-      );
-      return;
-    }
-    final now = widget.maintenant();
-    final prevues = await widget.base.tachesDu(jour);
-    final creneaux = await widget.base.creneauxDu(jour);
-    final journee = await Preferences.journee();
-    int debut;
-    if (a.heure != null) {
-      debut = a.heure!;
-    } else {
-      final p = remplitJournee(
-        jour: jour,
-        prevues: prevues,
-        aPlacer: [a],
-        debutJournee: journee.debut,
-        finJournee: journee.fin,
-        maintenant: now,
-        creneaux: creneaux,
-        avecJamais: true,
-      );
-      debut = p.placees.isNotEmpty
-          ? p.placees.first.debut
-          : (((now.hour * 60 + now.minute) + 14) ~/ 15 * 15).clamp(
-              0,
-              24 * 60 - 15,
-            );
-    }
-    await widget.base.enregistreTache(
-      Tache(
-        jour: jour,
-        debut: debut,
-        duree: a.duree,
-        texte: a.texte,
-        listeId: a.id,
-        quadrant: a.caseLe(jour).index,
-      ),
-    );
-    if (!mounted) return;
-    messager.showSnackBar(
-      SnackBar(
-        content: Text('« ${a.texte} » : aujourd\'hui à ${heureFr(debut)}.'),
-      ),
-    );
-  }
-
-  Future<void> _faite(AFaire a) async {
-    await widget.base.marqueFaite(a.id!, _aujourdhui);
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('« ${a.texte} » : fait.'),
-        action: SnackBarAction(
-          label: 'Annuler',
-          onPressed: () => widget.base.marqueFaite(a.id!, null),
-        ),
-      ),
-    );
-  }
-
-  /// « Ajouter » : le formulaire d'une page.
-  void _nouvelle() {
-    setState(() => _bonjour = false);
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => EditionAFaireScreen(
-          base: widget.base,
-          maintenant: widget.maintenant,
-        ),
-      ),
-    );
-  }
 
   void _ouvre(AFaire a) => Navigator.push(
     context,
@@ -210,220 +118,107 @@ class _TodoScreenState extends State<TodoScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final t = Teintes.de(context);
-    final liste = ordreDePlacement(_liste, _aujourdhui, avecJamais: true);
-    final bas = MediaQuery.paddingOf(context).bottom;
-    final decideur = widget.moi == Moi.decideur;
-    final bonjour = decideur && (_bonjour || liste.isEmpty);
-    final contenu = Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Arrivee(
-          child: QuiEstLa(
-            moi: widget.moi,
-            date: dateCourte(_aujourdhui),
-            // Les Réglages, communs aux deux toi.
-            fin: IconButton(
-              tooltip: 'Réglages',
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ReglagesScreen(base: widget.base),
-                ),
-              ),
-              icon: Icon(Icons.settings_outlined, color: t.doux),
-            ),
-          ),
-        ),
-        GrandTitre(bonjour ? 'Bonjour, Décideur.' : 'To-do'),
-        Arrivee(
-          rang: 1,
-          child: Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: bonjour
-                ? Text.rich(
-                    TextSpan(
-                      children: [
-                        const TextSpan(
-                          text: 'Ici, tu ne fais rien : tu décides.\n',
-                        ),
-                        TextSpan(
-                          text: 'Écris ce que tu veux, l\'exécutant le fera.',
-                          style: TextStyle(color: t.doux),
-                        ),
-                      ],
-                    ),
-                    style: const TextStyle(fontSize: 16, height: 1.4),
-                  )
-                : Text(
-                    'Tout ce que tu as à faire, un jour ou l\'autre.',
-                    style: TextStyle(color: t.doux, fontSize: 15),
-                  ),
-          ),
-        ),
-        if (_remonte case final r? when widget.moi == Moi.decideur)
-          Arrivee(
-            rang: 1,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 10),
-              child: Material(
-                color: Teintes.orbite.fond,
-                borderRadius: BorderRadius.circular(t.rayon),
-                child: InkWell(
-                  key: const ValueKey('remonte'),
-                  borderRadius: BorderRadius.circular(t.rayon),
-                  onTap: _rapport,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
-                    ),
-                    child: Text.rich(
-                      TextSpan(
-                        children: [
-                          TextSpan(
-                            text:
-                                'L\'EXÉCUTANT : ${r.score.toUpperCase()} · '
-                                'COMPTE RENDU ›',
-                          ),
-                          if (r.mot != null)
-                            TextSpan(
-                              text: '\n« ${r.mot} »',
-                              style: styleMono(
-                                13,
-                                couleur: const Color(0xFFE9DCC0),
-                              ),
-                            ),
-                        ],
-                      ),
-                      style: styleMono(13),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        const SizedBox(height: 14),
-        Arrivee(
-          rang: 2,
-          child: FilledButton.icon(
-            key: const ValueKey('ajouter'),
-            onPressed: _nouvelle,
-            style: FilledButton.styleFrom(
-              backgroundColor: t.accent,
-              foregroundColor: t.surAccent,
-              minimumSize: const Size.fromHeight(50),
-            ),
-            icon: const Icon(Icons.add_rounded),
-            label: const Text('Ajouter'),
-          ),
-        ),
-        const SizedBox(height: 18),
-        Expanded(
-          child: Arrivee(
-            rang: 5,
-            child: _Matrice(
-              liste: liste,
-              aujourdhui: _aujourdhui,
-              casees: _casees,
-              onTap: _ouvre,
-              onFaite: _faite,
-              onGlisse: (g) => setState(() => _glisse = g),
-            ),
-          ),
-        ),
-      ],
-    );
+    final liste = [
+      for (final a in ordreDePlacement(_liste, _aujourdhui, avecJamais: true))
+        if (!_pourAujourdhui(a)) a,
+    ];
     return Scaffold(
-      body: Stack(
-        children: [
-          SafeArea(
-            bottom: false,
-            // Les 4 cases tiennent dans l'écran ; sur un trop petit écran (ou
-            // clavier ouvert), la page défile plutôt que d'écraser les cases.
-            child: LayoutBuilder(
-              builder: (context, contraintes) {
-                const minimum = 600.0;
-                final assez = contraintes.maxHeight >= minimum;
-                return SingleChildScrollView(
-                  physics: assez ? const NeverScrollableScrollPhysics() : null,
-                  child: SizedBox(
-                    height: assez ? contraintes.maxHeight : minimum,
+      body: SafeArea(
+        bottom: false,
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 16, 18, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  EnTete(
+                    date:
+                        '${dateCourte(_aujourdhui)} · ${liste.length} '
+                        'chose${liste.length > 1 ? 's' : ''}',
+                    titre: 'To-do',
+                    actions: [
+                      BoutonRond(
+                        key: const ValueKey('reglages'),
+                        icone: Icons.tune_rounded,
+                        aide: 'Réglages et stats',
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ReglagesScreen(base: widget.base),
+                          ),
+                        ),
+                      ),
+                      BoutonRond(
+                        key: const ValueKey('ajouter'),
+                        icone: Icons.add_rounded,
+                        aide: 'Ajouter une chose',
+                        fort: true,
+                        onTap: _nouvelle,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Expanded(
                     child: Padding(
-                      padding: EdgeInsets.fromLTRB(20, 4, 20, 96 + bas),
-                      child: contenu,
+                      // La place du bandeau « Aujourd'hui ».
+                      padding: const EdgeInsets.only(right: 22),
+                      child: _Matrice(
+                        liste: liste,
+                        aujourdhui: _aujourdhui,
+                        onTap: _ouvre,
+                        onGlisse: (g) => setState(() => _glisse = g),
+                      ),
                     ),
                   ),
-                );
-              },
-            ),
-          ),
-          // La cible « Aujourd'hui », au milieu à droite (Paul,
-          // 27/10/2026) : on y tire une chose pour la faire aujourd'hui.
-          Positioned(
-            right: 0,
-            top: 0,
-            bottom: 0,
-            child: Center(
-              child: _CibleAujourdhui(
-                actif: _glisse,
-                onRecoit: _versAujourdhui,
+                ],
               ),
             ),
-          ),
-        ],
+            Positioned(
+              right: 0,
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: _BandeAujourdhui(
+                  actif: _glisse,
+                  attend: _attend,
+                  envois: _envois,
+                  onRecoit: _versAujourdhui,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-/// Les 4 cases d'Eisenhower, dessinées comme sur le tableau blanc de
-/// Paul : une croix qui coupe l'espace en quatre, sans cadres (style
-/// « tableau » choisi le 26/10/2026). D'abord, À planifier, Vite fait,
-/// Peut-être jamais.
+/// Les 4 cases, en deux rangées de deux.
 class _Matrice extends StatelessWidget {
   final List<AFaire> liste;
   final DateTime aujourdhui;
-  final Map<int, Tache> casees;
   final void Function(AFaire) onTap;
-  final void Function(AFaire) onFaite;
   final ValueChanged<bool> onGlisse;
 
   const _Matrice({
     required this.liste,
     required this.aujourdhui,
-    required this.casees,
     required this.onTap,
-    required this.onFaite,
     required this.onGlisse,
   });
 
   @override
   Widget build(BuildContext context) {
-    final t = Teintes.de(context);
-    Widget kase(Case c, EdgeInsets marge) => Expanded(
-      child: Padding(
-        padding: marge,
-        child: _Case(
-          kase: c,
-          choses: [
-            for (final a in liste)
-              if (a.caseLe(aujourdhui) == c) a,
-          ],
-          aujourdhui: aujourdhui,
-          casees: casees,
-          onTap: onTap,
-          onFaite: onFaite,
-          onGlisse: onGlisse,
-        ),
-      ),
-    );
-    Widget trait({required bool vertical}) => Container(
-      width: vertical ? 2 : null,
-      height: vertical ? null : 2,
-      decoration: BoxDecoration(
-        color: t.puce,
-        borderRadius: BorderRadius.circular(1),
+    Widget kase(Case c) => Expanded(
+      child: _Case(
+        kase: c,
+        choses: [
+          for (final a in liste)
+            if (a.caseLe(aujourdhui) == c) a,
+        ],
+        onTap: onTap,
+        onGlisse: onGlisse,
       ),
     );
     return Column(
@@ -432,23 +227,20 @@ class _Matrice extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              kase(Case.dabord, const EdgeInsets.fromLTRB(0, 0, 14, 12)),
-              trait(vertical: true),
-              kase(Case.aPlanifier, const EdgeInsets.fromLTRB(16, 0, 0, 12)),
+              kase(Case.dabord),
+              const SizedBox(width: 8),
+              kase(Case.aPlanifier),
             ],
           ),
         ),
-        trait(vertical: false),
+        const SizedBox(height: 8),
         Expanded(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              kase(Case.viteFait, const EdgeInsets.fromLTRB(0, 14, 14, 0)),
-              trait(vertical: true),
-              kase(
-                Case.peutEtreJamais,
-                const EdgeInsets.fromLTRB(16, 14, 0, 0),
-              ),
+              kase(Case.viteFait),
+              const SizedBox(width: 8),
+              kase(Case.peutEtreJamais),
             ],
           ),
         ),
@@ -460,95 +252,67 @@ class _Matrice extends StatelessWidget {
 class _Case extends StatelessWidget {
   final Case kase;
   final List<AFaire> choses;
-  final DateTime aujourdhui;
-  final Map<int, Tache> casees;
   final void Function(AFaire) onTap;
-  final void Function(AFaire) onFaite;
   final ValueChanged<bool> onGlisse;
 
   const _Case({
     required this.kase,
     required this.choses,
-    required this.aujourdhui,
-    required this.casees,
     required this.onTap,
-    required this.onFaite,
     required this.onGlisse,
   });
 
   @override
   Widget build(BuildContext context) {
     final t = Teintes.de(context);
-    final titre = switch (kase) {
-      Case.dabord => t.accent,
-      Case.peutEtreJamais => t.doux,
-      _ => t.texte,
-    };
-    return KeyedSubtree(
+    final dabord = kase == Case.dabord;
+    final total = choses.fold(0, (s, a) => s + a.duree);
+    return Container(
       key: ValueKey('case-${kase.name}'),
+      padding: const EdgeInsets.fromLTRB(10, 10, 10, 4),
+      decoration: BoxDecoration(
+        color: dabord ? t.accent.withValues(alpha: 0.06) : null,
+        border: Border.all(
+          color: dabord ? t.accent.withValues(alpha: 0.45) : t.trait,
+        ),
+        borderRadius: BorderRadius.circular(t.rayon),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // L'intitulé en étiquette (majuscules espacées, souligné à sa
-          // couleur), bien à part des choses en dessous (retour de Paul du
-          // 26/10/2026).
-          Container(
-            padding: const EdgeInsets.only(bottom: 6),
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: titre.withValues(alpha: 0.5),
-                  width: 1.5,
-                ),
-              ),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    kase.nom.toUpperCase(),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: titre,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.4,
-                    ),
-                  ),
-                ),
-                if (choses.isNotEmpty)
-                  Text(
-                    '${choses.length}',
-                    style: TextStyle(
-                      color: titre,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-              ],
-            ),
+          Etiquette(
+            kase.nom,
+            couleur: dabord
+                ? t.accent
+                : kase == Case.peutEtreJamais
+                ? t.doux
+                : null,
+            // Combien de choses, et le temps qu'elles prennent.
+            detail: choses.isEmpty
+                ? null
+                : '${choses.length} · ${dureeFr(total)}',
           ),
-          const SizedBox(height: 6),
           Expanded(
             child: choses.isEmpty
-                ? Text(
-                    kase.detail,
-                    style: TextStyle(color: t.doux, fontSize: 12),
+                ? Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      kase.detail,
+                      style: TextStyle(color: t.doux, fontSize: 13),
+                    ),
                   )
                 : ListView(
                     padding: EdgeInsets.zero,
                     children: [
                       for (final a in choses)
-                        _ChoseCase(
+                        Apparition(
                           key: ValueKey('todo-${a.id}'),
-                          kaseJamais: kase == Case.peutEtreJamais,
-                          aFaire: a,
-                          aujourdhui: aujourdhui,
-                          casee: casees[a.id],
-                          onTap: () => onTap(a),
-                          onFaite: () => onFaite(a),
-                          onGlisse: onGlisse,
+                          child: _Chose(
+                            aFaire: a,
+                            jamais: kase == Case.peutEtreJamais,
+                            onTap: () => onTap(a),
+                            onGlisse: onGlisse,
+                          ),
                         ),
                     ],
                   ),
@@ -559,28 +323,18 @@ class _Case extends StatelessWidget {
   }
 }
 
-/// Une chose dans sa case : son nom puis sa durée, sur la même ligne (et
-/// « demain 14 h » si elle est casée). Toucher l'ouvre ; appui long :
-/// fait.
-class _ChoseCase extends StatelessWidget {
+/// Une chose : son nom, sa durée. Tirée vers la droite, elle part vers
+/// le bandeau « Aujourd'hui » ; touchée, elle s'ouvre.
+class _Chose extends StatelessWidget {
   final AFaire aFaire;
-  final DateTime aujourdhui;
-  final Tache? casee;
+  final bool jamais;
   final VoidCallback onTap;
-  final VoidCallback onFaite;
   final ValueChanged<bool> onGlisse;
 
-  /// Dans « Peut-être jamais » : en gris.
-  final bool kaseJamais;
-
-  const _ChoseCase({
-    super.key,
-    this.kaseJamais = false,
+  const _Chose({
     required this.aFaire,
-    required this.aujourdhui,
-    required this.casee,
+    required this.jamais,
     required this.onTap,
-    required this.onFaite,
     required this.onGlisse,
   });
 
@@ -588,8 +342,41 @@ class _ChoseCase extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = Teintes.de(context);
     final a = aFaire;
-    // Tirée vers la droite (sans appui long), la chose part vers la cible
-    // « Aujourd'hui » ; un toucher l'ouvre.
+    final ligne = InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: t.puce)),
+        ),
+        // La durée sous le nom : les mots ne sont jamais coupés, même
+        // sur un petit téléphone.
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              a.texte,
+              style: TextStyle(
+                color: jamais ? t.doux : t.texte,
+                fontSize: 15,
+                height: 1.2,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              dureeFr(a.duree),
+              style: TextStyle(
+                fontFamily: AppTheme.policeMono,
+                fontSize: 11,
+                color: t.doux,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    // Sans appui long (Paul, 26/10/2026) : la chose suit le doigt dès
+    // qu'il glisse de côté.
     return Draggable<AFaire>(
       data: a,
       affinity: Axis.horizontal,
@@ -598,154 +385,181 @@ class _ChoseCase extends StatelessWidget {
       onDraggableCanceled: (_, _) => onGlisse(false),
       feedback: Material(
         type: MaterialType.transparency,
-        child: Transform.rotate(
-          angle: -0.04,
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 240),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: t.accent.withValues(alpha: 0.28),
-              borderRadius: BorderRadius.circular(t.rayon),
-              border: Border.all(color: t.accent),
-            ),
-            child: Text(
-              a.texte,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: t.texte,
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              ),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 220),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: AppTheme.vertDeau.withValues(alpha: 0.18),
+            borderRadius: BorderRadius.circular(t.rayon),
+            border: Border.all(color: AppTheme.vertDeau),
+          ),
+          child: Text(
+            a.texte,
+            style: TextStyle(
+              color: t.texte,
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),
       ),
-      childWhenDragging: Opacity(opacity: 0.3, child: _ligne(context)),
-      child: _ligne(context),
-    );
-  }
-
-  Widget _ligne(BuildContext context) {
-    final t = Teintes.de(context);
-    final a = aFaire;
-    final c = casee;
-    final enRetard = a.echeance != null && a.echeance!.isBefore(aujourdhui);
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(6),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 5),
-        child: Text.rich(
-          TextSpan(
-            children: [
-              TextSpan(
-                text: a.texte,
-                style: TextStyle(
-                  color: kaseJamais ? t.doux : t.texte,
-                  fontSize: 15,
-                ),
-              ),
-              // La durée ne se coupe pas (« 1 h 30 »).
-              TextSpan(text: '  ${dureeFr(a.duree).replaceAll(' ', '\u00a0')}'),
-              if (enRetard)
-                TextSpan(
-                  text: ' · en retard',
-                  style: TextStyle(color: t.moinsBonne),
-                ),
-              if (c != null)
-                TextSpan(
-                  text:
-                      ' · ${c.jour == aujourdhui ? 'aujourd\'hui' : 'demain'}'
-                      ' ${heureFr(c.debut)}',
-                  style: TextStyle(color: t.accent),
-                ),
-            ],
-          ),
-          style: TextStyle(
-            color: t.doux,
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-            height: 1.3,
-          ),
-        ),
-      ),
+      childWhenDragging: Opacity(opacity: 0.25, child: ligne),
+      child: ligne,
     );
   }
 }
 
-/// La cible au bord droit : une languette « Aujourd'hui » discrète, qui
-/// s'élargit et s'allume quand on tire une chose, et se remplit d'orange
-/// quand la chose passe dessus.
-class _CibleAujourdhui extends StatelessWidget {
+/// Le bandeau « Aujourd'hui », au bord droit, vert d'eau comme l'onglet
+/// où vont les choses : il s'élargit quand on tire une chose, s'allume
+/// quand elle passe dessus ; une traînée part à chaque envoi.
+class _BandeAujourdhui extends StatelessWidget {
   final bool actif;
+  final int attend;
+  final int envois;
   final void Function(AFaire) onRecoit;
 
-  const _CibleAujourdhui({required this.actif, required this.onRecoit});
+  const _BandeAujourdhui({
+    required this.actif,
+    required this.attend,
+    required this.envois,
+    required this.onRecoit,
+  });
 
   @override
   Widget build(BuildContext context) {
     final t = Teintes.de(context);
+    const c = AppTheme.vertDeau;
     return DragTarget<AFaire>(
       onAcceptWithDetails: (d) => onRecoit(d.data),
       builder: (context, candidats, _) {
         final dessus = candidats.isNotEmpty;
-        return AnimatedContainer(
-          key: const ValueKey('cible-aujourdhui'),
-          duration: const Duration(milliseconds: 260),
-          curve: Curves.easeOutBack,
-          width: dessus ? 84 : (actif ? 66 : 26),
-          height: dessus ? 170 : (actif ? 150 : 96),
-          decoration: BoxDecoration(
-            color: t.accent.withValues(
-              alpha: dessus ? 0.55 : (actif ? 0.22 : 0.12),
-            ),
-            border: Border.all(
-              color: t.accent.withValues(alpha: actif || dessus ? 1 : 0.5),
-            ),
-            borderRadius: const BorderRadius.horizontal(
-              left: Radius.circular(14),
-            ),
-            boxShadow: dessus
-                ? [
-                    BoxShadow(
-                      color: t.accent.withValues(alpha: 0.35),
-                      blurRadius: 24,
-                    ),
-                  ]
-                : null,
-          ),
-          // Réduite plutôt que débordante pendant qu'elle grandit.
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.arrow_forward_rounded,
-                  size: actif ? 26 : 16,
-                  color: dessus ? t.surAccent : t.accent,
+        return Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.centerRight,
+          children: [
+            AnimatedContainer(
+              key: const ValueKey('cible-aujourdhui'),
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOutCubic,
+              width: dessus ? 64 : (actif ? 52 : 28),
+              height: 220,
+              decoration: BoxDecoration(
+                color: c.withValues(alpha: dessus ? 0.28 : 0.08),
+                border: Border(
+                  left: BorderSide(
+                    color: c.withValues(alpha: actif ? 1 : 0.45),
+                  ),
+                  top: BorderSide(color: c.withValues(alpha: actif ? 1 : 0.45)),
+                  bottom: BorderSide(
+                    color: c.withValues(alpha: actif ? 1 : 0.45),
+                  ),
                 ),
-                if (actif) ...[
-                  const SizedBox(height: 8),
-                  RotatedBox(
-                    quarterTurns: 1,
-                    child: Text(
-                      'AUJOURD\'HUI',
-                      style: TextStyle(
-                        fontFamily: AppTheme.policeTitre,
-                        fontSize: 10,
-                        letterSpacing: 1.5,
-                        color: dessus ? t.surAccent : t.accent,
+                borderRadius: const BorderRadius.horizontal(
+                  left: Radius.circular(8),
+                ),
+              ),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _Chevron(actif: actif),
+                    const SizedBox(height: 10),
+                    RotatedBox(
+                      quarterTurns: 1,
+                      child: Text(
+                        'AUJOURD\'HUI',
+                        style: TextStyle(
+                          fontFamily: AppTheme.policeTitre,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 10,
+                          letterSpacing: 3,
+                          color: t.texte,
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ],
+                    if (attend > 0) ...[
+                      const SizedBox(height: 10),
+                      TweenAnimationBuilder<double>(
+                        key: ValueKey('attend-$attend'),
+                        tween: Tween(begin: 1.8, end: 1),
+                        duration: const Duration(milliseconds: 450),
+                        curve: Curves.elasticOut,
+                        builder: (context, v, enfant) =>
+                            Transform.scale(scale: v, child: enfant),
+                        child: Container(
+                          width: 20,
+                          height: 20,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: c.withValues(alpha: 0.22),
+                            border: Border.all(color: c),
+                          ),
+                          child: Text(
+                            '$attend',
+                            style: const TextStyle(
+                              fontFamily: AppTheme.policeMono,
+                              fontSize: 11,
+                              color: c,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 10),
+                    _Chevron(actif: actif),
+                  ],
+                ),
+              ),
             ),
-          ),
+            // La traînée d'un envoi.
+            if (envois > 0)
+              Positioned(
+                right: 6,
+                child: TweenAnimationBuilder<double>(
+                  key: ValueKey('envoi-$envois'),
+                  tween: Tween(begin: 0, end: 1),
+                  duration: const Duration(milliseconds: 700),
+                  curve: Curves.easeIn,
+                  builder: (context, v, _) => v >= 1
+                      ? const SizedBox.shrink()
+                      : IgnorePointer(
+                          child: Transform.translate(
+                            offset: Offset(-180 * (1 - v), 0),
+                            child: Container(
+                              width: 30 + 60 * v,
+                              height: 2,
+                              color: c.withValues(alpha: 1 - v),
+                            ),
+                          ),
+                        ),
+                ),
+              ),
+          ],
         );
       },
+    );
+  }
+}
+
+/// Une flèche qui bat vers la droite pendant qu'on tire une chose.
+class _Chevron extends StatelessWidget {
+  final bool actif;
+
+  const _Chevron({required this.actif});
+
+  @override
+  Widget build(BuildContext context) {
+    const c = AppTheme.vertDeau;
+    final icone = const Icon(Icons.chevron_right_rounded, size: 18, color: c);
+    if (!actif) return icone;
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: -4, end: 4),
+      duration: const Duration(milliseconds: 500),
+      builder: (context, v, enfant) =>
+          Transform.translate(offset: Offset(v, 0), child: enfant),
+      child: icone,
     );
   }
 }

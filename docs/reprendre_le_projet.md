@@ -5,12 +5,14 @@ Mis à jour le 27/10/2026.
 
 ## Reprendre ici (28/10/2026)
 
-- Le jeu « Synchro » est abandonné et retiré du code (`docs/jeu.md`).
-- En attente : Paul valide la maquette à trois onglets (To-do,
-  Aujourd'hui, Questions ; réglages pour les stats et le reste) :
-  https://claude.ai/artifact/RZnQ8gh7CKAG8RZALSa8AQ. Puis la coder.
-- Prochain APK : 1.0.0+28 (le 27 est déjà parti), **toujours demander à
-  Paul avant**.
+- Appli en trois onglets (To-do, Aujourd'hui, Questions), deux couleurs
+  translucides, d'après la maquette validée :
+  https://claude.ai/artifact/RZnQ8gh7CKAG8RZALSa8AQ. Version 1.0.0+28,
+  codée et testée, **APK pas encore fabriqué : Paul a demandé
+  d'attendre**.
+- Question ouverte : passer le logo aux deux couleurs (orange, vert
+  d'eau) ? Paul n'a pas encore répondu.
+- Prochain APK : 1.0.0+28, **toujours demander à Paul avant**.
 
 ## En une minute
 

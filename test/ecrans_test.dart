@@ -13,14 +13,13 @@ import 'package:ouinon/screens/edition_a_faire_screen.dart';
 import 'package:ouinon/screens/creneaux_screen.dart';
 import 'package:ouinon/screens/edition_creneau_screen.dart';
 import 'package:ouinon/screens/accueil_screen.dart';
-import 'package:ouinon/screens/aujourdhui_screen.dart';
+import 'package:ouinon/screens/journee_screen.dart';
+import 'package:ouinon/screens/questions_du_jour_screen.dart';
 import 'package:ouinon/screens/edition_question_screen.dart';
 import 'package:ouinon/screens/edition_tache_screen.dart';
-import 'package:ouinon/screens/preparer_screen.dart';
 import 'package:ouinon/screens/todo_screen.dart';
 import 'package:ouinon/screens/reglages_screen.dart';
 import 'package:ouinon/screens/stats_screen.dart';
-import 'package:ouinon/utils/deux_moi.dart';
 import 'package:ouinon/widgets/graphiques.dart';
 import 'package:ouinon/widgets/grille_journee.dart';
 import 'package:ouinon/widgets/retro.dart';
@@ -53,28 +52,35 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(OuinonApp(accueil: ecran));
     await attends(tester);
+    // Laisse finir les animations d'arrivée.
+    await tester.pump(const Duration(seconds: 1));
   }
 
-  testWidgets('Aujourd\'hui : répondre, changer, effacer', (tester) async {
+  testWidgets('Questions : répondre, verrouiller, changer, effacer', (
+    tester,
+  ) async {
     final semantique = tester.ensureSemantics();
-    await ouvre(tester, AujourdhuiScreen(base: base, maintenant: midi));
-    expect(find.text('Aujourd\'hui'), findsOneWidget);
-    expect(find.text('Jeu. 22 oct.'), findsOneWidget);
+    await ouvre(tester, QuestionsDuJourScreen(base: base, maintenant: midi));
+    expect(find.text('Questions'), findsOneWidget);
+    expect(find.text('JEU. 22 OCT. · 0 SUR 4'), findsOneWidget);
     expect(find.text('Sommeil ?'), findsOneWidget);
-    expect(find.bySemanticsLabel('0 sur 4 répondue'), findsOneWidget);
+    // Les questions de 21 h ne sont pas encore arrivées.
+    expect(find.text('à 21:00'), findsWidgets);
+    expect(find.bySemanticsLabel('0 réponses sur 4'), findsOneWidget);
 
     await tester.tap(find.text('6 à 8 h'));
     await attends(tester);
+    await tester.pumpAndSettle();
     final jour = DateTime(2026, 10, 22);
     expect(await tester.runAsync(() => base.reponsesDuJour(jour)), {1: 1});
-    expect(find.bySemanticsLabel('1 sur 4 répondue'), findsOneWidget);
+    expect(find.bySemanticsLabel('1 réponses sur 4'), findsOneWidget);
     expect(notifs.retirees, hasLength(1));
 
-    // Répondue, la question tient sur une ligne ; toucher la réponse
-    // rouvre les boutons, et toucher à nouveau la réponse choisie l'efface.
+    // Répondue, la question se verrouille ; « Changer » rouvre les
+    // boutons, et toucher à nouveau la réponse choisie l'efface.
     expect(find.text('Moins de 6 h'), findsNothing);
-    await tester.tap(find.text('6 à 8 h'));
-    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('changer-1')));
+    await tester.pumpAndSettle();
     expect(find.text('Moins de 6 h'), findsOneWidget);
     await tester.tap(find.text('6 à 8 h'));
     await attends(tester);
@@ -82,38 +88,25 @@ void main() {
     semantique.dispose();
   });
 
-  testWidgets('Aujourd\'hui : revenir sur hier', (tester) async {
-    final semantique = tester.ensureSemantics();
-    await tester.runAsync(() => base.repond(3, DateTime(2026, 10, 21), 0));
-    await ouvre(tester, AujourdhuiScreen(base: base, maintenant: midi));
-    await tester.fling(find.byType(PageView), const Offset(300, 0), 1000);
-    await tester.pumpAndSettle();
-    await attends(tester);
-    expect(find.text('Hier'), findsOneWidget);
-    expect(find.text('Mer. 21 oct.'), findsOneWidget);
-    expect(find.bySemanticsLabel('1 sur 4 répondue'), findsOneWidget);
-    semantique.dispose();
-  });
-
-  testWidgets('Aujourd\'hui : glisser vers la droite montre la veille', (
+  testWidgets('Questions : « Annuler » efface la réponse donnée', (
     tester,
   ) async {
-    await ouvre(tester, AujourdhuiScreen(base: base, maintenant: midi));
-    // Vers la gauche : rien après aujourd'hui.
-    await tester.fling(find.byType(PageView), const Offset(-300, 0), 1000);
-    await tester.pumpAndSettle();
+    await ouvre(tester, QuestionsDuJourScreen(base: base, maintenant: midi));
+    await tester.tap(find.text('8 h et +'));
     await attends(tester);
-    expect(find.text('Aujourd\'hui'), findsOneWidget);
-    // Vers la droite : hier, puis avant-hier.
-    await tester.fling(find.byType(PageView), const Offset(300, 0), 1000);
     await tester.pumpAndSettle();
+    final jour = DateTime(2026, 10, 22);
+    expect(await tester.runAsync(() => base.reponsesDuJour(jour)), {1: 0});
+    await tester.tap(find.text('Annuler'));
     await attends(tester);
-    expect(find.text('Hier'), findsOneWidget);
-    await tester.fling(find.byType(PageView), const Offset(300, 0), 1000);
+    expect(await tester.runAsync(() => base.reponsesDuJour(jour)), isEmpty);
+  });
+
+  testWidgets('Questions : le + ouvre le formulaire', (tester) async {
+    await ouvre(tester, QuestionsDuJourScreen(base: base, maintenant: midi));
+    await tester.tap(find.byKey(const ValueKey('nouvelle-question')));
     await tester.pumpAndSettle();
-    await attends(tester);
-    expect(find.text('Mardi'), findsOneWidget);
-    expect(find.text('Mar. 20 oct.'), findsOneWidget);
+    expect(find.byType(EditionQuestionScreen), findsOneWidget);
   });
 
   testWidgets('modifier : passer de 3 à 2 réponses avec confirmation', (
@@ -320,7 +313,7 @@ void main() {
     expect(prefs.getBool('bilan_dimanche'), isFalse);
   });
 
-  testWidgets('le bandeau du bas : To-do, Aujourd\'hui, Suivi, Demain', (
+  testWidgets('le bandeau du bas : To-do, Aujourd\'hui, Questions', (
     tester,
   ) async {
     SharedPreferences.setMockInitialValues({
@@ -330,12 +323,11 @@ void main() {
     await ouvre(tester, AccueilScreen(maintenant: midi));
     await tester.pumpAndSettle();
     // On arrive sur Aujourd'hui.
-    expect(find.byType(AujourdhuiScreen), findsOneWidget);
     for (final (i, ecran) in [
+      (1, JourneeScreen),
       (0, TodoScreen),
-      (2, StatsScreen),
-      (3, PreparerScreen),
-      (1, AujourdhuiScreen),
+      (2, QuestionsDuJourScreen),
+      (1, JourneeScreen),
     ]) {
       await tester.tap(find.byKey(ValueKey('onglet-$i')));
       await tester.pumpAndSettle();
@@ -348,7 +340,16 @@ void main() {
       );
     }
     expect(find.text('TO-DO'), findsOneWidget);
-    expect(find.text('DEMAIN'), findsOneWidget);
+    expect(find.text('QUESTIONS'), findsOneWidget);
+    // Les stats sont dans les Réglages.
+    await tester.tap(find.byIcon(Icons.tune_rounded).hitTestable().first);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('statistiques')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('statistiques')));
+    await tester.pumpAndSettle();
+    expect(find.byType(StatsScreen), findsOneWidget);
+    await attends(tester);
+    await tester.pump(const Duration(seconds: 11));
   });
 
   testWidgets('ajouter : ce qui existe déjà s\'affiche en tapant', (
@@ -401,12 +402,18 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     await geste.up();
     await attends(tester);
-    final jeudi = (await tester.runAsync(
-      () => base.tachesDu(DateTime(2026, 10, 22)),
-    ))!;
-    expect(jeudi.single.texte, 'Papiers');
-    expect(jeudi.single.listeId, papiers.id);
-    expect(jeudi.single.debut, greaterThanOrEqualTo(12 * 60));
+    await tester.pumpAndSettle();
+    // Elle attend dans Aujourd'hui, à placer, et quitte la to-do.
+    final jeudi = DateTime(2026, 10, 22);
+    final apres = (await tester.runAsync(() => base.aFaire(papiers.id!)))!;
+    expect(apres.choisiePour, jeudi);
+    expect((await tester.runAsync(() => base.tachesDu(jeudi)))!, isEmpty);
+    expect(find.byKey(ValueKey('todo-${papiers.id}')), findsNothing);
+    // « Annuler » la remet dans la to-do.
+    await tester.tap(find.text('Annuler'));
+    await attends(tester);
+    final annulee = (await tester.runAsync(() => base.aFaire(papiers.id!)))!;
+    expect(annulee.choisiePour, isNull);
   });
 
   testWidgets('Suivi : un groupe s\'ouvre sur son analyse et son détail', (
@@ -495,28 +502,6 @@ void main() {
       },
     );
 
-    testWidgets('le Décideur : « Bonjour, Décideur. » tant que c\'est vide', (
-      tester,
-    ) async {
-      await ouvre(
-        tester,
-        TodoScreen(base: base, moi: Moi.decideur, maintenant: midi),
-      );
-      expect(find.text('Bonjour, Décideur.'), findsOneWidget);
-      expect(
-        find.textContaining('l\'exécutant le fera', findRichText: true),
-        findsOneWidget,
-      );
-      await tester.runAsync(
-        () => base.enregistreAFaire(
-          AFaire(texte: 'Banque', creeLe: DateTime(2026, 10, 22)),
-        ),
-      );
-      await attends(tester);
-      expect(find.text('Bonjour, Décideur.'), findsNothing);
-      expect(find.text('To-do'), findsOneWidget);
-    });
-
     testWidgets('une chose : Important et Urgent sur une ligne', (
       tester,
     ) async {
@@ -541,131 +526,16 @@ void main() {
       expect(apres.urgent, isFalse);
     });
 
-    Future<void> prepareDemain(WidgetTester tester) =>
-        tester.runAsync(() async {
-          await base.enregistreTache(
-            Tache(jour: vendredi, debut: 9 * 60, texte: 'Garage C3'),
-          );
-          await base.enregistreCreneau(
-            const Creneau(texte: 'Enfants', debut: 17 * 60, fin: 23 * 60),
-          );
-          await base.enregistreAFaire(
-            AFaire(texte: 'Papiers', duree: 60, important: true, creeLe: jeudi),
-          );
-          await base.enregistreAFaire(
-            AFaire(
-              texte: 'Plombier',
-              duree: 30,
-              important: true,
-              urgent: true,
-              creeLe: jeudi,
-            ),
-          );
-          await base.enregistreAFaire(
-            AFaire(texte: 'Déménagement', duree: 8 * 60, creeLe: jeudi),
-          );
-        });
-
-    testWidgets('préparer demain : choisir, la jauge, terminer', (
+    testWidgets('Aujourd\'hui : toucher une chose la case, puis fait', (
       tester,
     ) async {
-      await prepareDemain(tester);
-      await ouvre(
-        tester,
-        PreparerScreen(base: base, jour: vendredi, maintenant: midi),
-      );
-      expect(find.text('Demain, je fais…'), findsOneWidget);
-      expect(find.textContaining('Garage C3 à 9 h'), findsOneWidget);
-      // 8 h – 20 h, moins le garage et les enfants (17 h – 20 h) : 8 h.
-      expect(find.text('sur 8 h de libre'), findsOneWidget);
-      await tester.tap(find.text('Papiers'));
-      await attends(tester);
-      await tester.tap(find.text('Plombier'));
-      await attends(tester);
-      expect(find.text('Choisi : 1 h 30'), findsOneWidget);
-      expect(find.text('Ça rentre, il reste 6 h 30.'), findsOneWidget);
-      await tester.tap(find.text('Déménagement'));
-      await attends(tester);
-      expect(find.text('Trop plein : 1 h 30 de trop.'), findsOneWidget);
-      await tester.tap(find.text('Déménagement'));
-      await attends(tester);
-      await tester.tap(find.text('Suivant : caser dans la journée'));
-      await attends(tester);
-      expect(find.text('Quand ?'), findsOneWidget);
-      expect(find.byKey(const ValueKey('acaser-1')), findsOneWidget);
-      await tester.tap(find.text('Terminer'));
-      await tester.pumpAndSettle();
-      await attends(tester);
-      final demain = (await tester.runAsync(() => base.tachesDu(vendredi)))!;
-      // Dès 8 h, le plombier (urgent et important) tient avant le garage ;
-      // les papiers après le garage et sa marge.
-      expect(
-        [for (final t in demain) (t.texte, t.debut)],
-        [
-          ('Plombier', 8 * 60),
-          ('Garage C3', 9 * 60),
-          ('Papiers', 10 * 60 + 15),
-        ],
-      );
-    });
-
-    testWidgets('préparer demain : glisser une chose sur une heure', (
-      tester,
-    ) async {
-      await tester.runAsync(
+      final papiers = (await tester.runAsync(
         () => base.enregistreAFaire(
           AFaire(
             texte: 'Papiers',
             duree: 60,
             creeLe: jeudi,
-            choisiePour: vendredi,
-          ),
-        ),
-      );
-      await ouvre(
-        tester,
-        PreparerScreen(base: base, jour: vendredi, maintenant: midi),
-      );
-      await tester.binding.setSurfaceSize(const Size(400, 1400));
-      await tester.tap(find.text('Suivant : caser dans la journée'));
-      await tester.pumpAndSettle();
-      final puce = find.byKey(const ValueKey('acaser-1'));
-      expect(puce, findsOneWidget);
-      final grille = tester.getTopLeft(find.byType(GrilleJournee));
-      final depart = tester.getCenter(puce);
-      final hautPuce = tester.getTopLeft(puce).dy;
-      // Le haut de la puce glissée tombe sur 14 h (40 px par heure).
-      final cible = Offset(
-        grille.dx + 200,
-        grille.dy + 6 * 40 + (depart.dy - hautPuce),
-      );
-      final geste = await tester.startGesture(depart);
-      await tester.pump(const Duration(milliseconds: 700));
-      for (var i = 1; i <= 10; i++) {
-        await geste.moveTo(Offset.lerp(depart, cible, i / 10)!);
-        await tester.pump(const Duration(milliseconds: 16));
-      }
-      await geste.up();
-      await attends(tester);
-      final prevues = (await tester.runAsync(() => base.tachesDu(vendredi)))!;
-      expect(prevues.single.texte, 'Papiers');
-      expect(prevues.single.debut, 14 * 60);
-      expect(prevues.single.listeId, 1);
-    });
-
-    testWidgets('aujourd\'hui : ma journée, cocher fait', (tester) async {
-      final papiers = (await tester.runAsync(
-        () => base.enregistreAFaire(
-          AFaire(texte: 'Papiers', duree: 60, creeLe: jeudi),
-        ),
-      ))!;
-      final casee = (await tester.runAsync(
-        () => base.enregistreTache(
-          Tache(
-            jour: jeudi,
-            debut: 14 * 60,
-            texte: 'Papiers',
-            listeId: papiers.id,
+            choisiePour: jeudi,
           ),
         ),
       ))!;
@@ -674,29 +544,67 @@ void main() {
           const Creneau(texte: 'Enfants', debut: 17 * 60, fin: 23 * 60),
         ),
       );
-      await ouvre(tester, AujourdhuiScreen(base: base, maintenant: midi));
-      await tester.scrollUntilVisible(
-        find.text('Enfants'),
-        200,
-        scrollable: find.byType(Scrollable).last,
-      );
-      expect(find.text('Ma journée'), findsOneWidget);
-      expect(find.text('Papiers'), findsOneWidget);
-      await tester.tap(
-        find
-            .descendant(
-              of: find.byKey(ValueKey('journee-${casee.id}')),
-              matching: find.byType(InkResponse),
-            )
-            .last,
-      );
+      await ouvre(tester, JourneeScreen(base: base, maintenant: midi));
+      await tester.pumpAndSettle();
+      expect(find.text('Aujourd\'hui'), findsOneWidget);
+      expect(find.text('Enfants'), findsOneWidget);
+      await tester.tap(find.byKey(ValueKey('acaser-${papiers.id}')));
+      await attends(tester);
+      await tester.pumpAndSettle();
+      final prevues = (await tester.runAsync(() => base.tachesDu(jeudi)))!;
+      expect(prevues.single.texte, 'Papiers');
+      expect(prevues.single.debut, greaterThanOrEqualTo(12 * 60));
+      expect(find.text('Tout est casé.'), findsOneWidget);
+      // Toucher le bloc : fait.
+      await tester.tap(find.text('Papiers'));
       await attends(tester);
       expect(
-        (await tester.runAsync(() => base.tache(casee.id!)))!.etat,
+        (await tester.runAsync(() => base.tache(prevues.single.id!)))!.etat,
         Tache.fait,
       );
       expect((await tester.runAsync(base.liste))!, isEmpty);
-      expect(notifs.retireesTaches, [casee.id]);
+      expect(notifs.retireesTaches, [prevues.single.id]);
+    });
+
+    testWidgets('Aujourd\'hui : glisser une chose sur une heure', (
+      tester,
+    ) async {
+      await tester.runAsync(
+        () => base.enregistreAFaire(
+          AFaire(
+            texte: 'Papiers',
+            duree: 60,
+            creeLe: jeudi,
+            choisiePour: jeudi,
+          ),
+        ),
+      );
+      await ouvre(tester, JourneeScreen(base: base, maintenant: midi));
+      await tester.pumpAndSettle();
+      final puce = find.byKey(const ValueKey('acaser-1'));
+      expect(puce, findsOneWidget);
+      final grille = tester.widget<GrilleJournee>(find.byType(GrilleJournee));
+      final haut = tester.getTopLeft(find.byType(GrilleJournee));
+      final depart = tester.getCenter(puce);
+      final hautPuce = tester.getTopLeft(puce).dy;
+      // Le haut de la puce glissée tombe sur 14 h.
+      final cible = Offset(
+        haut.dx + 200,
+        haut.dy +
+            (14 - grille.heureDebut) * grille.heure +
+            (depart.dy - hautPuce),
+      );
+      final geste = await tester.startGesture(depart);
+      for (var i = 1; i <= 10; i++) {
+        await geste.moveTo(Offset.lerp(depart, cible, i / 10)!);
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      await geste.up();
+      await attends(tester);
+      final prevues = (await tester.runAsync(() => base.tachesDu(jeudi)))!;
+      expect(prevues.single.texte, 'Papiers');
+      expect(prevues.single.debut, 14 * 60);
+      expect(prevues.single.listeId, 1);
     });
 
     testWidgets('créneaux fixes : ajouter depuis les Réglages', (tester) async {
@@ -713,29 +621,25 @@ void main() {
       expect(find.text('Enfants'), findsOneWidget);
     });
 
-    testWidgets('le rappel du soir ouvre « Planifier demain »', (tester) async {
-      SharedPreferences.setMockInitialValues({
-        ...deuxMoiVus,
-        'role_actif': 'executant',
-      });
+    testWidgets('le rappel du soir ouvre la to-do', (tester) async {
       await ouvre(tester, AccueilScreen(maintenant: soir20h));
       notifs.ouverture.value = Notifications.preparer;
       await tester.pumpAndSettle();
       await attends(tester);
-      // L'onglet « Demain » est choisi.
-      final demain = tester.widget<Semantics>(
+      final todo = tester.widget<Semantics>(
         find
-            .ancestor(
-              of: find.byKey(const ValueKey('onglet-3')),
+            .descendant(
+              of: find.byKey(const ValueKey('onglet-0')),
               matching: find.byType(Semantics),
             )
             .first,
       );
-      expect(demain.properties.selected, isTrue);
+      expect(todo.properties.selected, isTrue);
     });
 
-    testWidgets('Planifier : l\'heure imposée est respectée', (tester) async {
-      SharedPreferences.setMockInitialValues(deuxMoiVus);
+    testWidgets('Aujourd\'hui : l\'heure imposée est respectée', (
+      tester,
+    ) async {
       await tester.runAsync(
         () => base.enregistreAFaire(
           AFaire(
@@ -744,20 +648,17 @@ void main() {
             heure: 14 * 60,
             creeLe: jeudi,
             important: true,
+            choisiePour: jeudi,
           ),
         ),
       );
-      await ouvre(tester, AccueilScreen(maintenant: midi));
-      await attends(tester);
-      await tester.tap(find.byKey(const ValueKey('onglet-3')));
+      await ouvre(tester, JourneeScreen(base: base, maintenant: midi));
       await tester.pumpAndSettle();
-      expect(find.byKey(const ValueKey('acaser-1')), findsOneWidget);
-      expect(find.textContaining('à 14 h'), findsOneWidget);
       await tester.tap(find.text('Caser pour moi'));
       await attends(tester);
-      final demain = (await tester.runAsync(() => base.tachesDu(vendredi)))!;
+      final prevues = (await tester.runAsync(() => base.tachesDu(jeudi)))!;
       expect(
-        [for (final t in demain) (t.texte, t.debut)],
+        [for (final t in prevues) (t.texte, t.debut)],
         [('Dentiste', 14 * 60)],
       );
     });
@@ -807,50 +708,6 @@ void main() {
         scrollable: find.byType(Scrollable).first,
       );
       expect(find.text('Selon le moment'), findsOneWidget);
-    });
-  });
-
-  group('Aujourd\'hui', () {
-    final jeudi = DateTime(2026, 10, 22);
-    DateTime dixHeures() => DateTime(2026, 10, 22, 10, 30);
-
-    Future<Tache> impots(WidgetTester tester) async => (await tester.runAsync(
-      () => base.enregistreTache(
-        Tache(
-          jour: jeudi,
-          debut: 10 * 60,
-          duree: 90,
-          texte: 'Déclarer les impôts',
-        ),
-      ),
-    ))!;
-
-    testWidgets('l\'Exécutant ajoute une chose à sa journée', (tester) async {
-      SharedPreferences.setMockInitialValues({
-        ...deuxMoiVus,
-        'role_actif': 'executant',
-      });
-      await impots(tester);
-      await ouvre(tester, AccueilScreen(maintenant: dixHeures));
-      await attends(tester);
-      final ajouter = find.byKey(const ValueKey('ajouter-journee'));
-      await tester.scrollUntilVisible(
-        ajouter,
-        300,
-        scrollable: find
-            .descendant(
-              of: find.byType(AujourdhuiScreen),
-              matching: find.byType(Scrollable),
-            )
-            .last,
-      );
-      Scrollable.ensureVisible(tester.element(ajouter), alignment: 0.5);
-      await tester.pumpAndSettle();
-      await tester.tap(ajouter);
-      await tester.pumpAndSettle();
-      expect(find.byType(EditionTacheScreen), findsOneWidget);
-      // Laisse finir les minuteries de l'écran (10 s).
-      await tester.pump(const Duration(seconds: 11));
     });
   });
 }

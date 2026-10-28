@@ -12,6 +12,7 @@ import 'package:ouinon/data/base.dart';
 import 'package:ouinon/data/donnees_test.dart';
 import 'package:ouinon/data/notifications.dart';
 import 'package:ouinon/main.dart';
+import 'package:ouinon/models/a_faire.dart';
 import 'package:ouinon/models/creneau.dart';
 import 'package:ouinon/models/tache.dart';
 import 'package:ouinon/screens/accueil_screen.dart';
@@ -37,6 +38,10 @@ Future<void> _police(String famille, List<String> fichiers) async {
 void main() {
   setUpAll(() async {
     await _police('Michroma', ['assets/fonts/Michroma-Regular.ttf']);
+    await _police('ChakraPetch', [
+      'assets/fonts/ChakraPetch-Medium.ttf',
+      'assets/fonts/ChakraPetch-SemiBold.ttf',
+    ]);
     await _police('IBMPlexSansCondensed', [
       for (final g in ['Regular', 'Medium', 'SemiBold', 'Bold'])
         'assets/fonts/IBMPlexSansCondensed-$g.ttf',
@@ -97,6 +102,15 @@ void main() {
     await base.enregistreCreneau(
       const Creneau(texte: 'Enfants', debut: 17 * 60, fin: 23 * 60),
     );
+    // Arrivé de la to-do, à placer aujourd'hui.
+    for (final (texte, duree) in [
+      ('Couper les ongles', 15),
+      ('Acheter un cadeau pour Léa', 45),
+    ]) {
+      await base.enregistreAFaire(
+        AFaire(texte: texte, duree: duree, creeLe: jeudi, choisiePour: jeudi),
+      );
+    }
   });
 
   Future<void> capture(
@@ -142,8 +156,7 @@ void main() {
   for (final (nom, onglet) in [
     ('1-todo', 0),
     ('2-aujourdhui', 1),
-    ('3-suivi', 2),
-    ('4-demain', 3),
+    ('3-questions', 2),
   ]) {
     testWidgets('page $nom', (tester) async {
       await remplit(tester);
@@ -213,6 +226,18 @@ void main() {
       tester,
       '10-petit-aujourdhui',
       page(1),
+      ThemeMode.dark,
+      largeur: 360,
+      texte: 1.3,
+    );
+  });
+
+  testWidgets('petit téléphone, gros texte, questions', (tester) async {
+    await remplit(tester);
+    await capture(
+      tester,
+      '12-petit-questions',
+      page(2),
       ThemeMode.dark,
       largeur: 360,
       texte: 1.3,

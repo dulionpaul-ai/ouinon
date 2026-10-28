@@ -405,3 +405,21 @@ demain »).
   les réglages. Style futuriste, mini-animations à chaque action.
   Maquette : https://claude.ai/artifact/RZnQ8gh7CKAG8RZALSa8AQ (à valider).
 
+## 1.0.0+28 : trois onglets, deux couleurs (APK pas encore fabriqué)
+
+- Maquette validée par Paul (28/10/2026) : To-do, Aujourd'hui, Questions ;
+  stats et le reste dans les Réglages. Couleurs ramenées à deux,
+  translucides : orange et vert d'eau (meilleure réponse vert d'eau,
+  moins bonne orange, milieu gris). Police des titres : Chakra Petch.
+- Les 7 améliorations validées : « Annuler » 4 s après chaque action ;
+  vibration légère ; déplacer un bloc en le glissant ; pastille animée
+  sur l'onglet Aujourd'hui ; questions pas encore arrivées plus pâles ;
+  nombre et temps total sous chaque case ; micro et doublons gardés.
+- Animations : arrivée des pages avec un trait qui balaie, choses qui se
+  dessinent en apparaissant, traînée vers le bandeau « Aujourd'hui »,
+  blocs qui tombent à leur place, coche qui rebondit, réponse verrouillée
+  avec une onde, anneau qui se remplit.
+- Retirés : l'ancien écran Aujourd'hui (pages par jour), « Préparer
+  demain » et l'intro des deux toi. Paul a demandé d'attendre avant
+  l'APK.
+

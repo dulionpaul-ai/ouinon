@@ -86,13 +86,21 @@ Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
   rangée dans `ancien/` (ni compilée ni analysée) ; on y pioche si un
   écran du cahier en a besoin. Le moteur est gardé : `data/base.dart`,
   `data/notifications.dart` (questions seulement), `utils/planification.dart`.
-- Style (Paul, 27/10/2026) : **toujours sombre, jamais de mode clair** ;
-  ultra moderne, presque futuriste ; animations partout, spectaculaires ;
-  la forme compte autant que le fond (« quelque chose qui donne envie »).
-  Pas de polices trop rondes, pas de look « IA » (violet, halos flous,
-  dégradés). Trois pistes en maquette (D Cockpit, E Monolithe, F Orbite) :
-  https://claude.ai/artifact/CWP5pB9A6G9CYQZ3pj5v1r ; le thème clair
-  actuel (`lib/theme/theme.dart`) est provisoire.
+- Trois onglets, dans cet ordre (Paul, 28/10/2026) : To-do (matrice
+  d'Eisenhower ; on tire une chose vers la droite, sur le bandeau
+  « Aujourd'hui »), Aujourd'hui (ce qui est à placer, puis le planning
+  de la journée sans défilement), Questions (celles du jour, « + » pour
+  en créer). Stats et tout le reste dans les Réglages (roue en haut).
+  Maquette validée : https://claude.ai/artifact/RZnQ8gh7CKAG8RZALSa8AQ.
+  Le jeu « Synchro » a été abandonné (28/10/2026).
+- Style (Paul, 27–28/10/2026) : **toujours sombre, jamais de mode
+  clair** ; futuriste ; une petite animation à chaque action (ajouter,
+  répondre, cocher, glisser) avec vibration et « Annuler » ; pas de
+  polices trop rondes, pas de look « IA » (violet, halos flous,
+  dégradés). **Deux couleurs seulement, translucides** : orange (la
+  to-do, ce qui reste à faire, la moins bonne réponse) et vert d'eau
+  (Aujourd'hui, ce qui est fait, la meilleure réponse) ; gris pour la
+  réponse du milieu ; titres en Chakra Petch (`lib/theme/app_theme.dart`).
 - Une notification ratée reste affichée jusqu'à la suivante de la même
   question (Android : `timeoutAfter`) ; sans réponse, rien n'est
   enregistré. Une question sans aucun jour ne sonne jamais (en pause).

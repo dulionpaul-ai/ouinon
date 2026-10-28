@@ -6,8 +6,9 @@ import '../theme/app_theme.dart';
 
 /// Les 2 ou 3 réponses d'une question, en pilules côte à côte : la moins
 /// bonne à gauche, la meilleure à droite, comme dans la notification
-/// (choix de Paul). La réponse choisie prend sa couleur ; la toucher à
-/// nouveau l'efface.
+/// (choix de Paul). Chaque réponse a sa couleur, translucide (vert d'eau
+/// la meilleure, gris au milieu, orange la moins bonne) ; la choisie
+/// s'allume ; la toucher à nouveau l'efface.
 class BoutonsReponse extends StatelessWidget {
   final Question question;
   final int? choix;
@@ -22,7 +23,6 @@ class BoutonsReponse extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = Teintes.de(context);
     final nb = question.nbReponses;
     return Row(
       children: [
@@ -32,12 +32,7 @@ class BoutonsReponse extends StatelessWidget {
             child: _Pilule(
               texte: question.reponses[i],
               choisie: choix == i,
-              fond: choix == i
-                  ? AppTheme.couleurReponse(context, i, nb)
-                  : t.puce,
-              couleurTexte: choix == i
-                  ? AppTheme.texteSurReponse(context, i, nb)
-                  : t.texte,
+              couleur: AppTheme.couleurReponse(context, i, nb),
               onTap: () => onChoix(choix == i ? null : i),
             ),
           ),
@@ -50,15 +45,13 @@ class BoutonsReponse extends StatelessWidget {
 class _Pilule extends StatelessWidget {
   final String texte;
   final bool choisie;
-  final Color fond;
-  final Color couleurTexte;
+  final Color couleur;
   final VoidCallback onTap;
 
   const _Pilule({
     required this.texte,
     required this.choisie,
-    required this.fond,
-    required this.couleurTexte,
+    required this.couleur,
     required this.onTap,
   });
 
@@ -70,10 +63,15 @@ class _Pilule extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         curve: Curves.easeOut,
-        height: 44,
+        height: 46,
         decoration: ShapeDecoration(
-          color: fond,
-          shape: Teintes.de(context).forme,
+          color: couleur.withValues(alpha: choisie ? 0.26 : 0.08),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(Teintes.de(context).rayon),
+            side: BorderSide(
+              color: couleur.withValues(alpha: choisie ? 1 : 0.5),
+            ),
+          ),
         ),
         child: Material(
           type: MaterialType.transparency,
@@ -94,7 +92,7 @@ class _Pilule extends StatelessWidget {
                     maxLines: 1,
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: couleurTexte,
+                      color: couleur,
                       fontSize: 14,
                       fontWeight: choisie ? FontWeight.w800 : FontWeight.w600,
                     ),

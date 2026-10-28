@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 
-/// Style « Orbite » (choisi par Paul le 27/10/2026) : toujours sombre,
-/// futuriste, noir chaud et un seul orange, souvent translucide ; titres
-/// en Michroma (large, pas rond), texte en IBM Plex Sans Condensed,
-/// chiffres en IBM Plex Mono. Polices embarquées, licence OFL
-/// (`assets/fonts/OFL-*.txt`). Le même style partout.
+/// Style « espace » (maquette validée par Paul le 28/10/2026) : toujours
+/// sombre, futuriste, deux couleurs seulement, translucides : l'orange
+/// (la to-do, ce qui reste à faire, la moins bonne réponse) et le vert
+/// d'eau (aujourd'hui, ce qui est fait, la meilleure réponse) ; le reste
+/// en blanc et gris. Titres en Chakra Petch (anguleux), texte en IBM Plex
+/// Sans Condensed, chiffres en IBM Plex Mono. Polices embarquées, licence
+/// OFL (`assets/fonts/OFL-*.txt`).
 class AppTheme {
-  static const policeTitre = 'Michroma';
+  static const policeTitre = 'ChakraPetch';
+
+  /// Les deux couleurs de l'appli.
+  static const orange = Color(0xFFFF8A2A);
+  static const vertDeau = Color(0xFF34E0B0);
 
   /// Couleur de la seconde courbe quand on en compare deux (lilas, bien
   /// distinct du citron et du corail).
@@ -250,13 +256,17 @@ class AppTheme {
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        backgroundColor: t.texte,
+        backgroundColor: t.carte,
+        actionTextColor: t.accent,
         contentTextStyle: TextStyle(
           fontFamily: policeTexte,
           fontWeight: FontWeight.w600,
-          color: t.fond,
+          color: t.texte,
         ),
-        shape: pilule,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(t.rayon + 2),
+          side: BorderSide(color: t.accent.withValues(alpha: 0.7)),
+        ),
       ),
       timePickerTheme: TimePickerThemeData(
         backgroundColor: t.carte,
@@ -281,6 +291,21 @@ class AppTheme {
   /// et claires).
   static Color texteSurReponse(BuildContext context, int choix, int nb) =>
       const Color(0xFF111114);
+
+  /// Le thème d'une page, à l'accent de son onglet.
+  static ThemeData avecAccent(ThemeData theme, Color couleur) {
+    final t = theme.extension<Teintes>() ?? Teintes.orbite;
+    return theme.copyWith(
+      extensions: [t.avecAccent(couleur)],
+      colorScheme: theme.colorScheme.copyWith(
+        secondary: couleur,
+        secondaryContainer: couleur,
+      ),
+      floatingActionButtonTheme: theme.floatingActionButtonTheme.copyWith(
+        backgroundColor: couleur,
+      ),
+    );
+  }
 }
 
 /// Les couleurs du style.
@@ -342,22 +367,44 @@ class Teintes extends ThemeExtension<Teintes> {
   OutlinedBorder get forme =>
       RoundedRectangleBorder(borderRadius: BorderRadius.circular(rayon));
 
-  /// Orbite : noir chaud, orange, blanc cassé, angles presque droits.
+  /// Le style « espace » : noir profond, blanc cassé, gris ; l'accent
+  /// change selon l'onglet (orange ou vert d'eau, [avecAccent]).
   static const orbite = Teintes(
-    fond: Color(0xFF07060A),
-    carte: Color(0xFF120E0B),
-    puce: Color(0xFF1E1712),
-    texte: Color(0xFFEDE6DE),
-    doux: Color(0xFF9A8E84),
-    trait: Color(0xFF2A1F17),
-    accent: Color(0xFFFF8A2A),
-    surAccent: Color(0xFF07060A),
-    barre: Color(0xFF3A2A20),
-    texteBarre: Color(0xFFB3A69B),
-    meilleure: Color(0xFFFF8A2A),
-    moyenne: Color(0xFFC9A27E),
-    moinsBonne: Color(0xFFE0533D),
-    rayon: 6,
+    fond: Color(0xFF05070A),
+    carte: Color(0xFF0A0D12),
+    puce: Color(0xFF14171C),
+    texte: Color(0xFFE8E4DA),
+    doux: Color(0xFF8C9099),
+    trait: Color(0xFF1B1F26),
+    accent: AppTheme.orange,
+    surAccent: Color(0xFF05070A),
+    barre: Color(0xFF2A2E36),
+    texteBarre: Color(0xFFA9ADB5),
+    meilleure: AppTheme.vertDeau,
+    moyenne: Color(0xFFC7C2B8),
+    moinsBonne: AppTheme.orange,
+    rayon: 4,
+  );
+
+  /// Les mêmes teintes, avec un autre accent (le vert d'eau
+  /// d'Aujourd'hui).
+  Teintes avecAccent(Color couleur) => Teintes(
+    fond: fond,
+    carte: carte,
+    puce: puce,
+    texte: texte,
+    doux: doux,
+    trait: trait,
+    accent: couleur,
+    surAccent: surAccent,
+    barre: barre,
+    texteBarre: texteBarre,
+    meilleure: meilleure,
+    moyenne: moyenne,
+    moinsBonne: moinsBonne,
+    estRetro: estRetro,
+    terminal: terminal,
+    rayon: rayon,
   );
 
   static const sombre = Teintes(

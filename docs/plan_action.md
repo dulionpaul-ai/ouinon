@@ -76,6 +76,8 @@ fait, version par version : `docs/historique.md`.
    corrections.
 11. [ ] Plus tard, avec l'accord de Paul : iPhone (TestFlight), sauvegarde,
    fiches Play Store et App Store.
+12. [x] Trois onglets et deux couleurs (maquette du 28/10/2026), codés en
+   1.0.0+28 ; APK quand Paul le demande.
 
 ## Relecture du plan (22/10/2026) : risques et corrections
 

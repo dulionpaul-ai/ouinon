@@ -1,7 +1,7 @@
 /// Version de l'appli, la même que `version:` dans `pubspec.yaml` (un test
 /// le vérifie). Le nombre après le « + » est le numéro de l'APK de test,
 /// affiché en bas des Réglages pour savoir lequel est installé.
-const versionAppli = '1.0.0+26';
+const versionAppli = '1.0.0+28';
 
 /// « Ouinon 1.0.0 · APK n° 10 ».
 String versionLisible() {

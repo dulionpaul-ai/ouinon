@@ -282,13 +282,11 @@ class _GrilleJourneeState extends State<GrilleJournee> {
                             width: 10,
                             height: 10,
                             decoration: BoxDecoration(
-                              color: t.moinsBonne,
+                              color: t.texte,
                               shape: BoxShape.circle,
                             ),
                           ),
-                          Expanded(
-                            child: Container(height: 2, color: t.moinsBonne),
-                          ),
+                          Expanded(child: Container(height: 1, color: t.texte)),
                         ],
                       ),
                     ),
@@ -329,7 +327,20 @@ class _GrilleJourneeState extends State<GrilleJournee> {
             Positioned.fill(
               child: GestureDetector(
                 onTap: () => widget.onTapTache(tache),
-                child: bloc,
+                // Un bloc qui arrive tombe à sa place.
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: 1),
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeOutBack,
+                  builder: (context, v, enfant) => Opacity(
+                    opacity: v.clamp(0.0, 1.0),
+                    child: Transform.translate(
+                      offset: Offset(0, -20 * (1 - v)),
+                      child: enfant,
+                    ),
+                  ),
+                  child: bloc,
+                ),
               ),
             ),
             // Tirer le bas : changer la durée.
@@ -417,7 +428,19 @@ class _BlocTacheGrille extends StatelessWidget {
               : CrossAxisAlignment.start,
           children: [
             if (tache.etat == Tache.fait) ...[
-              Icon(Icons.check_circle_rounded, size: 16, color: texte),
+              // La coche arrive en rebondissant.
+              TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.2, end: 1),
+                duration: const Duration(milliseconds: 450),
+                curve: Curves.elasticOut,
+                builder: (context, v, enfant) =>
+                    Transform.scale(scale: v, child: enfant),
+                child: Icon(
+                  Icons.check_circle_rounded,
+                  size: 16,
+                  color: t.accent,
+                ),
+              ),
               const SizedBox(width: 5),
             ],
             Expanded(

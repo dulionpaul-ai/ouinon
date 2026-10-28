@@ -11,18 +11,24 @@ part sur internet.
 
 ## Code (`lib/`)
 
+Mis à jour le 28/10/2026 (version 1.0.0+28) : trois onglets.
+
 | Fichier | Contenu |
 |---|---|
-| `main.dart` | L'appli : thème, français, écran « Mes questions ». |
-| `theme/theme.dart` | Thème clair « pas IA » : papier, encre, bleu d'encre (`Couleurs`). |
-| `screens/questions_screen.dart` | Écran 1 : la liste (texte, heure · jours, réponses ; « En pause » sans jour), « + », bandeau si l'heure pile n'est pas autorisée, numéro de l'APK en bas. Demande les notifications à la première ouverture ; reprogramme à l'ouverture, au retour et à chaque changement. |
-| `screens/question_screen.dart` | Créer ou modifier : texte, réponses (meilleure, « entre les deux » facultative, moins bonne), heure (cadran), jours (aucun par défaut, raccourcis), supprimer. De 3 à 2 réponses : confirmation, conversion de l'historique. |
-| `data/base.dart` | Base `ouinon.sqlite` (version 5), gardée telle quelle : questions, réponses ; les tables du planning et de la liste restent mais ne servent plus. Créée vide au premier lancement. |
-| `data/notifications.dart` | Notifications des questions seulement ; réponse par bouton (même appli fermée) ; une notification dure jusqu'à la suivante de la même question. |
-| `utils/planification.dart` | Ce qu'il faut programmer (14 jours d'avance), `prochaineFois`, durée d'affichage. |
-| `models/`, `utils/jour.dart`, `utils/date_fr.dart`, `utils/stats.dart`, `utils/version.dart` | Modèles, dates, textes français, version. |
+| `screens/accueil_screen.dart` | La coque : 3 onglets (To-do orange, Aujourd'hui vert d'eau, Questions orange), pastille animée sur Aujourd'hui, arrivée des pages en glissant avec un trait qui balaie. Reprogramme les notifications ; le rappel du soir ouvre la to-do. |
+| `screens/todo_screen.dart` | Onglet 1 : les 4 cases (nombre et temps total), une chose tirée vers la droite sur le bandeau « Aujourd'hui » est choisie pour aujourd'hui (`choisitPour`), avec « Annuler ». |
+| `screens/journee_screen.dart` | Onglet 2 : « À placer » (toucher = casé au premier moment libre, ou glisser sur une heure ; « Caser pour moi »), puis la journée en entier (`GrilleJournee`) ; toucher un bloc = fait ; remonter un bloc sur « À placer » lui enlève son heure. |
+| `screens/questions_du_jour_screen.dart` | Onglet 3 : les questions du jour par heure (pas encore l'heure = plus pâle), réponse verrouillée avec une onde, « Changer », anneau, « + ». |
+| `widgets/vivant.dart` | Les pièces animées : `Apparition`, `Balayage`, `EnTete`, `BoutonRond`, `Etiquette`, `annonce` (message + vibration + Annuler), `BarreEspace`. |
+| `screens/reglages_screen.dart` | Statistiques, toutes les questions, créneaux, notifications, ma journée, données de test. |
+| `screens/stats_screen.dart`, `groupe_screen.dart`, `fiche_question_screen.dart` | Les stats (ouvertes depuis les Réglages). |
+| `screens/edition_*_screen.dart` | Formulaires : question, chose (micro, doublons), rendez-vous, créneau. |
+| `theme/app_theme.dart` | Le style « espace » : deux couleurs translucides (`AppTheme.orange`, `AppTheme.vertDeau`), `Teintes.avecAccent`. |
+| `data/base.dart` | Base `ouinon.sqlite` (version 6) : questions (avec groupe), réponses, planning, liste, créneaux. |
+| `data/notifications.dart` | Questions et planning ; réponse par bouton, même appli fermée. |
+| `utils/` | Planification, remplissage de la journée, familles (groupes), recherche, dictée, courbes, stats, dates. |
 
-`ancien/` : l'appli complète à l'APK n° 22, mise de côté.
+`ancien/` : l'appli à l'APK n° 22, mise de côté.
 
 ## Vérifications et compilation
 

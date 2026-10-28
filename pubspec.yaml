@@ -4,7 +4,7 @@ publish_to: 'none'
 
 # Version et numéro de compilation (x.y.z+n) : monter n avant chaque envoi
 # sur un store (il doit toujours augmenter).
-version: 1.0.0+26
+version: 1.0.0+28
 
 environment:
   sdk: ^3.13.5
@@ -53,6 +53,12 @@ flutter:
     - family: Michroma
       fonts:
         - asset: assets/fonts/Michroma-Regular.ttf
+    - family: ChakraPetch
+      fonts:
+        - asset: assets/fonts/ChakraPetch-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/ChakraPetch-SemiBold.ttf
+          weight: 600
     - family: IBMPlexSansCondensed
       fonts:
         - asset: assets/fonts/IBMPlexSansCondensed-Regular.ttf

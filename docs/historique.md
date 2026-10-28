@@ -497,3 +497,4 @@ demain »).
   (avec « Annuler »).
 - APK n° 33 (1.0.0+33) : cases identiques, changer de case par appui long.
 - 28/10/2026 : to-do, toucher le bandeau « Aujourd'hui » ouvre l'onglet Aujourd'hui.
+- 28/10/2026 : le planning d'Aujourd'hui va toujours jusqu'à minuit (dernière ligne : 23 h), sans défiler.

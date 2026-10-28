@@ -264,13 +264,14 @@ class _JourneeScreenState extends State<JourneeScreen> {
     final nbReste = reste.length + aPlacer.length;
     final now = widget.maintenant();
     var heureDebut = _journee.debut ~/ 60;
-    var heureFin = ((_journee.fin - 1) ~/ 60).clamp(0, 23);
-    for (final (d, f) in [
-      for (final x in _taches) (x.debut, x.fin),
-      for (final c in _creneaux) (c.debut, c.fin),
+    // Le planning va toujours jusqu'au bout de la soirée : la dernière
+    // ligne est 23 h, et la plage jusqu'à minuit (Paul, 28/10/2026).
+    const heureFin = 23;
+    for (final d in [
+      for (final x in _taches) x.debut,
+      for (final c in _creneaux) c.debut,
     ]) {
       if (d ~/ 60 < heureDebut) heureDebut = d ~/ 60;
-      if ((f - 1) ~/ 60 > heureFin) heureFin = ((f - 1) ~/ 60).clamp(0, 23);
     }
     return Scaffold(
       body: SafeArea(

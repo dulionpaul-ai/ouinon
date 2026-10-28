@@ -77,15 +77,17 @@ void main() {
     expect(find.bySemanticsLabel('1 réponses sur 4'), findsOneWidget);
     expect(notifs.retirees, hasLength(1));
 
-    // Répondue, la question se verrouille ; « Changer » rouvre les
-    // boutons, et toucher à nouveau la réponse choisie l'efface.
+    // Répondue, la question se verrouille ; toucher la réponse l'efface et
+    // rouvre les boutons, prêts pour une autre réponse.
     expect(find.text('Moins de 6 h'), findsNothing);
     await tester.tap(find.byKey(const ValueKey('changer-1')));
+    await attends(tester);
     await tester.pumpAndSettle();
     expect(find.text('Moins de 6 h'), findsOneWidget);
-    await tester.tap(find.text('6 à 8 h'));
-    await attends(tester);
     expect(await tester.runAsync(() => base.reponsesDuJour(jour)), isEmpty);
+    await tester.tap(find.text('8 h et +'));
+    await attends(tester);
+    expect(await tester.runAsync(() => base.reponsesDuJour(jour)), {1: 0});
     semantique.dispose();
   });
 

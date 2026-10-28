@@ -18,8 +18,8 @@ import 'reglages_screen.dart';
 /// 28/10/2026) : celles qui sonnent aujourd'hui, par heure ; celles dont
 /// l'heure n'est pas encore venue sont plus pâles, mais on peut déjà y
 /// répondre. La moins bonne réponse à gauche, la meilleure à droite. Une
-/// réponse donnée se verrouille avec une onde ; « Changer » rouvre les
-/// boutons. Toucher la question elle-même ouvre sa fiche (la modifier,
+/// réponse donnée se verrouille avec une onde ; la toucher l'efface et
+/// rouvre les boutons. Toucher la question elle-même ouvre sa fiche (la modifier,
 /// ses stats). Le « + » crée une question. L'anneau en haut se remplit.
 class QuestionsDuJourScreen extends StatefulWidget {
   final Base base;
@@ -40,9 +40,6 @@ class QuestionsDuJourScreen extends StatefulWidget {
 class _QuestionsDuJourScreenState extends State<QuestionsDuJourScreen> {
   List<Question> _questions = const [];
   Map<int, int> _reponses = const {};
-
-  /// Questions dont on a rouvert les boutons après avoir répondu.
-  final _rouvertes = <int>{};
 
   DateTime get _jour => jourDe(widget.maintenant());
 
@@ -79,7 +76,6 @@ class _QuestionsDuJourScreenState extends State<QuestionsDuJourScreen> {
     // Tout de suite à l'écran, sans attendre la base : l'animation part
     // dès le toucher.
     setState(() {
-      _rouvertes.remove(q.id);
       _reponses = {..._reponses}..remove(q.id);
       if (choix != null) _reponses[q.id!] = choix;
     });
@@ -174,14 +170,14 @@ class _QuestionsDuJourScreenState extends State<QuestionsDuJourScreen> {
                             child: _LigneQuestion(
                               question: q,
                               choix: _reponses[q.id],
-                              ouverte:
-                                  !_reponses.containsKey(q.id) ||
-                                  _rouvertes.contains(q.id),
+                              ouverte: !_reponses.containsKey(q.id),
                               // Pas encore l'heure : plus pâle.
                               aVenir: q.heure > minute,
                               onChoix: (c) => _choisit(q, c),
-                              onRouvre: () =>
-                                  setState(() => _rouvertes.add(q.id!)),
+                              // Toucher la réponse donnée l'efface et
+                              // rouvre les boutons, prêts pour une autre
+                              // (Paul, 28/10/2026).
+                              onRouvre: () => _choisit(q, null),
                               onFiche: () => Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -287,8 +283,8 @@ class _LigneQuestion extends StatelessWidget {
 /// 28/10/2026, « pas hyper fluide ») : au toucher, la réponse choisie
 /// s'allume tout de suite ; un court instant après, les boutons
 /// s'effacent pendant que la pastille arrive en glissant, puis l'onde
-/// part. La hauteur ne change jamais (rien ne saute). « Changer » refait
-/// le chemin à l'envers, plus vite.
+/// part. La hauteur ne change jamais (rien ne saute). Toucher la pastille
+/// efface la réponse : elle refait le chemin à l'envers, plus vite.
 class _Reponse extends StatefulWidget {
   final Question question;
   final int? choix;

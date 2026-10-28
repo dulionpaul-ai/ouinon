@@ -464,4 +464,7 @@ demain »).
   le lendemain (pas de réponse = reportée) et revient dans la to-do ; à
   l'ouverture de l'appli et au retour dedans. Les questions ne changent
   pas.
+- 28/10/2026 : Questions : toucher la réponse déjà donnée l'efface et
+  rouvre les boutons, prêts pour une autre (un seul toucher au lieu de
+  deux).
 

@@ -502,4 +502,8 @@ demain »).
   L'onglet Aujourd'hui a deux pages : aujourd'hui et demain (glisser, ou
   toucher les deux points en haut) ; « À placer » est le même bac pour
   les deux jours. APK n° 34 (1.0.0+34).
+- 28/10/2026 : Aujourd'hui / Demain plus propre : les deux points sous
+  le titre, la date toujours sur une ligne (même en-tête sur les deux
+  pages), les pages gardées en mémoire (rien ne se redessine en
+  glissant), les choses à placer déjà là ne s'animent plus.
 

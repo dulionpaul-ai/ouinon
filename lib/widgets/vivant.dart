@@ -12,7 +12,11 @@ import '../theme/app_theme.dart';
 class Apparition extends StatefulWidget {
   final Widget child;
 
-  const Apparition({super.key, required this.child});
+  /// Faux : déjà là, sans animation (ce qu'on retrouve en changeant de
+  /// page ne se redessine pas).
+  final bool anime;
+
+  const Apparition({super.key, required this.child, this.anime = true});
 
   @override
   State<Apparition> createState() => _ApparitionState();
@@ -23,12 +27,13 @@ class _ApparitionState extends State<Apparition>
   late final _anim = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 650),
+    value: widget.anime ? 0 : 1,
   );
 
   @override
   void initState() {
     super.initState();
-    _anim.forward();
+    if (widget.anime) _anim.forward();
   }
 
   @override
@@ -142,11 +147,15 @@ class EnTete extends StatelessWidget {
   final String titre;
   final List<Widget> actions;
 
+  /// Juste sous le titre (les points d'Aujourd'hui / Demain).
+  final Widget? sous;
+
   const EnTete({
     super.key,
     required this.date,
     required this.titre,
     this.actions = const [],
+    this.sous,
   });
 
   @override
@@ -159,13 +168,21 @@ class EnTete extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                date.toUpperCase(),
-                style: TextStyle(
-                  fontFamily: AppTheme.policeMono,
-                  fontSize: 11,
-                  letterSpacing: 1.8,
-                  color: t.doux,
+              // Toujours sur une ligne (réduite si besoin) : toutes les
+              // pages ont la même hauteur d'en-tête.
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  date.toUpperCase(),
+                  maxLines: 1,
+                  softWrap: false,
+                  style: TextStyle(
+                    fontFamily: AppTheme.policeMono,
+                    fontSize: 11,
+                    letterSpacing: 1.8,
+                    color: t.doux,
+                  ),
                 ),
               ),
               const SizedBox(height: 2),
@@ -197,6 +214,7 @@ class EnTete extends StatelessWidget {
                   ),
                 ),
               ),
+              ?sous,
             ],
           ),
         ),

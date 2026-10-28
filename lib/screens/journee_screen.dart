@@ -106,7 +106,17 @@ class _PageJour extends StatefulWidget {
   State<_PageJour> createState() => _PageJourState();
 }
 
-class _PageJourState extends State<_PageJour> {
+class _PageJourState extends State<_PageJour>
+    with AutomaticKeepAliveClientMixin {
+  /// La page reste en mémoire quand on glisse vers l'autre : rien ne se
+  /// redessine en revenant.
+  @override
+  bool get wantKeepAlive => true;
+
+  /// Les choses à placer déjà vues au chargement : elles ne s'animent
+  /// pas ; seules les nouvelles arrivent en se dessinant.
+  Set<int>? _vues;
+
   List<AFaire> _liste = const [];
 
   /// Les choses de la to-do déjà placées, aujourd'hui ou demain.
@@ -145,6 +155,7 @@ class _PageJourState extends State<_PageJour> {
       _liste = liste;
       _placees = placees.keys.toSet();
       _taches = taches;
+      _vues ??= {for (final a in _aPlacer) a.id!};
       _creneaux = creneaux;
       _journee = journee;
     });
@@ -281,6 +292,7 @@ class _PageJourState extends State<_PageJour> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final t = Teintes.de(context);
     final aPlacer = _aPlacer;
     final reste = _taches.where((x) => x.etat == null).toList();
@@ -314,8 +326,8 @@ class _PageJourState extends State<_PageJour> {
                     : '${dateCourte(_jour)} · $nbReste à faire · '
                           '${dureeFr(resteMin)}',
                 titre: widget.decalage == 0 ? 'Aujourd\'hui' : 'Demain',
+                sous: _Points(page: widget.page, onPage: widget.onPage),
                 actions: [
-                  _Points(page: widget.page, onPage: widget.onPage),
                   BoutonRond(
                     icone: Icons.tune_rounded,
                     aide: 'Réglages et stats',
@@ -368,6 +380,7 @@ class _PageJourState extends State<_PageJour> {
                                   for (final a in aPlacer)
                                     Apparition(
                                       key: ValueKey('acaser-${a.id}'),
+                                      anime: !(_vues?.contains(a.id) ?? true),
                                       child: _Puce(
                                         aFaire: a,
                                         onTap: () => _case(a),
@@ -485,7 +498,7 @@ class _Points extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = Teintes.de(context);
     return SizedBox(
-      height: 44,
+      height: 20,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -499,7 +512,7 @@ class _Points extends StatelessWidget {
                 behavior: HitTestBehavior.opaque,
                 onTap: () => onPage(i),
                 child: Padding(
-                  padding: const EdgeInsets.all(5),
+                  padding: EdgeInsets.fromLTRB(i == 0 ? 2 : 4, 6, 4, 6),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 250),
                     width: i == page ? 18 : 7,

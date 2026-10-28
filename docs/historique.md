@@ -452,4 +452,5 @@ demain »).
   Notifications du planning : une seule par chose, à son heure, avec
   « Pas fait · Fait » (plus de notification de fin ni de « Reporter » ;
   le réglage « début et fin » est retiré).
+- APK n° 29 (1.0.0+29) envoyé le 28/10/2026 avec toutes ces corrections.
 

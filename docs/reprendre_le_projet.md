@@ -7,10 +7,10 @@ Mis à jour le 27/10/2026.
 
 - Appli en trois onglets (To-do, Aujourd'hui, Questions), deux couleurs
   translucides, d'après la maquette validée :
-  https://claude.ai/artifact/RZnQ8gh7CKAG8RZALSa8AQ. APK n° 28
-  (1.0.0+28) envoyé le 28/10/2026 ; police unique Oxanium.
+  https://claude.ai/artifact/RZnQ8gh7CKAG8RZALSa8AQ. APK n° 29
+  (1.0.0+29) envoyé le 28/10/2026 ; police unique Oxanium.
 - Logo passé aux deux couleurs (orange, vert d'eau) le 28/10/2026.
-- Prochain APK : 1.0.0+29, **toujours demander à Paul avant**.
+- Prochain APK : 1.0.0+30, **toujours demander à Paul avant**.
 
 ## En une minute
 

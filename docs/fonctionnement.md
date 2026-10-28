@@ -23,7 +23,7 @@ Mis à jour le 28/10/2026 (version 1.0.0+28) : trois onglets.
 | `screens/reglages_screen.dart` | Statistiques, toutes les questions, créneaux, notifications, ma journée, données de test. |
 | `screens/stats_screen.dart`, `groupe_screen.dart`, `fiche_question_screen.dart` | Les stats (ouvertes depuis les Réglages). |
 | `screens/edition_*_screen.dart` | Formulaires : question, chose (micro, doublons), rendez-vous, créneau. |
-| `theme/app_theme.dart` | Le style « espace » : deux couleurs translucides (`AppTheme.orange`, `AppTheme.vertDeau`), `Teintes.avecAccent`. |
+| `theme/app_theme.dart` | Le style « espace » : deux couleurs translucides (`AppTheme.orange`, `AppTheme.vertDeau`), `Teintes.avecAccent` ; une seule police, Oxanium. |
 | `data/base.dart` | Base `ouinon.sqlite` (version 6) : questions (avec groupe), réponses, planning, liste, créneaux. |
 | `data/notifications.dart` | Questions et planning ; réponse par bouton, même appli fermée. |
 | `utils/` | Planification, remplissage de la journée, familles (groupes), recherche, dictée, courbes, stats, dates. |

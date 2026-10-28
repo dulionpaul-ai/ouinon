@@ -110,7 +110,7 @@ class BoutonRond extends StatelessWidget {
   }
 }
 
-/// Titre d'écran en Unbounded.
+/// Titre d'écran, dans la police de l'appli.
 class GrandTitre extends StatelessWidget {
   final String texte;
 

@@ -100,7 +100,8 @@ Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
   dégradés). **Deux couleurs seulement, translucides** : orange (la
   to-do, ce qui reste à faire, la moins bonne réponse) et vert d'eau
   (Aujourd'hui, ce qui est fait, la meilleure réponse) ; gris pour la
-  réponse du milieu ; titres en Chakra Petch (`lib/theme/app_theme.dart`).
+  réponse du milieu. **Une seule police partout : Oxanium** (choix de Paul
+  du 28/10/2026, `lib/theme/app_theme.dart`).
 - Une notification ratée reste affichée jusqu'à la suivante de la même
   question (Android : `timeoutAfter`) ; sans réponse, rien n'est
   enregistré. Une question sans aucun jour ne sonne jamais (en pause).

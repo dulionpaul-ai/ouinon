@@ -422,4 +422,7 @@ demain »).
 - Retirés : l'ancien écran Aujourd'hui (pages par jour), « Préparer
   demain » et l'intro des deux toi. Paul a demandé d'attendre avant
   l'APK.
+- Police : une seule partout, **Oxanium** (Paul a choisi la n° 2 parmi
+  six propositions, 28/10/2026). Les anciennes polices (Chakra Petch,
+  IBM Plex, Michroma, VT323, Unbounded, Figtree) sont retirées.
 

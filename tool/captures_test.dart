@@ -37,26 +37,9 @@ Future<void> _police(String famille, List<String> fichiers) async {
 
 void main() {
   setUpAll(() async {
-    await _police('Michroma', ['assets/fonts/Michroma-Regular.ttf']);
-    await _police('ChakraPetch', [
-      'assets/fonts/ChakraPetch-Medium.ttf',
-      'assets/fonts/ChakraPetch-SemiBold.ttf',
-    ]);
-    await _police('IBMPlexSansCondensed', [
+    await _police('Oxanium', [
       for (final g in ['Regular', 'Medium', 'SemiBold', 'Bold'])
-        'assets/fonts/IBMPlexSansCondensed-$g.ttf',
-    ]);
-    await _police('Unbounded', [
-      'assets/fonts/Unbounded-500.ttf',
-      'assets/fonts/Unbounded-700.ttf',
-    ]);
-    await _police('Figtree', [
-      for (final w in [500, 600, 700, 800]) 'assets/fonts/Figtree-$w.ttf',
-    ]);
-    await _police('VT323', ['assets/fonts/VT323-400.ttf']);
-    await _police('IBMPlexMono', [
-      'assets/fonts/IBMPlexMono-500.ttf',
-      'assets/fonts/IBMPlexMono-700.ttf',
+        'assets/fonts/Oxanium-$g.ttf',
     ]);
     final sdk = File(Platform.resolvedExecutable).parent.parent.parent.path;
     await _police('MaterialIcons', [

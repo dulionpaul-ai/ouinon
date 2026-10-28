@@ -31,50 +31,16 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # Unbounded (titres) et Figtree (texte), VT323 et IBM Plex Mono (écran
-  # rétro du jour), licence OFL : assets/fonts/OFL-*.txt.
+  # Une seule police partout : Oxanium (licence OFL :
+  # assets/fonts/OFL-Oxanium.txt).
   fonts:
-    - family: Unbounded
+    - family: Oxanium
       fonts:
-        - asset: assets/fonts/Unbounded-500.ttf
-          weight: 500
-        - asset: assets/fonts/Unbounded-700.ttf
-          weight: 700
-    - family: Figtree
-      fonts:
-        - asset: assets/fonts/Figtree-500.ttf
-          weight: 500
-        - asset: assets/fonts/Figtree-600.ttf
-          weight: 600
-        - asset: assets/fonts/Figtree-700.ttf
-          weight: 700
-        - asset: assets/fonts/Figtree-800.ttf
-          weight: 800
-    - family: Michroma
-      fonts:
-        - asset: assets/fonts/Michroma-Regular.ttf
-    - family: ChakraPetch
-      fonts:
-        - asset: assets/fonts/ChakraPetch-Medium.ttf
-          weight: 500
-        - asset: assets/fonts/ChakraPetch-SemiBold.ttf
-          weight: 600
-    - family: IBMPlexSansCondensed
-      fonts:
-        - asset: assets/fonts/IBMPlexSansCondensed-Regular.ttf
+        - asset: assets/fonts/Oxanium-Regular.ttf
           weight: 400
-        - asset: assets/fonts/IBMPlexSansCondensed-Medium.ttf
+        - asset: assets/fonts/Oxanium-Medium.ttf
           weight: 500
-        - asset: assets/fonts/IBMPlexSansCondensed-SemiBold.ttf
+        - asset: assets/fonts/Oxanium-SemiBold.ttf
           weight: 600
-        - asset: assets/fonts/IBMPlexSansCondensed-Bold.ttf
-          weight: 700
-    - family: VT323
-      fonts:
-        - asset: assets/fonts/VT323-400.ttf
-    - family: IBMPlexMono
-      fonts:
-        - asset: assets/fonts/IBMPlexMono-500.ttf
-          weight: 500
-        - asset: assets/fonts/IBMPlexMono-700.ttf
+        - asset: assets/fonts/Oxanium-Bold.ttf
           weight: 700

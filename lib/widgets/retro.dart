@@ -12,7 +12,7 @@ String hhmm(int minutes) {
       '${(m % 60).toString().padLeft(2, '0')}';
 }
 
-/// Style des grands textes rétro (VT323, lueur légère).
+/// Style des grands textes rétro (lueur légère).
 TextStyle styleRetro(double taille, {Color couleur = AppTheme.bleuVert}) =>
     TextStyle(
       fontFamily: AppTheme.policeRetro,

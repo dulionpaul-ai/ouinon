@@ -4,11 +4,12 @@ import 'package:flutter/material.dart';
 /// sombre, futuriste, deux couleurs seulement, translucides : l'orange
 /// (la to-do, ce qui reste à faire, la moins bonne réponse) et le vert
 /// d'eau (aujourd'hui, ce qui est fait, la meilleure réponse) ; le reste
-/// en blanc et gris. Titres en Chakra Petch (anguleux), texte en IBM Plex
-/// Sans Condensed, chiffres en IBM Plex Mono. Polices embarquées, licence
-/// OFL (`assets/fonts/OFL-*.txt`).
+/// en blanc et gris. Une seule police partout, Oxanium (anguleuse,
+/// futuriste ; choix de Paul du 28/10/2026), embarquée en 4 graisses,
+/// licence OFL (`assets/fonts/OFL-Oxanium.txt`). Les noms policeTitre,
+/// policeTexte, policeMono et policeRetro restent pour s'y retrouver.
 class AppTheme {
-  static const policeTitre = 'ChakraPetch';
+  static const policeTitre = 'Oxanium';
 
   /// Les deux couleurs de l'appli.
   static const orange = Color(0xFFFF8A2A);
@@ -17,12 +18,11 @@ class AppTheme {
   /// Couleur de la seconde courbe quand on en compare deux (lilas, bien
   /// distinct du citron et du corail).
   static const courbeB = Color(0xFFA594FF);
-  static const policeTexte = 'IBMPlexSansCondensed';
+  static const policeTexte = 'Oxanium';
 
-  /// Écran rétro du toi qui exécute (vieux terminal, 26/10/2026) : VT323
-  /// pour les titres, IBM Plex Mono pour le texte (licence OFL).
-  static const policeRetro = 'VT323';
-  static const policeMono = 'IBMPlexMono';
+  /// Écran rétro du compte rendu et chiffres : Oxanium aussi (28/10/2026).
+  static const policeRetro = 'Oxanium';
+  static const policeMono = 'Oxanium';
 
   /// Couleurs des deux toi : ambre le soir, bleu-vert le jour.
   /// L'orange d'Orbite (les deux noms servent encore dans le code).

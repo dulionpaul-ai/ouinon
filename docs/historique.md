@@ -488,3 +488,7 @@ demain »).
 - 28/10/2026 : « Redemander le lendemain » éteint par défaut pour une
   nouvelle question (modifiable).
 - APK n° 31 (1.0.0+31) : réglages rangés, formulaires sur un écran.
+- 28/10/2026 : Réglages, « Ta journée : 8 h – 20 h » en une seule ligne
+  (on choisit le début puis la fin).
+- APK n° 32 (1.0.0+32).
+

@@ -145,9 +145,10 @@ class _ReglagesScreenState extends State<ReglagesScreen>
   }
 
   /// Cadran d'heure (sans clavier, 24 h) ; nul si annulé.
-  Future<int?> _heure(int depart) async {
+  Future<int?> _heure(int depart, {String? titre}) async {
     final choisie = await showTimePicker(
       context: context,
+      helpText: titre,
       initialEntryMode: TimePickerEntryMode.dialOnly,
       initialTime: TimeOfDay(hour: depart ~/ 60, minute: depart % 60),
       builder: (context, enfant) => MediaQuery(
@@ -158,20 +159,20 @@ class _ReglagesScreenState extends State<ReglagesScreen>
     return choisie == null ? null : choisie.hour * 60 + choisie.minute;
   }
 
-  Future<void> _choisitJournee({required bool debut}) async {
-    final minutes = await _heure(debut ? _journee.debut : _journee.fin);
-    if (minutes == null || !mounted) return;
-    final nouvelle = debut
-        ? (debut: minutes, fin: _journee.fin)
-        : (debut: _journee.debut, fin: minutes);
-    if (nouvelle.fin <= nouvelle.debut) {
+  /// Ta journée, en une ligne (Paul, 28/10/2026) : le début, puis la fin.
+  Future<void> _choisitJournee() async {
+    final debut = await _heure(_journee.debut, titre: 'Début de ta journée');
+    if (debut == null || !mounted) return;
+    final fin = await _heure(_journee.fin, titre: 'Fin de ta journée');
+    if (fin == null || !mounted) return;
+    if (fin <= debut) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('La fin doit venir après le début.')),
       );
       return;
     }
-    setState(() => _journee = nouvelle);
-    await Preferences.changeJournee(debut: nouvelle.debut, fin: nouvelle.fin);
+    setState(() => _journee = (debut: debut, fin: fin));
+    await Preferences.changeJournee(debut: debut, fin: fin);
     try {
       await Notifications.instance.replanifie(widget.base);
     } catch (_) {}
@@ -263,17 +264,11 @@ class _ReglagesScreenState extends State<ReglagesScreen>
           ]),
           _Section('Ma journée', [
             _Ligne(
-              cle: const ValueKey('debut-journee'),
-              titre: 'Début de la journée',
-              valeur: heureFr(_journee.debut),
-              onTap: () => _choisitJournee(debut: true),
-            ),
-            _Ligne(
-              cle: const ValueKey('fin-journee'),
-              titre: 'Fin de la journée',
-              valeur: heureFr(_journee.fin),
+              cle: const ValueKey('journee'),
+              titre: 'Ta journée',
+              valeur: '${heureFr(_journee.debut)} – ${heureFr(_journee.fin)}',
               sousTitre: '« Caser pour moi » place entre ces heures.',
-              onTap: () => _choisitJournee(debut: false),
+              onTap: _choisitJournee,
             ),
             _Ligne(
               titre: 'Créneaux fixes',

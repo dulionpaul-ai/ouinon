@@ -460,4 +460,8 @@ demain »).
   et sort de la to-do ; « Annuler » la remet.
 - 28/10/2026 : nouvelle question : réponses « Fait » (meilleure) et
   « Pas fait » écrites par défaut, modifiables.
+- 28/10/2026 : une chose prévue restée sans réponse compte « pas fait »
+  le lendemain (pas de réponse = reportée) et revient dans la to-do ; à
+  l'ouverture de l'appli et au retour dedans. Les questions ne changent
+  pas.
 

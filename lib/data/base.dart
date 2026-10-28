@@ -488,6 +488,19 @@ class Base {
     }),
   );
 
+  /// Pas de réponse = reportée (Paul, 28/10/2026) : une chose prévue d'un
+  /// jour passé restée sans réponse compte « pas fait » ; tirée de la
+  /// to-do, elle y revient (elle n'est plus choisie pour un jour à venir).
+  /// Rend le nombre de choses classées.
+  Future<int> classeSansReponse(DateTime aujourdhui) => _ecrit(
+    db.update(
+      'planning',
+      {'etat': Tache.pasFait},
+      where: 'jour < ? AND etat IS NULL',
+      whereArgs: [cleJour(aujourdhui)],
+    ),
+  );
+
   /// « Reporter » : la chose revient une heure après `maintenant` (même
   /// durée), le même jour. Rend la chose reportée, ou nulle si l'heure
   /// dépasserait minuit (elle reste alors sans réponse, à remettre au

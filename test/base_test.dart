@@ -316,6 +316,24 @@ void main() {
       await base.db.close();
     });
 
+    test('sans réponse les jours passés : pas fait, reporté', () async {
+      final base = await ouvreBase();
+      final hier = await base.enregistreTache(
+        Tache(jour: jeudi, debut: 10 * 60, texte: 'Courses'),
+      );
+      final faite = await base.enregistreTache(
+        Tache(jour: jeudi, debut: 11 * 60, texte: 'Mails', etat: Tache.fait),
+      );
+      final demain = await base.enregistreTache(
+        Tache(jour: vendredi, debut: 9 * 60, texte: 'Garage'),
+      );
+      expect(await base.classeSansReponse(vendredi), 1);
+      expect((await base.tache(hier.id!))!.etat, Tache.pasFait);
+      expect((await base.tache(faite.id!))!.etat, Tache.fait);
+      // Le jour même : pas encore.
+      expect((await base.tache(demain.id!))!.etat, isNull);
+    });
+
     test('liste : faite par le planning, de retour si pas faite', () async {
       final base = await ouvreBase();
       final papiers = await base.enregistreAFaire(

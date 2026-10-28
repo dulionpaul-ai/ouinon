@@ -96,6 +96,8 @@ class _AccueilScreenState extends State<AccueilScreen>
   Future<void> _ouvre() async {
     try {
       final base = await Base.ouvrir();
+      // Les choses d'hier restées sans réponse : pas faites, reportées.
+      await base.classeSansReponse(jourDe(widget.maintenant()));
       if (!mounted) return;
       setState(() => _base = base);
       base.changements.addListener(_aChange);
@@ -125,7 +127,14 @@ class _AccueilScreenState extends State<AccueilScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState etat) {
     // Des réponses ont pu arriver par les notifications.
-    if (etat == AppLifecycleState.resumed) _base?.signaleChangement();
+    if (etat == AppLifecycleState.resumed) {
+      _base?.signaleChangement();
+      // Peut-être un nouveau jour depuis la dernière fois.
+      final base = _base;
+      if (base != null) {
+        unawaited(base.classeSansReponse(jourDe(widget.maintenant())));
+      }
+    }
   }
 
   void _va(int onglet) {

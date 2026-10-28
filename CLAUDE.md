@@ -75,8 +75,11 @@ Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
   (une nuit de lundi à mardi, demandée mardi matin, compte pour mardi).
 - De gauche à droite, toujours la moins bonne réponse à gauche et la
   meilleure à droite (notification, boutons, barres).
-- Une chose prévue (planning) : « Fait » = 0, « Pas fait » = 1, sans
-  réponse = nulle (ne compte pas dans le pourcentage). Dans Aujourd'hui,
+- Une chose prévue (planning) : « Fait » = 0, « Pas fait » = 1. Sans
+  réponse le jour même : nulle ; le lendemain, elle compte « pas fait »
+  (pas de réponse = reportée, Paul, 28/10/2026 : `classeSansReponse`) et
+  revient dans la to-do. Les questions, elles, ne changent pas : pas de
+  réponse = rien d'enregistré. Dans Aujourd'hui,
   le rond d'un bloc passe de « fait » à « pas fait » puis « sans
   réponse ». Tirée de la liste
   (`listeId`) : « Fait » la sort de la liste, sinon elle revient « à

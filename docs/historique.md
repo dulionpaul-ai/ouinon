@@ -405,7 +405,7 @@ demain »).
   les réglages. Style futuriste, mini-animations à chaque action.
   Maquette : https://claude.ai/artifact/RZnQ8gh7CKAG8RZALSa8AQ (à valider).
 
-## 1.0.0+28 : trois onglets, deux couleurs (APK pas encore fabriqué)
+## APK n° 28 (1.0.0+28) : trois onglets, deux couleurs, Oxanium
 
 - Maquette validée par Paul (28/10/2026) : To-do, Aujourd'hui, Questions ;
   stats et le reste dans les Réglages. Couleurs ramenées à deux,
@@ -420,8 +420,7 @@ demain »).
   blocs qui tombent à leur place, coche qui rebondit, réponse verrouillée
   avec une onde, anneau qui se remplit.
 - Retirés : l'ancien écran Aujourd'hui (pages par jour), « Préparer
-  demain » et l'intro des deux toi. Paul a demandé d'attendre avant
-  l'APK.
+  demain » et l'intro des deux toi. APK n° 28 envoyé le 28/10/2026.
 - Police : une seule partout, **Oxanium** (Paul a choisi la n° 2 parmi
   six propositions, 28/10/2026). Les anciennes polices (Chakra Petch,
   IBM Plex, Michroma, VT323, Unbounded, Figtree) sont retirées.

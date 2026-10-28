@@ -453,4 +453,8 @@ demain »).
   « Pas fait · Fait » (plus de notification de fin ni de « Reporter » ;
   le réglage « début et fin » est retiré).
 - APK n° 29 (1.0.0+29) envoyé le 28/10/2026 avec toutes ces corrections.
+- 28/10/2026 : to-do, second bandeau à droite, « Fait », sous
+  « Aujourd'hui » : une chose qu'on y tire est faite aujourd'hui (posée
+  dans la journée juste avant maintenant, cochée, comptée dans les stats)
+  et sort de la to-do ; « Annuler » la remet.
 

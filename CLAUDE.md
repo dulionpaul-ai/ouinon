@@ -89,7 +89,7 @@ Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
   `data/notifications.dart` (questions seulement), `utils/planification.dart`.
 - Trois onglets, dans cet ordre (Paul, 28/10/2026) : To-do (matrice
   d'Eisenhower ; on tire une chose vers la droite, sur le bandeau
-  « Aujourd'hui »), Aujourd'hui (ce qui est à placer, puis le planning
+  « Aujourd'hui », ou sur « Fait » si elle est déjà faite), Aujourd'hui (ce qui est à placer, puis le planning
   de la journée sans défilement), Questions (celles du jour, « + » pour
   en créer). Stats et tout le reste dans les Réglages (roue en haut).
   Maquette validée : https://claude.ai/artifact/RZnQ8gh7CKAG8RZALSa8AQ.

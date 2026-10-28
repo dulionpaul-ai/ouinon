@@ -16,8 +16,10 @@ import 'reglages_screen.dart';
 /// cases d'Eisenhower, toujours toutes visibles, chacune avec son nombre
 /// de choses et leur temps total. On tire une chose vers la droite (sans
 /// appui long) jusqu'au bandeau vert d'eau « Aujourd'hui » : elle part
-/// dans l'onglet Aujourd'hui, à placer. Le « + » ouvre le formulaire
-/// (micro, doublons signalés).
+/// dans l'onglet Aujourd'hui, à placer. En dessous, le bandeau « Fait » :
+/// une chose qu'on y tire est déjà faite aujourd'hui (cochée dans la
+/// journée, comptée dans les stats). Le « + » ouvre le formulaire (micro,
+/// doublons signalés).
 class TodoScreen extends StatefulWidget {
   final Base base;
 
@@ -41,8 +43,9 @@ class _TodoScreenState extends State<TodoScreen> {
   /// Une chose est en train d'être tirée.
   bool _glisse = false;
 
-  /// Chaque envoi vers Aujourd'hui lance une traînée.
+  /// Chaque envoi vers Aujourd'hui (ou vers « Fait ») lance une traînée.
   int _envois = 0;
+  int _faites = 0;
 
   DateTime get _aujourdhui => jourDe(widget.maintenant());
 
@@ -94,6 +97,35 @@ class _TodoScreenState extends State<TodoScreen> {
       context,
       '« ${a.texte} » → Aujourd\'hui',
       annuler: () => widget.base.choisitPour(a.id!, a.choisiePour),
+    );
+  }
+
+  /// Tirée sur « Fait » (Paul, 28/10/2026) : faite tout à l'heure. Elle
+  /// arrive dans la journée d'aujourd'hui, cochée, juste avant
+  /// maintenant, et compte dans les stats ; elle sort de la to-do.
+  Future<void> _fait(AFaire a) async {
+    setState(() => _faites++);
+    final now = widget.maintenant();
+    final fin = (now.hour * 60 + now.minute) ~/ 15 * 15;
+    final t = await widget.base.enregistreTache(
+      Tache(
+        jour: _aujourdhui,
+        debut: (fin - a.duree).clamp(0, 24 * 60 - 15),
+        duree: a.duree,
+        texte: a.texte,
+        listeId: a.id,
+        quadrant: a.caseLe(_aujourdhui).index,
+      ),
+    );
+    await widget.base.repondTache(t.id!, Tache.fait);
+    if (!mounted) return;
+    annonce(
+      context,
+      'Fait : ${a.texte}',
+      annuler: () async {
+        await widget.base.repondTache(t.id!, null);
+        await widget.base.supprimeTache(t.id!);
+      },
     );
   }
 
@@ -179,11 +211,30 @@ class _TodoScreenState extends State<TodoScreen> {
               top: 0,
               bottom: 0,
               child: Center(
-                child: _BandeAujourdhui(
-                  actif: _glisse,
-                  attend: _attend,
-                  envois: _envois,
-                  onRecoit: _versAujourdhui,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    _Bande(
+                      libelle: 'Aujourd\'hui',
+                      cle: 'cible-aujourdhui',
+                      hauteur: 200,
+                      actif: _glisse,
+                      attend: _attend,
+                      envois: _envois,
+                      onRecoit: _versAujourdhui,
+                    ),
+                    const SizedBox(height: 14),
+                    _Bande(
+                      libelle: 'Fait',
+                      cle: 'cible-fait',
+                      hauteur: 130,
+                      fait: true,
+                      actif: _glisse,
+                      envois: _faites,
+                      onRecoit: _fait,
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -412,15 +463,25 @@ class _Chose extends StatelessWidget {
 /// Le bandeau « Aujourd'hui », au bord droit, vert d'eau comme l'onglet
 /// où vont les choses : il s'élargit quand on tire une chose, s'allume
 /// quand elle passe dessus ; une traînée part à chaque envoi.
-class _BandeAujourdhui extends StatelessWidget {
+class _Bande extends StatelessWidget {
+  final String libelle;
+  final String cle;
+  final double hauteur;
+
+  /// Le bandeau « Fait » : une coche au lieu des flèches.
+  final bool fait;
   final bool actif;
   final int attend;
   final int envois;
   final void Function(AFaire) onRecoit;
 
-  const _BandeAujourdhui({
+  const _Bande({
+    required this.libelle,
+    required this.cle,
+    required this.hauteur,
+    this.fait = false,
     required this.actif,
-    required this.attend,
+    this.attend = 0,
     required this.envois,
     required this.onRecoit,
   });
@@ -438,11 +499,11 @@ class _BandeAujourdhui extends StatelessWidget {
           alignment: Alignment.centerRight,
           children: [
             AnimatedContainer(
-              key: const ValueKey('cible-aujourdhui'),
+              key: ValueKey(cle),
               duration: const Duration(milliseconds: 250),
               curve: Curves.easeOutCubic,
               width: dessus ? 64 : (actif ? 52 : 28),
-              height: 220,
+              height: hauteur,
               decoration: BoxDecoration(
                 color: c.withValues(alpha: dessus ? 0.28 : 0.08),
                 border: Border(
@@ -463,12 +524,14 @@ class _BandeAujourdhui extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _Chevron(actif: actif),
+                    fait
+                        ? const Icon(Icons.check_rounded, size: 18, color: c)
+                        : _Chevron(actif: actif),
                     const SizedBox(height: 10),
                     RotatedBox(
                       quarterTurns: 1,
                       child: Text(
-                        'AUJOURD\'HUI',
+                        libelle.toUpperCase(),
                         style: TextStyle(
                           fontFamily: AppTheme.policeTitre,
                           fontWeight: FontWeight.w500,
@@ -508,7 +571,7 @@ class _BandeAujourdhui extends StatelessWidget {
                       ),
                     ],
                     const SizedBox(height: 10),
-                    _Chevron(actif: actif),
+                    fait ? const SizedBox.shrink() : _Chevron(actif: actif),
                   ],
                 ),
               ),

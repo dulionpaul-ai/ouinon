@@ -434,6 +434,39 @@ void main() {
     expect(annulee.choisiePour, isNull);
   });
 
+  testWidgets('to-do : tirer une chose sur « Fait »', (tester) async {
+    final papiers = (await tester.runAsync(
+      () => base.enregistreAFaire(
+        AFaire(texte: 'Papiers', duree: 30, creeLe: DateTime(2026, 10, 22)),
+      ),
+    ))!;
+    await ouvre(tester, TodoScreen(base: base, maintenant: midi));
+    await tester.pumpAndSettle();
+    final depart = tester.getCenter(find.byKey(ValueKey('todo-${papiers.id}')));
+    final geste = await tester.startGesture(depart);
+    final cible = tester.getCenter(find.byKey(const ValueKey('cible-fait')));
+    for (var k = 1; k <= 12; k++) {
+      await geste.moveTo(Offset.lerp(depart, cible, k / 12)!);
+      await tester.pump(const Duration(milliseconds: 30));
+    }
+    await geste.moveTo(
+      tester.getCenter(find.byKey(const ValueKey('cible-fait'))),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    await geste.up();
+    await attends(tester);
+    await tester.pumpAndSettle();
+    // Faite aujourd'hui, juste avant midi, et sortie de la to-do.
+    final jeudi = (await tester.runAsync(
+      () => base.tachesDu(DateTime(2026, 10, 22)),
+    ))!;
+    expect(jeudi.single.texte, 'Papiers');
+    expect(jeudi.single.etat, Tache.fait);
+    expect(jeudi.single.debut, 11 * 60 + 30);
+    expect((await tester.runAsync(base.liste))!, isEmpty);
+    expect(find.byKey(ValueKey('todo-${papiers.id}')), findsNothing);
+  });
+
   testWidgets('Suivi : un groupe s\'ouvre sur son analyse et son détail', (
     tester,
   ) async {

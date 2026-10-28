@@ -51,7 +51,9 @@ Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
 - Tous les formulaires tiennent sur un écran, sans défiler (Paul,
   28/10/2026).
 - Jamais d'appui long (« c'est juste chiant ») : le glisser-déposer part
-  dès qu'on pose le doigt. Pas de défilement dans les écrans, surtout
+  dès qu'on pose le doigt. Seule exception, demandée par Paul le
+  28/10/2026 : dans la to-do, appui long sur une chose, puis glisser,
+  pour la changer de case (Important et Urgent suivent). Pas de défilement dans les écrans, surtout
   pas dans celui de la planification de la journée (consignes de Paul
   du 26/10/2026).
 

@@ -491,4 +491,8 @@ demain »).
 - 28/10/2026 : Réglages, « Ta journée : 8 h – 20 h » en une seule ligne
   (on choisit le début puis la fin).
 - APK n° 32 (1.0.0+32).
+- 28/10/2026 : to-do, les 4 cases présentées pareil (plus de case
+  orange ni de case grisée). Appui long sur une chose, puis glisser dans
+  une autre case : elle change de case, Important et Urgent suivent
+  (avec « Annuler »).
 

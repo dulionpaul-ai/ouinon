@@ -467,6 +467,45 @@ void main() {
     expect(annulee.choisiePour, isNull);
   });
 
+  testWidgets('to-do : appui long, puis changer de case', (tester) async {
+    final papiers = (await tester.runAsync(
+      () => base.enregistreAFaire(
+        AFaire(
+          texte: 'Papiers',
+          duree: 30,
+          important: true,
+          urgent: true,
+          creeLe: DateTime(2026, 10, 22),
+        ),
+      ),
+    ))!;
+    await ouvre(tester, TodoScreen(base: base, maintenant: midi));
+    await tester.pumpAndSettle();
+    final depart = tester.getCenter(find.byKey(ValueKey('todo-${papiers.id}')));
+    final cible = tester.getCenter(
+      find.byKey(const ValueKey('case-peutEtreJamais')),
+    );
+    final geste = await tester.startGesture(depart);
+    await tester.pump(const Duration(milliseconds: 700));
+    for (var k = 1; k <= 10; k++) {
+      await geste.moveTo(Offset.lerp(depart, cible, k / 10)!);
+      await tester.pump(const Duration(milliseconds: 30));
+    }
+    await geste.up();
+    await attends(tester);
+    await tester.pumpAndSettle();
+    final apres = (await tester.runAsync(() => base.aFaire(papiers.id!)))!;
+    expect(apres.important, isFalse);
+    expect(apres.urgent, isFalse);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('case-peutEtreJamais')),
+        matching: find.text('Papiers'),
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('to-do : tirer une chose sur « Fait »', (tester) async {
     final papiers = (await tester.runAsync(
       () => base.enregistreAFaire(

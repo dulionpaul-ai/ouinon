@@ -132,6 +132,25 @@ class _TodoScreenState extends State<TodoScreen> {
     );
   }
 
+  /// Posée dans une autre case : Important et Urgent suivent la case.
+  Future<void> _changeCase(AFaire a, Case kase) async {
+    final (important, urgent) = switch (kase) {
+      Case.dabord => (true, true),
+      Case.aPlanifier => (true, false),
+      Case.viteFait => (false, true),
+      Case.peutEtreJamais => (false, false),
+    };
+    await widget.base.enregistreAFaire(
+      a.copie(important: important, urgent: urgent),
+    );
+    if (!mounted) return;
+    annonce(
+      context,
+      '« ${a.texte} » → ${kase.nom}',
+      annuler: () => widget.base.enregistreAFaire(a),
+    );
+  }
+
   void _nouvelle() => Navigator.push(
     context,
     MaterialPageRoute(
@@ -203,6 +222,7 @@ class _TodoScreenState extends State<TodoScreen> {
                         aujourdhui: _aujourdhui,
                         onTap: _ouvre,
                         onGlisse: (g) => setState(() => _glisse = g),
+                        onDeplace: _changeCase,
                       ),
                     ),
                   ),
@@ -254,12 +274,14 @@ class _Matrice extends StatelessWidget {
   final DateTime aujourdhui;
   final void Function(AFaire) onTap;
   final ValueChanged<bool> onGlisse;
+  final void Function(AFaire, Case) onDeplace;
 
   const _Matrice({
     required this.liste,
     required this.aujourdhui,
     required this.onTap,
     required this.onGlisse,
+    required this.onDeplace,
   });
 
   @override
@@ -273,6 +295,7 @@ class _Matrice extends StatelessWidget {
         ],
         onTap: onTap,
         onGlisse: onGlisse,
+        onDeplace: onDeplace,
       ),
     );
     return Column(
@@ -303,91 +326,101 @@ class _Matrice extends StatelessWidget {
   }
 }
 
+/// Une chose qu'on change de case (appui long, puis glisser) : un type à
+/// part, pour que seules les cases la reçoivent.
+class _ChangeCase {
+  final AFaire aFaire;
+
+  const _ChangeCase(this.aFaire);
+}
+
+/// Une case : toutes présentées pareil (Paul, 28/10/2026). Elle reçoit
+/// une chose d'une autre case et s'allume quand elle passe dessus.
 class _Case extends StatelessWidget {
   final Case kase;
   final List<AFaire> choses;
   final void Function(AFaire) onTap;
   final ValueChanged<bool> onGlisse;
+  final void Function(AFaire, Case) onDeplace;
 
   const _Case({
     required this.kase,
     required this.choses,
     required this.onTap,
     required this.onGlisse,
+    required this.onDeplace,
   });
 
   @override
   Widget build(BuildContext context) {
     final t = Teintes.de(context);
-    final dabord = kase == Case.dabord;
     final total = choses.fold(0, (s, a) => s + a.duree);
-    return Container(
-      key: ValueKey('case-${kase.name}'),
-      padding: const EdgeInsets.fromLTRB(10, 10, 10, 4),
-      decoration: BoxDecoration(
-        color: dabord ? t.accent.withValues(alpha: 0.06) : null,
-        border: Border.all(
-          color: dabord ? t.accent.withValues(alpha: 0.45) : t.trait,
-        ),
-        borderRadius: BorderRadius.circular(t.rayon),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Etiquette(
-            kase.nom,
-            couleur: dabord
-                ? t.accent
-                : kase == Case.peutEtreJamais
-                ? t.doux
-                : null,
-            // Combien de choses, et le temps qu'elles prennent.
-            detail: choses.isEmpty
-                ? null
-                : '${choses.length} · ${dureeFr(total)}',
+    return DragTarget<_ChangeCase>(
+      onWillAcceptWithDetails: (d) => !choses.contains(d.data.aFaire),
+      onAcceptWithDetails: (d) => onDeplace(d.data.aFaire, kase),
+      builder: (context, candidats, _) {
+        final dessus = candidats.isNotEmpty;
+        return AnimatedContainer(
+          key: ValueKey('case-${kase.name}'),
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.fromLTRB(10, 10, 10, 4),
+          decoration: BoxDecoration(
+            color: dessus ? t.accent.withValues(alpha: 0.12) : null,
+            border: Border.all(color: dessus ? t.accent : t.trait),
+            borderRadius: BorderRadius.circular(t.rayon),
           ),
-          Expanded(
-            child: choses.isEmpty
-                ? Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Text(
-                      kase.detail,
-                      style: TextStyle(color: t.doux, fontSize: 13),
-                    ),
-                  )
-                : ListView(
-                    padding: EdgeInsets.zero,
-                    children: [
-                      for (final a in choses)
-                        Apparition(
-                          key: ValueKey('todo-${a.id}'),
-                          child: _Chose(
-                            aFaire: a,
-                            jamais: kase == Case.peutEtreJamais,
-                            onTap: () => onTap(a),
-                            onGlisse: onGlisse,
-                          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Etiquette(
+                kase.nom,
+                // Combien de choses, et le temps qu'elles prennent.
+                detail: choses.isEmpty
+                    ? null
+                    : '${choses.length} · ${dureeFr(total)}',
+              ),
+              Expanded(
+                child: choses.isEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(
+                          kase.detail,
+                          style: TextStyle(color: t.doux, fontSize: 13),
                         ),
-                    ],
-                  ),
+                      )
+                    : ListView(
+                        padding: EdgeInsets.zero,
+                        children: [
+                          for (final a in choses)
+                            Apparition(
+                              key: ValueKey('todo-${a.id}'),
+                              child: _Chose(
+                                aFaire: a,
+                                onTap: () => onTap(a),
+                                onGlisse: onGlisse,
+                              ),
+                            ),
+                        ],
+                      ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
 
 /// Une chose : son nom, sa durée. Tirée vers la droite, elle part vers
-/// le bandeau « Aujourd'hui » ; touchée, elle s'ouvre.
+/// les bandeaux ; touchée, elle s'ouvre ; appui long, puis glisser : elle
+/// change de case.
 class _Chose extends StatelessWidget {
   final AFaire aFaire;
-  final bool jamais;
   final VoidCallback onTap;
   final ValueChanged<bool> onGlisse;
 
   const _Chose({
     required this.aFaire,
-    required this.jamais,
     required this.onTap,
     required this.onGlisse,
   });
@@ -410,11 +443,7 @@ class _Chose extends StatelessWidget {
           children: [
             Text(
               a.texte,
-              style: TextStyle(
-                color: jamais ? t.doux : t.texte,
-                fontSize: 13.5,
-                height: 1.2,
-              ),
+              style: TextStyle(color: t.texte, fontSize: 13.5, height: 1.2),
             ),
             const SizedBox(height: 1),
             Text(
@@ -458,7 +487,33 @@ class _Chose extends StatelessWidget {
         ),
       ),
       childWhenDragging: Opacity(opacity: 0.25, child: ligne),
-      child: ligne,
+      // Appui long (demande de Paul du 28/10/2026) : la chose se soulève,
+      // on la pose dans une autre case ; Important et Urgent suivent.
+      child: LongPressDraggable<_ChangeCase>(
+        data: _ChangeCase(a),
+        feedback: Material(
+          type: MaterialType.transparency,
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 200),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: t.accent.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(t.rayon),
+              border: Border.all(color: t.accent),
+            ),
+            child: Text(
+              a.texte,
+              style: TextStyle(
+                color: t.texte,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+        childWhenDragging: Opacity(opacity: 0.25, child: ligne),
+        child: ligne,
+      ),
     );
   }
 }

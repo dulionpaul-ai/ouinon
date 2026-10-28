@@ -376,20 +376,16 @@ class _PageJourState extends State<_PageJour>
                                     : 'Tout est casé.',
                                 style: TextStyle(color: t.doux, fontSize: 14),
                               )
-                            : Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: [
-                                  for (final a in aPlacer)
-                                    Apparition(
-                                      key: ValueKey('acaser-${a.id}'),
-                                      anime: !(_vues?.contains(a.id) ?? true),
-                                      child: _Puce(
-                                        aFaire: a,
-                                        onTap: () => _case(a),
-                                      ),
-                                    ),
-                                ],
+                            : _Panier(
+                                choses: aPlacer,
+                                puce: (a) => Apparition(
+                                  key: ValueKey('acaser-${a.id}'),
+                                  anime: !(_vues?.contains(a.id) ?? true),
+                                  child: _Puce(
+                                    aFaire: a,
+                                    onTap: () => _case(a),
+                                  ),
+                                ),
                               ),
                       ),
                     ],
@@ -449,20 +445,21 @@ class _Puce extends StatelessWidget {
     final t = Teintes.de(context);
     final a = aFaire;
     Widget puce({bool levee = false}) => Container(
-      height: 40,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      height: 42,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
         color: levee ? t.accent.withValues(alpha: 0.2) : t.carte,
         border: Border.all(color: levee ? t.accent : t.barre),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(t.rayon + 4),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          Flexible(
+          Expanded(
             child: Text(
               a.texte,
-              style: TextStyle(color: t.texte, fontSize: 14),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: t.texte, fontSize: 13, height: 1.15),
             ),
           ),
           const SizedBox(width: 8),
@@ -470,7 +467,7 @@ class _Puce extends StatelessWidget {
             dureeFr(a.duree).replaceAll(' ', ' '),
             style: TextStyle(
               fontFamily: AppTheme.policeMono,
-              fontSize: 11,
+              fontSize: 10,
               color: t.doux,
             ),
           ),
@@ -481,12 +478,69 @@ class _Puce extends StatelessWidget {
       data: a,
       feedback: Material(
         type: MaterialType.transparency,
-        child: puce(levee: true),
+        child: SizedBox(width: 170, child: puce(levee: true)),
       ),
       childWhenDragging: Opacity(opacity: 0.3, child: puce()),
       child: GestureDetector(onTap: onTap, child: puce()),
     );
   }
+}
+
+/// Le panier (« À placer ») : deux choses par ligne, deux lignes visibles
+/// au plus ; au-delà, un petit défilement à l'intérieur, avec sa barre
+/// (Paul, 28/10/2026). Le reste de l'écran ne défile jamais.
+class _Panier extends StatefulWidget {
+  final List<AFaire> choses;
+  final Widget Function(AFaire) puce;
+
+  const _Panier({required this.choses, required this.puce});
+
+  @override
+  State<_Panier> createState() => _PanierState();
+}
+
+class _PanierState extends State<_Panier> {
+  final _defile = ScrollController();
+
+  static const _hauteur = 42.0;
+  static const _ecart = 6.0;
+
+  @override
+  void dispose() {
+    _defile.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, c) {
+      final largeur = (c.maxWidth - _ecart - 10) / 2;
+      final grille = Wrap(
+        spacing: _ecart,
+        runSpacing: _ecart,
+        children: [
+          for (final a in widget.choses)
+            SizedBox(width: largeur, child: widget.puce(a)),
+        ],
+      );
+      // Quatre choses ou moins : tout se voit, pas de défilement.
+      if (widget.choses.length <= 4) return grille;
+      return ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 2 * _hauteur + _ecart),
+        child: Scrollbar(
+          controller: _defile,
+          thumbVisibility: true,
+          interactive: true,
+          child: SingleChildScrollView(
+            key: const ValueKey('panier'),
+            controller: _defile,
+            padding: const EdgeInsets.only(right: 10),
+            child: grille,
+          ),
+        ),
+      );
+    },
+  );
 }
 
 /// Deux points en haut : aujourd'hui, demain. Le point plein est la page

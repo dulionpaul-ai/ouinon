@@ -507,3 +507,7 @@ demain »).
   pages), les pages gardées en mémoire (rien ne se redessine en
   glissant), les choses à placer déjà là ne s'animent plus.
 - 28/10/2026 : les deux points Aujourd'hui / Demain centrés sur la page, sous l'en-tête.
+- 28/10/2026 : le panier (« À placer ») sur deux colonnes, puces
+  compactes (nom sur deux lignes au plus), deux lignes visibles ; au-delà
+  de quatre choses, un mini défilement intérieur avec sa barre.
+

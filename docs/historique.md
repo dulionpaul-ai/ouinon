@@ -428,3 +428,10 @@ demain »).
   à droite, fond noir de l'appli) ; texte un peu plus petit dans les
   cases de la to-do (28/10/2026).
 
+## Après l'APK n° 28 : retours de Paul
+
+- 28/10/2026 : dans le planning d'Aujourd'hui, glisser un bloc le déplace
+  sans jamais changer sa durée (la poignée de durée, qui se déclenchait
+  sur les petits blocs, est retirée). Toucher un bloc ouvre sa fiche
+  (heure, durée, texte) ; un rond à gauche du bloc sert à cocher « fait ».
+

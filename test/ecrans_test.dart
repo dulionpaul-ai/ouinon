@@ -555,8 +555,8 @@ void main() {
       expect(prevues.single.texte, 'Papiers');
       expect(prevues.single.debut, greaterThanOrEqualTo(12 * 60));
       expect(find.text('Tout est casé.'), findsOneWidget);
-      // Toucher le bloc : fait.
-      await tester.tap(find.text('Papiers'));
+      // Toucher le rond du bloc : fait.
+      await tester.tap(find.byKey(ValueKey('coche-${prevues.single.id}')));
       await attends(tester);
       expect(
         (await tester.runAsync(() => base.tache(prevues.single.id!)))!.etat,
@@ -564,6 +564,38 @@ void main() {
       );
       expect((await tester.runAsync(base.liste))!, isEmpty);
       expect(notifs.retireesTaches, [prevues.single.id]);
+    });
+
+    testWidgets('Aujourd\'hui : glisser un bloc le déplace sans changer sa '
+        'durée ; le toucher ouvre sa fiche', (tester) async {
+      final papiers = (await tester.runAsync(
+        () => base.enregistreTache(
+          Tache(jour: jeudi, debut: 14 * 60, duree: 60, texte: 'Papiers'),
+        ),
+      ))!;
+      await ouvre(tester, JourneeScreen(base: base, maintenant: midi));
+      await tester.pumpAndSettle();
+      final grille = tester.widget<GrilleJournee>(find.byType(GrilleJournee));
+      // Pris tout en bas du bloc, tiré de deux heures vers le bas.
+      final bloc = find.text('Papiers');
+      final bas = tester.getBottomLeft(
+        find.byKey(ValueKey('coche-${papiers.id}')),
+      );
+      final depart = Offset(bas.dx + 120, bas.dy - 3);
+      final geste = await tester.startGesture(depart);
+      for (var i = 1; i <= 10; i++) {
+        await geste.moveTo(depart + Offset(0, 2 * grille.heure * i / 10));
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      await geste.up();
+      await attends(tester);
+      final apres = (await tester.runAsync(() => base.tache(papiers.id!)))!;
+      expect(apres.duree, 60);
+      expect(apres.debut, 16 * 60);
+      await tester.pumpAndSettle();
+      await tester.tap(bloc);
+      await tester.pumpAndSettle();
+      expect(find.byType(EditionTacheScreen), findsOneWidget);
     });
 
     testWidgets('Aujourd\'hui : glisser une chose sur une heure', (

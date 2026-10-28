@@ -23,9 +23,10 @@ import 'reglages_screen.dart';
 ///
 /// - Toucher une chose à placer la case au premier moment libre ; on peut
 ///   aussi la glisser sur une heure. « Caser pour moi » case tout.
-/// - Toucher un bloc le coche « fait » (le toucher encore le décoche).
-/// - Glisser un bloc le déplace (sans appui long) ; le glisser en haut,
-///   sur « À placer », lui enlève son heure.
+/// - Toucher le rond à gauche d'un bloc le coche « fait » (encore : le
+///   décoche) ; toucher le reste du bloc ouvre sa fiche.
+/// - Glisser un bloc le déplace, sans changer sa durée (sans appui
+///   long) ; le glisser en haut, sur « À placer », lui enlève son heure.
 /// - Toucher une heure vide : un rendez-vous à cette heure.
 ///
 /// Chaque geste a son animation, sa vibration et son « Annuler ».
@@ -212,6 +213,19 @@ class _JourneeScreenState extends State<JourneeScreen> {
     );
   }
 
+  /// Toucher un bloc : sa fiche (heure, durée, texte, supprimer).
+  void _ouvre(Tache tache) => Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => EditionTacheScreen(
+        base: widget.base,
+        tache: tache,
+        jour: _jour,
+        maintenant: widget.maintenant,
+      ),
+    ),
+  );
+
   void _rendezVousA(int debut) => Navigator.push(
     context,
     MaterialPageRoute(
@@ -344,9 +358,8 @@ class _JourneeScreenState extends State<JourneeScreen> {
                           onPoseAFaire: _pose,
                           onDeplace: (tache, debut) => widget.base
                               .enregistreTache(tache.copie(debut: debut)),
-                          onDuree: (tache, duree) => widget.base
-                              .enregistreTache(tache.copie(duree: duree)),
-                          onTapTache: _coche,
+                          onTapTache: _ouvre,
+                          onCocheTache: _coche,
                           onTapCreneau: (_) {},
                           onTapVide: _rendezVousA,
                         ),

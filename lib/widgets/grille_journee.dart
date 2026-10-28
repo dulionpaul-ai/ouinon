@@ -37,8 +37,11 @@ class GrilleJournee extends StatefulWidget {
 
   final void Function(AFaire a, int debut) onPoseAFaire;
   final void Function(Tache t, int debut) onDeplace;
-  final void Function(Tache t, int duree) onDuree;
   final void Function(Tache t) onTapTache;
+
+  /// Toucher le rond à gauche d'un bloc : fait, ou plus fait (sans rond
+  /// si nul).
+  final void Function(Tache t)? onCocheTache;
   final void Function(Creneau c) onTapCreneau;
   final void Function(int debut) onTapVide;
 
@@ -56,8 +59,8 @@ class GrilleJournee extends StatefulWidget {
     this.heure = hauteurHeure,
     required this.onPoseAFaire,
     required this.onDeplace,
-    required this.onDuree,
     required this.onTapTache,
+    this.onCocheTache,
     required this.onTapCreneau,
     required this.onTapVide,
     this.onGlisse,
@@ -73,9 +76,6 @@ class _GrilleJourneeState extends State<GrilleJournee> {
 
   /// Aperçu de l'endroit où tombera ce qu'on glisse.
   ({int debut, int duree, String texte})? _apercu;
-
-  /// Durée en train d'être tirée : id → minutes.
-  final _durees = <int, int>{};
 
   double _y(int minute) =>
       (minute - widget.heureDebut * 60) / 60 * widget.heure;
@@ -300,18 +300,24 @@ class _GrilleJourneeState extends State<GrilleJournee> {
   }
 
   Widget _positionne(Tache tache, (int, int) colonne, double largeur) {
-    final duree = _durees[tache.id] ?? tache.duree;
+    final duree = tache.duree;
     final (col, nb) = colonne;
     final l = largeur / nb;
     final hauteur = (duree / 60 * widget.heure).clamp(26.0, double.infinity);
-    final bloc = _BlocTacheGrille(tache: tache, duree: duree, hauteur: hauteur);
+    final bloc = _BlocTacheGrille(
+      tache: tache,
+      duree: duree,
+      hauteur: hauteur,
+      cochable: widget.onCocheTache != null,
+    );
     return Positioned(
       left: _largeurHeures + col * l,
       width: l - (nb > 1 ? 3 : 0),
       top: _y(tache.debut),
       height: hauteur,
       // Pas d'appui long (Paul, 26/10/2026) : le bloc suit le doigt dès
-      // qu'il bouge ; un simple toucher l'ouvre.
+      // qu'il bouge, et garde sa durée (Paul, 28/10/2026) ; un simple
+      // toucher l'ouvre.
       child: Draggable<Object>(
         data: tache,
         onDragUpdate: (d) => widget.onGlisse?.call(d.globalPosition),
@@ -343,45 +349,19 @@ class _GrilleJourneeState extends State<GrilleJournee> {
                 ),
               ),
             ),
-            // Tirer le bas : changer la durée.
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              height: 18,
-              child: GestureDetector(
-                key: ValueKey('duree-bloc-${tache.id}'),
-                behavior: HitTestBehavior.opaque,
-                onVerticalDragUpdate: (d) => setState(() {
-                  final actuelle =
-                      (_durees[tache.id] ?? tache.duree) +
-                      d.delta.dy / widget.heure * 60;
-                  _durees[tache.id!] = actuelle.round().clamp(15, 12 * 60);
-                }),
-                onVerticalDragEnd: (_) {
-                  final brute = _durees.remove(tache.id);
-                  if (brute == null) return;
-                  final arrondie = ((brute / 15).round() * 15).clamp(
-                    15,
-                    12 * 60,
-                  );
-                  setState(() {});
-                  if (arrondie != tache.duree) widget.onDuree(tache, arrondie);
-                },
-                child: Center(
-                  child: Container(
-                    // Trait caché sur les blocs courts (il cacherait le
-                    // texte) ; la poignée reste.
-                    width: hauteur < 40 ? 0 : 34,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.28),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
+            // Le rond à gauche : fait, ou plus fait.
+            if (widget.onCocheTache case final coche?)
+              Positioned(
+                left: 0,
+                top: 0,
+                bottom: 0,
+                width: 40,
+                child: GestureDetector(
+                  key: ValueKey('coche-${tache.id}'),
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => coche(tache),
                 ),
               ),
-            ),
           ],
         ),
       ),
@@ -396,10 +376,14 @@ class _BlocTacheGrille extends StatelessWidget {
   final int duree;
   final double hauteur;
 
+  /// Avec un rond à cocher à gauche.
+  final bool cochable;
+
   const _BlocTacheGrille({
     required this.tache,
     required this.duree,
     required this.hauteur,
+    this.cochable = false,
   });
 
   @override
@@ -440,6 +424,13 @@ class _BlocTacheGrille extends StatelessWidget {
                   size: 16,
                   color: t.accent,
                 ),
+              ),
+              const SizedBox(width: 5),
+            ] else if (cochable) ...[
+              Icon(
+                Icons.radio_button_unchecked_rounded,
+                size: 16,
+                color: t.doux,
               ),
               const SizedBox(width: 5),
             ],

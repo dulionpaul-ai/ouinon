@@ -267,7 +267,7 @@ class _ReglagesScreenState extends State<ReglagesScreen>
               cle: const ValueKey('journee'),
               titre: 'Ta journée',
               valeur: '${heureFr(_journee.debut)} – ${heureFr(_journee.fin)}',
-              sousTitre: '« Caser pour moi » place entre ces heures.',
+              sousTitre: 'Une chose touchée dans Aujourd\'hui se case entre ces heures.',
               onTap: _choisitJournee,
             ),
             _Ligne(

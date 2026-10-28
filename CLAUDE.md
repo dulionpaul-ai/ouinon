@@ -9,8 +9,8 @@ courbes, anneaux, barres, calendrier, et liens trouvés seuls entre
 questions (courbes qui se ressemblent, décalées de 0 à 3 jours).
 Deuxième partie, la to-do : une liste (temps de chaque chose, Important
 et Urgent) ; on tire ce qu'on fait aujourd'hui dans l'onglet
-Aujourd'hui, puis on le case dans la journée (toucher, glisser ou
-« Caser pour moi ») ; créneaux fixes grisés (« Enfants 17 h – 23 h ») ;
+Aujourd'hui, puis on le case dans la journée (toucher ou glisser), ou
+demain (on glisse l'onglet Aujourd'hui vers demain) ; créneaux fixes grisés (« Enfants 17 h – 23 h ») ;
 une seule notification par chose, à son heure (« C'est l'heure »), avec
 deux boutons : Pas fait · Fait (Paul, 28/10/2026).
 Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
@@ -97,7 +97,7 @@ Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
 - Trois onglets, dans cet ordre (Paul, 28/10/2026) : To-do (matrice
   d'Eisenhower ; on tire une chose vers la droite, sur le bandeau
   « Aujourd'hui », ou sur « Fait » si elle est déjà faite), Aujourd'hui (ce qui est à placer, puis le planning
-  de la journée sans défilement), Questions (celles du jour, « + » pour
+  de la journée sans défilement ; glisser pour passer à demain), Questions (celles du jour, « + » pour
   en créer). Stats et tout le reste dans les Réglages (roue en haut).
   Maquette validée : https://claude.ai/artifact/RZnQ8gh7CKAG8RZALSa8AQ.
   Le jeu « Synchro » a été abandonné (28/10/2026).

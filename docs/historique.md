@@ -498,3 +498,8 @@ demain »).
 - APK n° 33 (1.0.0+33) : cases identiques, changer de case par appui long.
 - 28/10/2026 : to-do, toucher le bandeau « Aujourd'hui » ouvre l'onglet Aujourd'hui.
 - 28/10/2026 : le planning d'Aujourd'hui va toujours jusqu'à minuit (dernière ligne : 23 h), sans défiler.
+- 28/10/2026 : « Caser pour moi » retiré (Paul ne s'en sert pas).
+  L'onglet Aujourd'hui a deux pages : aujourd'hui et demain (glisser, ou
+  toucher les deux points en haut) ; « À placer » est le même bac pour
+  les deux jours. APK n° 34 (1.0.0+34).
+

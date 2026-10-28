@@ -816,6 +816,37 @@ void main() {
       expect(find.text('Enfants'), findsOneWidget);
     });
 
+    testWidgets('Aujourd\'hui : glisser vers demain et y caser une chose', (
+      tester,
+    ) async {
+      final papiers = (await tester.runAsync(
+        () => base.enregistreAFaire(
+          AFaire(
+            texte: 'Papiers',
+            duree: 60,
+            creeLe: jeudi,
+            choisiePour: jeudi,
+          ),
+        ),
+      ))!;
+      await ouvre(tester, JourneeScreen(base: base, maintenant: midi));
+      await tester.pumpAndSettle();
+      await tester.fling(find.byType(PageView), const Offset(-300, 0), 1000);
+      await tester.pumpAndSettle();
+      await attends(tester);
+      await tester.pumpAndSettle();
+      expect(find.text('Demain'), findsOneWidget);
+      // Le même bac « À placer » : la chose se case demain.
+      await tester.tap(
+        find.byKey(ValueKey('acaser-${papiers.id}')).hitTestable(),
+      );
+      await attends(tester);
+      final demain = (await tester.runAsync(() => base.tachesDu(vendredi)))!;
+      expect(demain.single.texte, 'Papiers');
+      expect(demain.single.debut, 8 * 60);
+      expect((await tester.runAsync(() => base.tachesDu(jeudi)))!, isEmpty);
+    });
+
     testWidgets('le rappel du soir ouvre la to-do', (tester) async {
       await ouvre(tester, AccueilScreen(maintenant: soir20h));
       notifs.ouverture.value = Notifications.preparer;
@@ -849,7 +880,7 @@ void main() {
       );
       await ouvre(tester, JourneeScreen(base: base, maintenant: midi));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Caser pour moi'));
+      await tester.tap(find.byKey(const ValueKey('acaser-1')));
       await attends(tester);
       final prevues = (await tester.runAsync(() => base.tachesDu(jeudi)))!;
       expect(

@@ -154,7 +154,11 @@ class _AccueilScreenState extends State<AccueilScreen>
     final jour = jourDe(widget.maintenant());
     final liste = await base.liste();
     final taches = await base.tachesDu(jour);
-    final placees = {for (final t in taches) t.listeId};
+    // Placée aujourd'hui ou déjà demain : elle n'attend plus.
+    final placees = {
+      for (final t in taches) t.listeId,
+      ...(await base.placees(jour)).keys,
+    };
     final n =
         taches.where((t) => t.etat == null).length +
         liste

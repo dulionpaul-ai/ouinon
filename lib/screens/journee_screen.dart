@@ -20,10 +20,12 @@ import 'reglages_screen.dart';
 /// Onglet 2, Aujourd'hui (maquette validée par Paul le 28/10/2026), en
 /// vert d'eau : en haut, ce qui est arrivé de la to-do et reste « à
 /// placer » ; en dessous, le planning de la journée, en entier dans
-/// l'écran (jamais de défilement).
+/// l'écran (jamais de défilement). On glisse vers la gauche pour passer
+/// à demain et l'organiser déjà (Paul, 28/10/2026) ; « À placer » est
+/// le même bac pour les deux jours.
 ///
-/// - Toucher une chose à placer la case au premier moment libre ; on peut
-///   aussi la glisser sur une heure. « Caser pour moi » case tout.
+/// - Toucher une chose à placer la case au premier moment libre de ce
+///   jour-là ; on peut aussi la glisser sur une heure.
 /// - Le rond à gauche d'un bloc : un toucher « fait » (coche vert d'eau),
 ///   un autre « pas fait » (croix orange), un autre « sans réponse » ;
 ///   toucher le reste du bloc ouvre sa fiche.
@@ -50,7 +52,65 @@ class JourneeScreen extends StatefulWidget {
 }
 
 class _JourneeScreenState extends State<JourneeScreen> {
+  final _pages = PageController();
+  int _page = 0;
+
+  @override
+  void dispose() {
+    _pages.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => PageView(
+    controller: _pages,
+    onPageChanged: (p) => setState(() => _page = p),
+    children: [
+      for (final decalage in [0, 1])
+        _PageJour(
+          key: ValueKey('jour-$decalage'),
+          base: widget.base,
+          maintenant: widget.maintenant,
+          decalage: decalage,
+          page: _page,
+          onPage: (p) => _pages.animateToPage(
+            p,
+            duration: const Duration(milliseconds: 350),
+            curve: Curves.easeOutCubic,
+          ),
+        ),
+    ],
+  );
+}
+
+/// Une page : aujourd'hui ([decalage] 0) ou demain (1).
+class _PageJour extends StatefulWidget {
+  final Base base;
+  final DateTime Function() maintenant;
+  final int decalage;
+
+  /// La page montrée, et comment en changer (les deux points du haut).
+  final int page;
+  final ValueChanged<int> onPage;
+
+  const _PageJour({
+    super.key,
+    required this.base,
+    required this.maintenant,
+    required this.decalage,
+    required this.page,
+    required this.onPage,
+  });
+
+  @override
+  State<_PageJour> createState() => _PageJourState();
+}
+
+class _PageJourState extends State<_PageJour> {
   List<AFaire> _liste = const [];
+
+  /// Les choses de la to-do déjà placées, aujourd'hui ou demain.
+  Set<int> _placees = const {};
   List<Tache> _taches = const [];
   List<Creneau> _creneaux = const [];
   ({int debut, int fin}) _journee = (
@@ -58,7 +118,8 @@ class _JourneeScreenState extends State<JourneeScreen> {
     fin: Preferences.finJourneeParDefaut,
   );
 
-  DateTime get _jour => jourDe(widget.maintenant());
+  DateTime get _aujourdhui => jourDe(widget.maintenant());
+  DateTime get _jour => ajouteJours(_aujourdhui, widget.decalage);
 
   @override
   void initState() {
@@ -75,22 +136,29 @@ class _JourneeScreenState extends State<JourneeScreen> {
 
   Future<void> _recharge() async {
     final liste = await widget.base.liste();
+    final placees = await widget.base.placees(_aujourdhui);
     final taches = await widget.base.tachesDu(_jour);
     final creneaux = await widget.base.creneauxDu(_jour);
     final journee = await Preferences.journee();
     if (!mounted) return;
     setState(() {
       _liste = liste;
+      _placees = placees.keys.toSet();
       _taches = taches;
       _creneaux = creneaux;
       _journee = journee;
     });
   }
 
-  /// Arrivé de la to-do, pas encore à une heure.
+  /// Arrivé de la to-do (pour aujourd'hui ou plus tard), pas encore à
+  /// une heure, ni aujourd'hui ni demain : le même bac sur les deux pages.
   List<AFaire> get _aPlacer => [
     for (final a in ordreDePlacement(_liste, _jour, avecJamais: true))
-      if (a.choisiePour == _jour && !_taches.any((t) => t.listeId == a.id)) a,
+      if (a.choisiePour != null &&
+          !a.choisiePour!.isBefore(_aujourdhui) &&
+          !_placees.contains(a.id) &&
+          !_taches.any((t) => t.listeId == a.id))
+        a,
   ];
 
   Tache _tache(AFaire a, int debut) => Tache(
@@ -131,55 +199,14 @@ class _JourneeScreenState extends State<JourneeScreen> {
       );
       debut = p.placees.isNotEmpty
           ? p.placees.first.debut
+          : widget.decalage > 0
+          ? _journee.debut
           : (((now.hour * 60 + now.minute) + 14) ~/ 15 * 15).clamp(
               0,
               24 * 60 - 15,
             );
     }
     await _pose(a, debut);
-  }
-
-  /// « Caser pour moi » : les heures imposées d'abord, puis le reste au
-  /// premier moment libre ; dit ce qui ne rentre pas.
-  Future<void> _caseTout() async {
-    final aPlacer = _aPlacer;
-    final posees = <Tache>[];
-    for (final a in aPlacer) {
-      if (a.heure != null) {
-        posees.add(await widget.base.enregistreTache(_tache(a, a.heure!)));
-      }
-    }
-    final taches = await widget.base.tachesDu(_jour);
-    final p = remplitJournee(
-      jour: _jour,
-      prevues: taches,
-      aPlacer: [
-        for (final a in aPlacer)
-          if (a.heure == null) a,
-      ],
-      debutJournee: _journee.debut,
-      finJournee: _journee.fin,
-      maintenant: widget.maintenant(),
-      creneaux: _creneaux,
-      avecJamais: true,
-    );
-    for (final t in p.placees) {
-      posees.add(await widget.base.enregistreTache(t));
-    }
-    if (!mounted) return;
-    annonce(
-      context,
-      p.horsJournee.isEmpty
-          ? 'Journée casée'
-          : 'Ne rentre pas : ${p.horsJournee.map((a) => a.texte).join(', ')}',
-      annuler: posees.isEmpty
-          ? null
-          : () async {
-              for (final t in posees) {
-                await widget.base.supprimeTache(t.id!);
-              }
-            },
-    );
   }
 
   /// Le rond d'un bloc, à chaque toucher : fait, puis pas fait, puis
@@ -286,8 +313,9 @@ class _JourneeScreenState extends State<JourneeScreen> {
                     ? dateCourte(_jour)
                     : '${dateCourte(_jour)} · $nbReste à faire · '
                           '${dureeFr(resteMin)}',
-                titre: 'Aujourd\'hui',
+                titre: widget.decalage == 0 ? 'Aujourd\'hui' : 'Demain',
                 actions: [
+                  _Points(page: widget.page, onPage: widget.onPage),
                   BoutonRond(
                     icone: Icons.tune_rounded,
                     aide: 'Réglages et stats',
@@ -328,8 +356,8 @@ class _JourneeScreenState extends State<JourneeScreen> {
                         child: aPlacer.isEmpty
                             ? Text(
                                 _taches.isEmpty
-                                    ? 'Rien pour aujourd\'hui : glisse des '
-                                          'choses depuis la to-do.'
+                                    ? 'Rien à placer : glisse des choses '
+                                          'depuis la to-do.'
                                     : 'Tout est casé.',
                                 style: TextStyle(color: t.doux, fontSize: 14),
                               )
@@ -345,7 +373,6 @@ class _JourneeScreenState extends State<JourneeScreen> {
                                         onTap: () => _case(a),
                                       ),
                                     ),
-                                  _BoutonCaser(onTap: _caseTout),
                                 ],
                               ),
                       ),
@@ -369,7 +396,9 @@ class _JourneeScreenState extends State<JourneeScreen> {
                           heureDebut: heureDebut,
                           heureFin: heureFin,
                           heure: h,
-                          maintenant: now.hour * 60 + now.minute,
+                          maintenant: widget.decalage == 0
+                              ? now.hour * 60 + now.minute
+                              : null,
                           onPoseAFaire: _pose,
                           onDeplace: (tache, debut) => widget.base
                               .enregistreTache(tache.copie(debut: debut)),
@@ -444,43 +473,46 @@ class _Puce extends StatelessWidget {
   }
 }
 
-class _BoutonCaser extends StatelessWidget {
-  final VoidCallback onTap;
+/// Deux points en haut : aujourd'hui, demain. Le point plein est la page
+/// montrée ; toucher l'autre y va (on peut aussi glisser).
+class _Points extends StatelessWidget {
+  final int page;
+  final ValueChanged<int> onPage;
 
-  const _BoutonCaser({required this.onTap});
+  const _Points({required this.page, required this.onPage});
 
   @override
   Widget build(BuildContext context) {
     final t = Teintes.de(context);
-    return Semantics(
-      button: true,
-      child: GestureDetector(
-        key: const ValueKey('caser-pour-moi'),
-        onTap: onTap,
-        child: Container(
-          height: 40,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            color: t.accent.withValues(alpha: 0.14),
-            border: Border.all(color: t.accent),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.auto_awesome_rounded, size: 16, color: t.accent),
-              const SizedBox(width: 6),
-              Text(
-                'Caser pour moi',
-                style: TextStyle(
-                  color: t.accent,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+    return SizedBox(
+      height: 44,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final (i, nom) in const ['Aujourd\'hui', 'Demain'].indexed)
+            Semantics(
+              button: true,
+              selected: i == page,
+              label: nom,
+              child: GestureDetector(
+                key: ValueKey('point-$i'),
+                behavior: HitTestBehavior.opaque,
+                onTap: () => onPage(i),
+                child: Padding(
+                  padding: const EdgeInsets.all(5),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    width: i == page ? 18 : 7,
+                    height: 7,
+                    decoration: BoxDecoration(
+                      color: i == page ? t.accent : t.barre,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
                 ),
               ),
-            ],
-          ),
-        ),
+            ),
+        ],
       ),
     );
   }

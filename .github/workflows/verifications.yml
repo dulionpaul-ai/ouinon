@@ -3,7 +3,10 @@
 name: Vérifications
 
 on:
+  # Seulement sur main : le même code envoyé sur la branche de travail ne
+  # repasse pas les vérifications (une seule alerte par envoi).
   push:
+    branches: [main]
     paths-ignore:
       - "docs/**"
       - "**.md"

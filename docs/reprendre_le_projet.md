@@ -186,3 +186,10 @@ Voir `docs/plan_action.md`. En bref :
    retard : piste suivante, l'économie de batterie de Samsung.
 2. Quelques semaines de vraies réponses, puis ajuster les stats.
 3. Plus tard, avec son accord : iPhone, sauvegarde, stores.
+
+## Avant chaque envoi sur GitHub
+
+Lancer la même vérification que GitHub, sinon Paul reçoit un e-mail
+« failed » : `dart format --output=none --set-exit-if-changed lib test`,
+`flutter analyze`, `flutter test test`. Les vérifications ne tournent que
+sur `main` (28/10/2026).

@@ -11,25 +11,18 @@ part sur internet.
 
 ## Code (`lib/`)
 
-Depuis l'APK n° 24, c'est de nouveau l'appli complète (reprise de
-l'APK n° 21), au style Orbite. Mis à jour le 27/10/2026 (APK n° 27).
-
 | Fichier | Contenu |
 |---|---|
-| `screens/accueil_screen.dart` | La coque : bandeau du jeu en haut, pages au milieu (gardées en mémoire, arrivée en glissant), barre du bas : Réserve (to-do), Missions (aujourd'hui), Analyse (questions et stats), Plan de vol (demain). Reprogramme les notifications. |
-| `widgets/bandeau_jeu.dart` | Le jeu « Synchro », étape 1 : niveau, stade, barre de points en segments, anneau de synchro du jour, points du jour ; « +N » qui s'envole ; écran du niveau suivant (`NiveauSuivant`, une fois par niveau) ; détail des points au toucher. |
-| `utils/jeu.dart` | Calcul pur des points (`bilanJeu`) : rien n'est stocké, tout se recalcule depuis l'historique (choses faites, réponses, plans validés). Niveaux, stades, synchro, séries. Règles dans `docs/jeu.md`. |
-| `data/preferences.dart` | Réglages ; `PrefsJeu` : soirs où le plan de vol a été validé, dernier niveau fêté. |
-| `screens/todo_screen.dart` | La réserve en 4 cases ; tirer une chose vers la languette de droite la case aujourd'hui. |
-| `screens/aujourdhui_screen.dart` | Missions du jour (avec leurs points), puis les questions. |
-| `screens/stats_screen.dart`, `groupe_screen.dart`, `fiche_question_screen.dart` | Analyse : questions, groupes, courbes, liens. |
-| `screens/preparer_screen.dart` | Plan de vol : la journée de demain sans défilement ; « Valider demain » compte pour le jeu. |
-| `screens/edition_a_faire_screen.dart` | Nouvelle chose : doublons signalés, micro pour dicter. |
-| `data/base.dart` | Base `ouinon.sqlite` (version 6) : questions (avec groupe), réponses, planning, liste, créneaux. |
-| `data/notifications.dart` | Questions et planning ; réponse par bouton, même appli fermée. |
-| `utils/` | Planification, familles (groupes), recherche, dictée, courbes, stats, dates. |
+| `main.dart` | L'appli : thème, français, écran « Mes questions ». |
+| `theme/theme.dart` | Thème clair « pas IA » : papier, encre, bleu d'encre (`Couleurs`). |
+| `screens/questions_screen.dart` | Écran 1 : la liste (texte, heure · jours, réponses ; « En pause » sans jour), « + », bandeau si l'heure pile n'est pas autorisée, numéro de l'APK en bas. Demande les notifications à la première ouverture ; reprogramme à l'ouverture, au retour et à chaque changement. |
+| `screens/question_screen.dart` | Créer ou modifier : texte, réponses (meilleure, « entre les deux » facultative, moins bonne), heure (cadran), jours (aucun par défaut, raccourcis), supprimer. De 3 à 2 réponses : confirmation, conversion de l'historique. |
+| `data/base.dart` | Base `ouinon.sqlite` (version 5), gardée telle quelle : questions, réponses ; les tables du planning et de la liste restent mais ne servent plus. Créée vide au premier lancement. |
+| `data/notifications.dart` | Notifications des questions seulement ; réponse par bouton (même appli fermée) ; une notification dure jusqu'à la suivante de la même question. |
+| `utils/planification.dart` | Ce qu'il faut programmer (14 jours d'avance), `prochaineFois`, durée d'affichage. |
+| `models/`, `utils/jour.dart`, `utils/date_fr.dart`, `utils/stats.dart`, `utils/version.dart` | Modèles, dates, textes français, version. |
 
-`ancien/` : l'appli à l'APK n° 22, mise de côté.
+`ancien/` : l'appli complète à l'APK n° 22, mise de côté.
 
 ## Vérifications et compilation
 

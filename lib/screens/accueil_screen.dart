@@ -6,7 +6,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../data/base.dart';
 import '../data/notifications.dart';
 import '../utils/jour.dart';
-import '../widgets/bandeau_jeu.dart';
 import '../widgets/rond.dart';
 import 'aujourdhui_screen.dart';
 import 'preparer_screen.dart';
@@ -15,10 +14,9 @@ import 'stats_screen.dart';
 import 'todo_screen.dart';
 
 /// L'appli complète, style Orbite (Paul, 27/10/2026) : un bandeau en bas
-/// mène à toutes les pages, dans cet ordre, aux noms du jeu « Synchro » :
-/// Réserve (la to-do), Missions (aujourd'hui), Analyse (questions et
-/// stats), Plan de vol (placer la journée de demain). En haut, le bandeau
-/// du jeu. Changer de page la fait arriver en glissant.
+/// mène à toutes les pages, dans cet ordre : To-do, Aujourd'hui, Suivi
+/// (questions et stats), Demain (placer la journée de demain). Plus de
+/// rôles ni d'ascenseur. Changer de page la fait arriver en glissant.
 ///
 /// Reprogramme les notifications à l'ouverture, au retour dans l'appli et
 /// après chaque modification. Le rappel du soir ouvre « Demain ».
@@ -222,62 +220,42 @@ class _AccueilScreenState extends State<AccueilScreen>
     return Scaffold(
       // Chaque changement de page la fait arriver : elle glisse du côté
       // de l'onglet touché et s'éclaire.
-      body: Column(
-        children: [
-          // Le jeu « Synchro », en haut de chaque page.
-          SafeArea(
-            bottom: false,
-            child: BandeauJeu(base: base, maintenant: widget.maintenant),
-          ),
-          Expanded(
-            // Le contexte du corps : il compte la barre du bas.
-            child: Builder(
-              builder: (context) => MediaQuery.removePadding(
-                context: context,
-                removeTop: true,
-                child: _pages(base, jourDemain),
-              ),
+      body: AnimatedBuilder(
+        animation: _arrivee,
+        builder: (context, enfant) {
+          final v = Curves.easeOutCubic.transform(_arrivee.value);
+          return Opacity(
+            opacity: 0.25 + 0.75 * v,
+            child: Transform.translate(
+              offset: Offset(_sens * 36 * (1 - v), 0),
+              child: enfant,
             ),
-          ),
-        ],
+          );
+        },
+        child: IndexedStack(
+          // Toutes les pages restent dans l'arbre : passer de l'une à
+          // l'autre ne fait rien perdre.
+          index: _onglet,
+          children: [
+            TodoScreen(base: base, maintenant: widget.maintenant),
+            AujourdhuiScreen(base: base, maintenant: widget.maintenant),
+            StatsScreen(base: base),
+            PreparerScreen(
+              key: ValueKey('demain-${cleJour(jourDemain)}'),
+              base: base,
+              jour: jourDemain,
+              maintenant: widget.maintenant,
+              onglet: true,
+            ),
+          ],
+        ),
       ),
       extendBody: true,
       bottomNavigationBar: BarreOnglets(
         index: _onglet,
-        libelles: const ['Réserve', 'Missions', 'Analyse', 'Plan de vol'],
+        libelles: const ['To-do', 'Aujourd\'hui', 'Suivi', 'Demain'],
         onChoix: _va,
       ),
     );
   }
-
-  Widget _pages(Base base, DateTime jourDemain) => AnimatedBuilder(
-    animation: _arrivee,
-    builder: (context, enfant) {
-      final v = Curves.easeOutCubic.transform(_arrivee.value);
-      return Opacity(
-        opacity: 0.25 + 0.75 * v,
-        child: Transform.translate(
-          offset: Offset(_sens * 36 * (1 - v), 0),
-          child: enfant,
-        ),
-      );
-    },
-    child: IndexedStack(
-      // Toutes les pages restent dans l'arbre : passer de l'une à
-      // l'autre ne fait rien perdre.
-      index: _onglet,
-      children: [
-        TodoScreen(base: base, maintenant: widget.maintenant),
-        AujourdhuiScreen(base: base, maintenant: widget.maintenant),
-        StatsScreen(base: base),
-        PreparerScreen(
-          key: ValueKey('demain-${cleJour(jourDemain)}'),
-          base: base,
-          jour: jourDemain,
-          maintenant: widget.maintenant,
-          onglet: true,
-        ),
-      ],
-    ),
-  );
 }

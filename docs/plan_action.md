@@ -76,11 +76,6 @@ fait, version par version : `docs/historique.md`.
    corrections.
 11. [ ] Plus tard, avec l'accord de Paul : iPhone (TestFlight), sauvegarde,
    fiches Play Store et App Store.
-12. [ ] Le jeu « Synchro » (`docs/jeu.md`, validé le 27/10/2026) :
-   [x] étape 1, les points, le bandeau et les niveaux (APK n° 27) ;
-   [ ] étape 2, la page « Unité » (personnage, stade, jauges) ;
-   [ ] étape 3, défis du jour et insignes ;
-   [ ] étape 4, implants, cinématiques, prologue et chapitres.
 
 ## Relecture du plan (22/10/2026) : risques et corrections
 

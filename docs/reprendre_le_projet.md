@@ -3,13 +3,14 @@
 À lire en premier dans une nouvelle session Claude (avec `CLAUDE.md`).
 Mis à jour le 27/10/2026.
 
-## Reprendre ici (27/10/2026)
+## Reprendre ici (28/10/2026)
 
-- Appli complète au style Orbite, avec le jeu « Synchro » (`docs/jeu.md`,
-  validé par Paul). Étape 1 faite (points, bandeau, niveaux) : APK n° 27
-  (1.0.0+27). Suite : étape 2, la page « Unité » (personnage, stade,
-  jauges).
-- Prochain APK : 1.0.0+28, **toujours demander à Paul avant**.
+- Le jeu « Synchro » est abandonné et retiré du code (`docs/jeu.md`).
+- En attente : Paul valide la maquette à trois onglets (To-do,
+  Aujourd'hui, Questions ; réglages pour les stats et le reste) :
+  https://claude.ai/artifact/RZnQ8gh7CKAG8RZALSa8AQ. Puis la coder.
+- Prochain APK : 1.0.0+28 (le 27 est déjà parti), **toujours demander à
+  Paul avant**.
 
 ## En une minute
 

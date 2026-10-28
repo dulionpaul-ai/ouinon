@@ -229,11 +229,6 @@ class _PreparerScreenState extends State<PreparerScreen> {
     }
     if (!mounted) return;
     final taches = await widget.base.tachesDu(widget.jour);
-    // Le jeu : un plan de vol validé ce soir rapporte des points.
-    if (taches.isNotEmpty) {
-      await PrefsJeu.ajoutePlan(jourDe(widget.maintenant()));
-      widget.base.signaleChangement();
-    }
     if (!mounted) return;
     final messager = ScaffoldMessenger.of(context);
     if (!widget.onglet) Navigator.pop(context);
@@ -465,7 +460,7 @@ class _PreparerScreenState extends State<PreparerScreen> {
           padding: const EdgeInsets.fromLTRB(20, 8, 12, 6),
           child: Row(
             children: [
-              const Expanded(child: GrandTitreSimple('Plan de vol')),
+              const Expanded(child: GrandTitreSimple('Demain')),
               if (aCaser.isNotEmpty)
                 TextButton.icon(
                   onPressed: _casePourMoi,

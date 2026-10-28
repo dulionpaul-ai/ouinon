@@ -392,18 +392,16 @@ demain »).
   droite, elle est casée aujourd'hui (plus d'appui long pour « fait »).
   Version 1.0.0+26.
 
-## APK n° 27 (1.0.0+27) : le jeu « Synchro », étape 1
+## APK n° 27 (1.0.0+27) : le jeu « Synchro », étape 1, puis retiré
 
-- Paul valide tout `docs/jeu.md` (« Ok pour tout ») : noms de pages,
-  5 jauges, ordre des étapes.
-- Les points : chose faite 10 à 35 selon la durée (+5 si « D'abord »),
-  réponse +3 quelle qu'elle soit, plan de vol validé +15, synchro du jour
-  jusqu'à +50, séries +5 par jour. Jamais de points en moins. Tout se
-  recalcule depuis l'historique : le passé compte déjà.
-- Bandeau du jeu en haut de chaque page : niveau, stade, barre de points,
-  anneau de synchro, points du jour ; « +N » qui s'envole ; écran plein
-  « NIVEAU » avec chiffres qui basculent comme un panneau de gare (et le
-  nouveau stade) ; toucher le bandeau détaille les points du jour.
-- Pages renommées : Réserve, Missions, Analyse, Plan de vol. Chaque
-  mission affiche ses points.
+- 27/10/2026 : points, bandeau du jeu en haut, niveaux, pages Réserve,
+  Missions, Analyse, Plan de vol (`docs/jeu.md`). APK n° 27 envoyé.
+- 28/10/2026 : Paul retire tout le jeu (« c'était pas une bonne idée »).
+  Le code revient à 1.0.0+26 (noms To-do, Aujourd'hui, Suivi, Demain).
+- 28/10/2026 : nouvelle demande : trois onglets seulement, dans l'ordre
+  To-do (matrice d'Eisenhower, glisser vers la droite dans un bandeau
+  « Aujourd'hui »), Aujourd'hui (la liste et le planning de la journée),
+  Questions (celles du jour, « + » et formulaire). Stats et le reste dans
+  les réglages. Style futuriste, mini-animations à chaque action.
+  Maquette : https://claude.ai/artifact/RZnQ8gh7CKAG8RZALSa8AQ (à valider).
 

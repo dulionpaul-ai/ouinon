@@ -58,7 +58,7 @@ void main() {
   testWidgets('Aujourd\'hui : répondre, changer, effacer', (tester) async {
     final semantique = tester.ensureSemantics();
     await ouvre(tester, AujourdhuiScreen(base: base, maintenant: midi));
-    expect(find.text('Missions'), findsOneWidget);
+    expect(find.text('Aujourd\'hui'), findsOneWidget);
     expect(find.text('Jeu. 22 oct.'), findsOneWidget);
     expect(find.text('Sommeil ?'), findsOneWidget);
     expect(find.bySemanticsLabel('0 sur 4 répondue'), findsOneWidget);
@@ -103,7 +103,7 @@ void main() {
     await tester.fling(find.byType(PageView), const Offset(-300, 0), 1000);
     await tester.pumpAndSettle();
     await attends(tester);
-    expect(find.text('Missions'), findsOneWidget);
+    expect(find.text('Aujourd\'hui'), findsOneWidget);
     // Vers la droite : hier, puis avant-hier.
     await tester.fling(find.byType(PageView), const Offset(300, 0), 1000);
     await tester.pumpAndSettle();
@@ -347,55 +347,8 @@ void main() {
         findsWidgets,
       );
     }
-    expect(find.text('RÉSERVE'), findsOneWidget);
-    expect(find.text('PLAN DE VOL'), findsOneWidget);
-  });
-
-  testWidgets('le jeu : bandeau en haut, niveau passé fêté une fois', (
-    tester,
-  ) async {
-    SharedPreferences.setMockInitialValues({
-      'notifs_demandees': true,
-      'heure_precise_demandee': true,
-      'jeu_niveau_vu': 1,
-    });
-    // Quatre choses de 1 h 30 faites : 4 × 35 + synchro parfaite 50.
-    for (var i = 0; i < 4; i++) {
-      await tester.runAsync(
-        () => base.enregistreTache(
-          Tache(
-            jour: DateTime(2026, 10, 22),
-            debut: 8 * 60 + 90 * i,
-            duree: 90,
-            texte: 'Chose $i',
-            etat: Tache.fait,
-          ),
-        ),
-      );
-    }
-    await ouvre(tester, AccueilScreen(maintenant: midi));
-    await attends(tester);
-    await tester.pump(const Duration(seconds: 3));
-    expect(find.byKey(const ValueKey('niveau-suivant')), findsOneWidget);
-    expect(find.text('NIVEAU'), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('niveau-suivant')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('niveau-suivant')), findsNothing);
-    final niveau = tester.widget<Text>(
-      find.byKey(const ValueKey('niveau-jeu')),
-    );
-    expect(niveau.data, '2');
-    final duJour = tester.widget<Text>(
-      find.byKey(const ValueKey('points-du-jour')),
-    );
-    expect(duJour.data, '+190');
-    expect((await SharedPreferences.getInstance()).getInt('jeu_niveau_vu'), 2);
-    // Les points de chaque mission.
-    expect(find.text('+35'), findsWidgets);
-    // Le détail des points du jour.
-    await tester.tap(find.byKey(const ValueKey('bandeau-jeu')));
-    await tester.pumpAndSettle();
-    expect(find.text('Synchro parfaite'), findsOneWidget);
+    expect(find.text('TO-DO'), findsOneWidget);
+    expect(find.text('DEMAIN'), findsOneWidget);
   });
 
   testWidgets('ajouter : ce qui existe déjà s\'affiche en tapant', (
@@ -510,7 +463,7 @@ void main() {
       'to-do : Ajouter ouvre le formulaire, la chose va dans sa case',
       (tester) async {
         await ouvre(tester, TodoScreen(base: base, maintenant: midi));
-        expect(find.text('Réserve'), findsOneWidget);
+        expect(find.text('To-do'), findsOneWidget);
         for (final c in Case.values) {
           expect(find.byKey(ValueKey('case-${c.name}')), findsOneWidget);
         }
@@ -561,7 +514,7 @@ void main() {
       );
       await attends(tester);
       expect(find.text('Bonjour, Décideur.'), findsNothing);
-      expect(find.text('Réserve'), findsOneWidget);
+      expect(find.text('To-do'), findsOneWidget);
     });
 
     testWidgets('une chose : Important et Urgent sur une ligne', (

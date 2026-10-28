@@ -8,7 +8,6 @@ import '../models/question.dart';
 import '../models/tache.dart';
 import '../utils/date_fr.dart';
 import '../utils/deux_moi.dart';
-import '../utils/jeu.dart';
 import '../utils/jour.dart';
 import '../utils/planning.dart';
 import '../utils/stats.dart';
@@ -192,7 +191,7 @@ class _PageJourState extends State<_PageJour> {
   );
 
   String get _titre => switch (_decalage) {
-    0 => 'Missions',
+    0 => 'Aujourd\'hui',
     -1 => 'Hier',
     _ => majuscule(jourEtDate(_jour).split(' ').first),
   };
@@ -836,28 +835,10 @@ class _LigneJournee extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 8),
             Text(
               dureeFr(tache.duree),
               style: TextStyle(color: t.doux, fontSize: 13),
             ),
-            // Ce que la mission rapporte (le jeu « Synchro »).
-            if (!tache.test)
-              SizedBox(
-                width: 40,
-                child: Text(
-                  // « Pas fait » ne rapporte rien.
-                  pasFait ? '' : '+${pointsChose(tache)}',
-                  key: ValueKey('points-${tache.id}'),
-                  textAlign: TextAlign.right,
-                  style: TextStyle(
-                    fontFamily: AppTheme.policeMono,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: t.accent,
-                  ),
-                ),
-              ),
           ],
         ),
       ),

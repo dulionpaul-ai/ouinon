@@ -14,7 +14,6 @@ import '../utils/stats.dart';
 import '../widgets/cases.dart';
 import '../widgets/graphiques.dart';
 import '../widgets/rond.dart';
-import 'edition_question_screen.dart';
 import 'fiche_question_screen.dart';
 import 'groupe_screen.dart';
 
@@ -164,45 +163,15 @@ class _StatsScreenState extends State<StatsScreen> {
     final t = Teintes.de(context);
     final doux = TextStyle(color: t.doux, height: 1.35);
     return Scaffold(
+      appBar: AppBar(title: const Text('Statistiques')),
       body: SafeArea(
         bottom: false,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(14, 12, 14, 120),
+          padding: const EdgeInsets.fromLTRB(14, 4, 14, 32),
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(6, 22, 6, 18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const GrandTitre('Suivi'),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Tes questions, et ce qu\'elles racontent.',
-                    style: TextStyle(
-                      color: Teintes.de(context).doux,
-                      fontSize: 15,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Les questions se gèrent ici, chez le Décideur (retour de
-            // Paul du 26/10/2026) : ajouter, et toucher une carte pour la
-            // voir et la modifier.
-            _Section(
-              'Tes questions',
-              fin: TextButton.icon(
-                key: const ValueKey('ajouter-question'),
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => EditionQuestionScreen(base: widget.base),
-                  ),
-                ),
-                icon: const Icon(Icons.add_rounded),
-                label: const Text('Ajouter'),
-              ),
-            ),
+            // Les questions se créent et se modifient dans l'onglet
+            // Questions ; ici, leurs stats (ménage du 28/10/2026).
+            const _Section('Tes questions'),
             if (_questions.isEmpty)
               Padding(
                 padding: const EdgeInsets.fromLTRB(6, 0, 6, 10),
@@ -1000,22 +969,12 @@ class _Section extends StatelessWidget {
   final String texte;
   final Key? cle;
 
-  /// À droite du titre (« + Ajouter »).
-  final Widget? fin;
-
-  const _Section(this.texte, {this.cle, this.fin});
+  const _Section(this.texte, {this.cle});
 
   @override
   Widget build(BuildContext context) => Padding(
     key: cle,
     padding: const EdgeInsets.fromLTRB(6, 0, 6, 10),
-    child: Row(
-      children: [
-        Expanded(
-          child: Text(texte, style: Theme.of(context).textTheme.titleLarge),
-        ),
-        ?fin,
-      ],
-    ),
+    child: Text(texte, style: Theme.of(context).textTheme.titleLarge),
   );
 }

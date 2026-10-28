@@ -214,9 +214,10 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: t.carte,
+        // Champs serrés : les formulaires tiennent sur un écran.
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 22,
-          vertical: 18,
+          horizontal: 16,
+          vertical: 13,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(t.rayon),

@@ -186,7 +186,7 @@ class _EditionTacheScreenState extends State<EditionTacheScreen> {
     );
     return Scaffold(
       appBar: AppBar(
-        title: Text(_nouvelle ? 'Impératif' : 'Modifier'),
+        title: Text(_nouvelle ? 'Rendez-vous' : 'Modifier'),
         actions: [
           if (!_nouvelle)
             IconButton(
@@ -343,7 +343,7 @@ class _EditionTacheScreenState extends State<EditionTacheScreen> {
                   passee
                       ? 'Heure déjà passée : pas de rappel.'
                       : 'Rappel à ${heureFr(_debut)} pile, avec « Pas fait · '
-                            'Reporter · Fait ».',
+                            'Fait ».',
                   style: doux,
                 ),
                 for (final autre in croise)

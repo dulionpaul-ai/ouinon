@@ -48,6 +48,8 @@ Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
 - Garder l'appli simple (demande de Paul du 25/10/2026) : pas
   d'onglets (refonte du 27/10/2026), des lignes plutôt que des cartes,
   pas de textes d'aide permanents, pas de nouveau bouton sans nécessité.
+- Tous les formulaires tiennent sur un écran, sans défiler (Paul,
+  28/10/2026).
 - Jamais d'appui long (« c'est juste chiant ») : le glisser-déposer part
   dès qu'on pose le doigt. Pas de défilement dans les écrans, surtout
   pas dans celui de la planification de la journée (consignes de Paul

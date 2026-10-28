@@ -20,7 +20,7 @@ Mis à jour le 28/10/2026 (version 1.0.0+28) : trois onglets.
 | `screens/journee_screen.dart` | Onglet 2 : « À placer » (toucher = casé au premier moment libre, ou glisser sur une heure ; « Caser pour moi »), puis la journée en entier (`GrilleJournee`) ; toucher le rond d'un bloc = fait, toucher le bloc = sa fiche ; glisser un bloc le déplace sans changer sa durée ; toucher un créneau fixe = sa fiche ; remonter un bloc sur « À placer » lui enlève son heure. |
 | `screens/questions_du_jour_screen.dart` | Onglet 3 : les questions du jour par heure (pas encore l'heure = plus pâle), réponse verrouillée avec une onde, « Changer », anneau, « + » ; toucher la question ouvre sa fiche (`fiche_question_screen.dart` : réglages en haut avec « Modifier la question », puis ses stats). |
 | `widgets/vivant.dart` | Les pièces animées : `Apparition`, `Balayage`, `EnTete`, `BoutonRond`, `Etiquette`, `annonce` (message + vibration + Annuler), `BarreEspace`. |
-| `screens/reglages_screen.dart` | Statistiques, toutes les questions, créneaux, notifications, ma journée, données de test. |
+| `screens/reglages_screen.dart` | Statistiques (toutes les questions), ma journée (heures, créneaux fixes), notifications (rappel du soir, bilan, essai), données de test. |
 | `screens/stats_screen.dart`, `groupe_screen.dart`, `fiche_question_screen.dart` | Les stats (ouvertes depuis les Réglages). |
 | `screens/edition_*_screen.dart` | Formulaires : question, chose (micro, doublons), rendez-vous, créneau. |
 | `theme/app_theme.dart` | Le style « espace » : deux couleurs translucides (`AppTheme.orange`, `AppTheme.vertDeau`), `Teintes.avecAccent` ; une seule police, Oxanium. |

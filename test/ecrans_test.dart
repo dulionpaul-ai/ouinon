@@ -268,8 +268,8 @@ void main() {
 
   testWidgets('Stats : sans réponse, explication', (tester) async {
     await ouvre(tester, StatsScreen(base: base, maintenant: midi));
-    // Les questions d'abord, avec « Ajouter » (Décideur).
-    expect(find.byKey(const ValueKey('ajouter-question')), findsOneWidget);
+    // Les questions d'abord ; on les crée dans l'onglet Questions.
+    expect(find.text('Tes questions'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.text('Pas encore assez de jours en commun (14 au moins).'),
       200,
@@ -337,16 +337,11 @@ void main() {
     expect(find.text('Questions à l\'heure pile'), findsNothing);
   });
 
-  testWidgets('Réglages : heure précise et prochaine question', (tester) async {
+  testWidgets('Réglages : heure précise', (tester) async {
     notifs.precise = false;
     await ouvre(tester, ReglagesScreen(base: base));
     expect(find.textContaining('Heure précise non autorisée'), findsOneWidget);
     expect(find.text('Autoriser l\'heure précise'), findsOneWidget);
-    expect(find.textContaining('Prochaine question :'), findsOneWidget);
-    expect(
-      find.text('27 notifications programmées sur le téléphone.'),
-      findsOneWidget,
-    );
     await tester.tap(find.text('Autoriser l\'heure précise'));
     await attends(tester);
     expect(notifs.demandesHeurePrecise, 1);
@@ -541,6 +536,8 @@ void main() {
       300,
       scrollable: find.byType(Scrollable).first,
     );
+    await tester.ensureVisible(carte);
+    await tester.pumpAndSettle();
     await tester.tap(carte);
     await tester.pumpAndSettle();
     expect(find.byType(GroupeScreen), findsOneWidget);

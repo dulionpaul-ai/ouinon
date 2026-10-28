@@ -17,7 +17,9 @@ import 'package:ouinon/models/creneau.dart';
 import 'package:ouinon/models/tache.dart';
 import 'package:ouinon/screens/accueil_screen.dart';
 import 'package:ouinon/screens/edition_a_faire_screen.dart';
+import 'package:ouinon/screens/edition_creneau_screen.dart';
 import 'package:ouinon/screens/edition_question_screen.dart';
+import 'package:ouinon/screens/edition_tache_screen.dart';
 import 'package:ouinon/screens/fiche_question_screen.dart';
 import 'package:ouinon/screens/reglages_screen.dart';
 import 'package:ouinon/screens/stats_screen.dart';
@@ -180,7 +182,6 @@ void main() {
       '7-nouvelle-question',
       EditionQuestionScreen(base: base),
       ThemeMode.dark,
-      hauteur: 1250,
     );
   });
 
@@ -193,13 +194,41 @@ void main() {
     );
   });
 
+  testWidgets('un rendez-vous', (tester) async {
+    await capture(
+      tester,
+      '13-rendez-vous',
+      EditionTacheScreen(base: base, jour: DateTime(2026, 10, 22)),
+      ThemeMode.dark,
+    );
+  });
+
+  testWidgets('un créneau fixe', (tester) async {
+    await capture(
+      tester,
+      '14-creneau',
+      EditionCreneauScreen(base: base),
+      ThemeMode.dark,
+    );
+  });
+
+  testWidgets('modifier une question', (tester) async {
+    final q = (await tester.runAsync(() => base.question(1)))!;
+    await capture(
+      tester,
+      '15-modifier-question',
+      EditionQuestionScreen(base: base, question: q),
+      ThemeMode.dark,
+    );
+  });
+
   testWidgets('réglages', (tester) async {
     await capture(
       tester,
       '9-reglages',
       ReglagesScreen(base: base),
       ThemeMode.dark,
-      hauteur: 1100,
+      hauteur: 844,
     );
   });
 

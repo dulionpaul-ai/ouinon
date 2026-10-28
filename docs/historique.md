@@ -473,4 +473,16 @@ demain »).
   « de lundi » dans Questions), jusqu'à « fait » ou son prochain jour.
   Interrupteur dans le formulaire (automatique). Base version 7.
 - APK n° 30 (1.0.0+30).
+- 28/10/2026 : ménage des Réglages (sans doublon avec les onglets) :
+  Suivi (Statistiques, qui listent toutes les questions ; plus de
+  « Toutes les questions » ni de bouton « Ajouter » en double), Ma
+  journée (début, fin, créneaux fixes), Notifications (rappel du soir en
+  une ligne : interrupteur et heure ; bilan du dimanche ; essayer),
+  Données de test. Retirés : « Prochaine question », l'ancienne liste
+  « Mes questions ».
+- 28/10/2026 : tous les formulaires tiennent sur un écran sans défiler
+  (question : intitulés en petit, heure et raccourcis des jours sur une
+  ligne, pause et suppression en haut ; champs plus serrés partout ;
+  textes d'aide permanents retirés). « Impératif » devient
+  « Rendez-vous ».
 

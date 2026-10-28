@@ -157,15 +157,6 @@ class _EditionCreneauScreenState extends State<EditionCreneauScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(14, 0, 14, 24),
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(6, 14, 6, 0),
-            child: Text(
-              'Un créneau qui revient chaque semaine, grisé dans ta journée. '
-              'Rien ne s\'y place tout seul, et il n\'envoie pas de '
-              'notification.',
-              style: doux,
-            ),
-          ),
           titre('Quoi'),
           TextField(
             controller: _texte,

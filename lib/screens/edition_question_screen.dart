@@ -231,15 +231,48 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
   Widget build(BuildContext context) {
     final t = Teintes.de(context);
     final theme = Theme.of(context);
-    final doux = TextStyle(color: t.doux, height: 1.35);
     final nb = _reponses.length;
     final q = widget.question;
+    // Petits intitulés : tout le formulaire tient sur un écran, sans
+    // défiler (Paul, 28/10/2026).
     Widget titre(String texte) => Padding(
-      padding: const EdgeInsets.fromLTRB(6, 22, 6, 10),
-      child: Text(texte, style: theme.textTheme.titleMedium),
+      padding: const EdgeInsets.fromLTRB(4, 14, 4, 6),
+      child: Text(
+        texte.toUpperCase(),
+        style: TextStyle(
+          fontFamily: AppTheme.policeTitre,
+          fontSize: 11,
+          letterSpacing: 1.6,
+          color: t.doux,
+        ),
+      ),
     );
     return Scaffold(
-      appBar: AppBar(title: Text(_nouvelle ? 'Nouvelle question' : 'Modifier')),
+      appBar: AppBar(
+        title: Text(_nouvelle ? 'Nouvelle question' : 'Modifier'),
+        // Pause et suppression en haut : la place reste au formulaire.
+        actions: [
+          if (q != null) ...[
+            IconButton(
+              tooltip: q.active ? 'Mettre en pause' : 'Reprendre',
+              onPressed: _pause,
+              icon: Icon(
+                q.active
+                    ? Icons.pause_circle_outline_rounded
+                    : Icons.play_circle_outline_rounded,
+              ),
+            ),
+            IconButton(
+              tooltip: 'Supprimer',
+              onPressed: _supprime,
+              icon: Icon(
+                Icons.delete_outline_rounded,
+                color: theme.colorScheme.error,
+              ),
+            ),
+          ],
+        ],
+      ),
       bottomNavigationBar: _choixHeure
           ? null
           : SafeArea(
@@ -250,7 +283,7 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
               ),
             ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(14, 0, 14, 24),
+        padding: const EdgeInsets.fromLTRB(14, 0, 14, 16),
         children: [
           titre('Question'),
           TextField(
@@ -276,7 +309,7 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
             ),
           ),
           if (_familles.isNotEmpty) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Wrap(
               spacing: 6,
               runSpacing: 6,
@@ -294,13 +327,6 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
             ),
           ],
           titre('Réponses'),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(6, 0, 6, 12),
-            child: Text(
-              'La meilleure en haut (vert d\'eau), la moins bonne en bas (orange).',
-              style: doux,
-            ),
-          ),
           ChoixPilules<int>(
             options: const [(2, '2 réponses'), (3, '3 réponses')],
             valeur: nb,
@@ -308,10 +334,10 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
               if (n != nb) _nombre(n);
             },
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           for (final (i, c) in _reponses.indexed)
             Padding(
-              padding: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.only(bottom: 6),
               child: TextField(
                 key: ValueKey('reponse$i'),
                 controller: c,
@@ -345,50 +371,68 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
             ),
           titre('Notification'),
           CarteRonde(
-            onTap: _choisitHeure,
-            padding: const EdgeInsets.fromLTRB(22, 14, 14, 14),
-            child: Row(
-              children: [
-                const Expanded(
-                  child: Text(
-                    'Heure',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-                  ),
-                ),
-                Container(
-                  height: 44,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: ShapeDecoration(
-                    color: t.puce,
-                    shape: const StadiumBorder(),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.schedule_rounded, size: 20, color: t.texte),
-                      const SizedBox(width: 8),
-                      Text(
-                        heureFr(_heure),
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 10),
-          CarteRonde(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                Row(
+                  children: [
+                    // L'heure, à toucher pour le cadran.
+                    Material(
+                      color: t.puce,
+                      shape: const StadiumBorder(),
+                      child: InkWell(
+                        customBorder: const StadiumBorder(),
+                        onTap: _choisitHeure,
+                        child: Container(
+                          height: 40,
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.schedule_rounded,
+                                size: 18,
+                                color: t.texte,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                heureFr(_heure),
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Raccourcis des jours.
+                    for (final (k, (masque, libelle)) in const [
+                      (0x7F, 'Tous'),
+                      (0x1F, 'Semaine'),
+                      (0x60, 'W-E'),
+                    ].indexed) ...[
+                      if (k > 0) const SizedBox(width: 4),
+                      Expanded(
+                        child: PiluleChoix(
+                          libelle,
+                          centree: true,
+                          choisie: _jours == masque,
+                          onTap: () => setState(() => _jours = masque),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 10),
                 LayoutBuilder(
                   builder: (context, contraintes) {
                     final taille = ((contraintes.maxWidth - 6 * 4) / 7).clamp(
                       28.0,
-                      44.0,
+                      40.0,
                     );
                     return Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -405,38 +449,16 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
                     );
                   },
                 ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    // Largeur selon la longueur du libellé : même taille
-                    // de texte pour les trois.
-                    for (final (i, (masque, libelle, part)) in const [
-                      (0x7F, 'Tous les jours', 14),
-                      (0x1F, 'Semaine', 9),
-                      (0x60, 'Week-end', 10),
-                    ].indexed) ...[
-                      if (i > 0) const SizedBox(width: 6),
-                      Expanded(
-                        flex: part,
-                        child: PiluleChoix(
-                          libelle,
-                          centree: true,
-                          choisie: _jours == masque,
-                          onTap: () => setState(() => _jours = masque),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
               ],
             ),
           ),
           // Pas fait : redemandée le lendemain (« Me raser ? » le lundi,
           // « Non » : elle revient mardi). Automatique : oui si elle ne
           // revient pas tous les jours (Paul, 28/10/2026).
-          const SizedBox(height: 10),
+          const SizedBox(height: 4),
           SwitchListTile(
             key: const ValueKey('redemande'),
+            dense: true,
             contentPadding: const EdgeInsets.symmetric(horizontal: 6),
             title: const Text('Redemander le lendemain si pas fait'),
             value: _redemande ?? _jours != Question.tousLesJours,
@@ -453,21 +475,6 @@ class _EditionQuestionScreenState extends State<EditionQuestionScreen> {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-            ),
-          ],
-          if (q != null) ...[
-            const SizedBox(height: 24),
-            OutlinedButton(
-              onPressed: _pause,
-              child: Text(q.active ? 'Mettre en pause' : 'Reprendre'),
-            ),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: _supprime,
-              style: TextButton.styleFrom(
-                foregroundColor: theme.colorScheme.error,
-              ),
-              child: const Text('Supprimer'),
             ),
           ],
         ],

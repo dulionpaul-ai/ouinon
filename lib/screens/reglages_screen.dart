@@ -6,15 +6,13 @@ import '../data/notifications.dart';
 import '../data/preferences.dart';
 import '../theme/app_theme.dart';
 import '../utils/date_fr.dart';
-import '../utils/jour.dart';
-import '../utils/planification.dart';
 import '../utils/version.dart';
 import 'creneaux_screen.dart';
-import 'questions_screen.dart';
 import 'stats_screen.dart';
 
-/// Réglages, en lignes simples (revue du 25/10/2026) : tes questions, tes
-/// créneaux fixes, ta journée, les notifications, les données de test.
+/// Réglages, en lignes simples, sans doublon avec les onglets (ménage du
+/// 28/10/2026) : les statistiques, ta journée (heures, créneaux fixes),
+/// les notifications, les données de test.
 class ReglagesScreen extends StatefulWidget {
   final Base base;
 
@@ -36,8 +34,6 @@ class _ReglagesScreenState extends State<ReglagesScreen>
     fin: Preferences.finJourneeParDefaut,
   );
   int _reponsesTest = 0;
-  NotifPrevue? _prochaine;
-  int? _enAttente;
   String _creneaux = '';
 
   @override
@@ -62,14 +58,12 @@ class _ReglagesScreenState extends State<ReglagesScreen>
   Future<void> _verifie({bool replanifier = false}) async {
     bool? ok;
     bool? precise;
-    int? enAttente;
     try {
       ok = await Notifications.instance.autorisees();
       precise = await Notifications.instance.heurePrecise();
       if (replanifier) {
         await Notifications.instance.replanifie(widget.base);
       }
-      enAttente = await Notifications.instance.enAttente();
     } catch (_) {}
     final bilan = await Preferences.bilanDimanche();
     final rappelPlanning = await Preferences.rappelPlanning();
@@ -77,18 +71,10 @@ class _ReglagesScreenState extends State<ReglagesScreen>
     final journee = await Preferences.journee();
     final reponsesTest = await widget.base.nombreReponsesTest();
     final creneaux = await widget.base.creneaux();
-    final maintenant = DateTime.now();
-    final plan = planifie(
-      questions: await widget.base.questions(),
-      repondues: await widget.base.reponduesDepuis(jourDe(maintenant)),
-      maintenant: maintenant,
-    );
     if (!mounted) return;
     setState(() {
       _autorisees = ok;
       _precise = precise;
-      _enAttente = enAttente;
-      _prochaine = plan.notifs.isEmpty ? null : plan.notifs.first;
       _bilan = bilan;
       _rappelPlanning = rappelPlanning;
       _heureRappel = heureRappel;
@@ -271,17 +257,24 @@ class _ReglagesScreenState extends State<ReglagesScreen>
             _Ligne(
               cle: const ValueKey('statistiques'),
               titre: 'Statistiques',
-              sousTitre: 'Courbes, groupes, liens entre questions',
+              sousTitre: 'Toutes tes questions : courbes, groupes, liens',
               onTap: () => _ouvre(StatsScreen(base: widget.base)),
             ),
-            _Ligne(
-              cle: const ValueKey('toutes-les-questions'),
-              titre: 'Toutes les questions',
-              sousTitre: 'Les modifier, les mettre en pause',
-              onTap: () => _ouvre(QuestionsScreen(base: widget.base)),
-            ),
           ]),
-          _Section('Ton appli', [
+          _Section('Ma journée', [
+            _Ligne(
+              cle: const ValueKey('debut-journee'),
+              titre: 'Début de la journée',
+              valeur: heureFr(_journee.debut),
+              onTap: () => _choisitJournee(debut: true),
+            ),
+            _Ligne(
+              cle: const ValueKey('fin-journee'),
+              titre: 'Fin de la journée',
+              valeur: heureFr(_journee.fin),
+              sousTitre: '« Caser pour moi » place entre ces heures.',
+              onTap: () => _choisitJournee(debut: false),
+            ),
             _Ligne(
               titre: 'Créneaux fixes',
               sousTitre: _creneaux.isEmpty
@@ -291,30 +284,24 @@ class _ReglagesScreenState extends State<ReglagesScreen>
             ),
           ]),
           _Section('Notifications', [
-            _Ligne(
-              titre: switch (_autorisees) {
-                true => 'Autorisées',
-                false => 'Bloquées',
-                null => 'Notifications',
-              },
-              sousTitre: _autorisees == false
-                  ? 'Sans elles, tu ne reçois pas tes questions.'
-                  : null,
-              bas: _autorisees == true
-                  ? null
-                  : Align(
-                      alignment: Alignment.centerLeft,
-                      child: TextButton(
-                        onPressed: _autorise,
-                        child: const Text('Autoriser les notifications'),
-                      ),
-                    ),
-            ),
+            if (_autorisees != true)
+              _Ligne(
+                titre: _autorisees == false
+                    ? 'Bloquées : tu ne reçois rien.'
+                    : 'Notifications',
+                bas: Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    onPressed: _autorise,
+                    child: const Text('Autoriser les notifications'),
+                  ),
+                ),
+              ),
             if (_precise == false)
               _Ligne(
                 titre:
-                    'Heure précise non autorisée : les questions peuvent '
-                    'arriver avec des heures de retard.',
+                    'Heure précise non autorisée : les notifications peuvent '
+                    'arriver en retard.',
                 bas: Align(
                   alignment: Alignment.centerLeft,
                   child: TextButton(
@@ -323,22 +310,14 @@ class _ReglagesScreenState extends State<ReglagesScreen>
                   ),
                 ),
               ),
+            // Un seul réglage pour le rappel du soir : l'interrupteur, et
+            // son heure en touchant la ligne.
             _Ligne(
-              titre: _prochaine == null
-                  ? 'Aucune question programmée.'
-                  : 'Prochaine question : ${_prochaine!.question.texte} '
-                        '${dateCourte(_prochaine!.quand).toLowerCase()} à '
-                        // Espace insécable : « 9 h » ne se coupe pas.
-                        '${heureFr(_prochaine!.quand.hour * 60 + _prochaine!.quand.minute).replaceAll(' ', ' ')}.',
-              sousTitre: _enAttente == null
-                  ? null
-                  : '$_enAttente notification${_enAttente! > 1 ? 's' : ''} '
-                        'programmée${_enAttente! > 1 ? 's' : ''} sur le téléphone.',
-            ),
-            _Ligne(titre: 'Essayer une notification', onTap: _essaie),
-            _Ligne(
+              cle: const ValueKey('rappel-soir'),
               titre: 'Rappel du soir',
-              sousTitre: 'Pour préparer demain',
+              valeur: _rappelPlanning ? heureFr(_heureRappel) : null,
+              sousTitre: 'Pour remplir ta to-do',
+              onTap: _rappelPlanning ? _choisitHeureRappel : null,
               fin: interrupteur(
                 'interrupteur-rappel',
                 _rappelPlanning,
@@ -350,31 +329,7 @@ class _ReglagesScreenState extends State<ReglagesScreen>
               sousTitre: 'Le dimanche à 20 h, ta semaine en quelques lignes',
               fin: interrupteur('interrupteur-bilan', _bilan, _changeBilan),
             ),
-          ]),
-          _Section('Ma journée', [
-            _Ligne(
-              cle: const ValueKey('debut-journee'),
-              titre: 'Début de la journée',
-              valeur: heureFr(_journee.debut),
-              sousTitre: '« Ta journée t\'attend »',
-              onTap: () => _choisitJournee(debut: true),
-            ),
-            _Ligne(
-              cle: const ValueKey('fin-journee'),
-              titre: 'Fin de la journée',
-              valeur: heureFr(_journee.fin),
-              sousTitre:
-                  '« Fin de service ». « Caser pour moi » place ta to-do '
-                  'entre ces heures.',
-              onTap: () => _choisitJournee(debut: false),
-            ),
-            _Ligne(
-              cle: const ValueKey('rappel-soir'),
-              titre: 'Heure du rappel du soir',
-              valeur: heureFr(_heureRappel),
-              sousTitre: '« Et demain, tu fais quoi ? »',
-              onTap: _choisitHeureRappel,
-            ),
+            _Ligne(titre: 'Essayer une notification', onTap: _essaie),
           ]),
           _Section('Données de test', [
             _Ligne(

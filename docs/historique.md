@@ -495,4 +495,4 @@ demain »).
   orange ni de case grisée). Appui long sur une chose, puis glisser dans
   une autre case : elle change de case, Important et Urgent suivent
   (avec « Annuler »).
-
+- APK n° 33 (1.0.0+33) : cases identiques, changer de case par appui long.

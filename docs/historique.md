@@ -510,4 +510,4 @@ demain »).
 - 28/10/2026 : le panier (« À placer ») sur deux colonnes, puces
   compactes (nom sur deux lignes au plus), deux lignes visibles ; au-delà
   de quatre choses, un mini défilement intérieur avec sa barre.
-
+- APK n° 35 (1.0.0+35), 29/10/2026 : panier sur deux colonnes, points centrés, Aujourd'hui / Demain plus fluide.

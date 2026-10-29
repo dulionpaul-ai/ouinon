@@ -3,7 +3,7 @@
 À lire en premier dans une nouvelle session Claude (avec `CLAUDE.md`).
 Mis à jour le 27/10/2026.
 
-## Reprendre ici (28/10/2026)
+## Reprendre ici (29/10/2026)
 
 - Appli en trois onglets (To-do, Aujourd'hui, Questions), deux couleurs
   translucides, d'après la maquette validée :
@@ -11,6 +11,15 @@ Mis à jour le 27/10/2026.
   (1.0.0+35) envoyé le 29/10/2026 ; police unique Oxanium.
 - Logo passé aux deux couleurs (orange, vert d'eau) le 28/10/2026.
 - Prochain APK : 1.0.0+36, **toujours demander à Paul avant**.
+- Dernières demandes de Paul, toutes faites (voir `docs/historique.md`,
+  fin) : Aujourd'hui sur deux pages (aujourd'hui / demain), panier sur
+  deux colonnes avec mini défilement, « Caser pour moi » retiré.
+- Resté en suspens : une chose de la to-do « pas faite » revient-elle
+  le lendemain dans « À placer » (proposé à Paul, sans réponse claire) ?
+  Pour l'instant, elle revient dans la to-do.
+- Avant chaque envoi : `dart format --output=none --set-exit-if-changed
+  lib test`, `flutter analyze`, `flutter test test` (sinon e-mails
+  « failed » de GitHub).
 
 ## En une minute
 

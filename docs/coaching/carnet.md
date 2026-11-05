@@ -70,6 +70,10 @@ en dents de scie et grignotage. Le sommeil est le premier domino.
 - **Alcool** : quasi nul (1 « un peu » sur 10). Pas un sujet.
 - **Petits soins** (produit cheveux, crème visage, « doigt ») : 0 fait
   sur tous les jours suivis. Abandonnés ou pas prioritaires.
+  « Doigt » = produit contre une petite verrue, matin et soir (0 sur 7).
+  Nouvelle méthode (5/11) : flacon posé sur la brosse à dents, fait au
+  brossage ; fréquence selon la notice ou le pharmacien. Point dans une
+  semaine.
 - **Margaux** : vue 15 jours sur 27.
 - **To-do** : « Vider valises » prévue deux fois (27/10, 29/10), jamais
   faite ; « Recyclage » idem ; « Garage C3 » faite le 4/11 après deux

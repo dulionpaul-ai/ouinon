@@ -61,27 +61,26 @@ sera l'outil de suivi, conçu d'après les besoins de ce coaching.
 Lien logique : écrans → coucher tardif → fatigue → recherche d'emploi
 en dents de scie et grignotage. Le sommeil est le premier domino.
 
-## Ce que disent les données (export du 5/11/2026, 1/10 → 5/11)
+## Ce que disent les données (export du 5/11/2026, 12/10 → 5/11)
 
-- **Sommeil** : « assez dormi » 6 jours sur 26 (23 %), « vraiment pas
-  assez » 13 sur 26. **Aucun « assez dormi » depuis le 16/10** (12
+Tout ce qui précède le 12/10/2026 était des **données de test** : à
+ignorer (Paul, 5/11/2026). Paul n'a jamais marché.
+
+- **Sommeil** : « assez dormi » 3 jours sur 15 (20 %) ; « vraiment pas
+  assez » 7 sur 15. **Aucun « assez dormi » depuis le 16/10** (12
   réponses).
-- **Forme** : les jours où il a assez dormi, « bien » 5 fois sur 6 ;
-  les jours « vraiment pas assez », « bien » 2 fois sur 11. (Va souvent
-  ensemble.)
-- **Marche** : presque tous les jours du 1 au 10/10, puis **1 fois sur
-  16 depuis le 11/10**. La baisse du sommeil et de la forme suit.
-- **Muscu** : 11 fois sur 15 en début de mois, **2 fois sur 10 depuis
-  le 22/10**.
+- **Forme** : les jours « assez dormi », « bien » 2 fois sur 3 ; les
+  jours « vraiment pas assez », « bien » 0 fois sur 5 (« pas bien » 4
+  fois). Va souvent ensemble.
+- **Marche** : jamais.
+- **Muscu** : 5 fois sur 14.
 - **Rien manger après 21 h** : 1 fois sur 3.
 - **Alcool** : quasi nul (1 « un peu » sur 10). Pas un sujet.
-- **Petits soins** (produit cheveux, crème visage, « doigt ») : 0 fait
-  sur tous les jours suivis. Abandonnés ou pas prioritaires.
-  « Doigt » = produit contre une petite verrue, matin et soir (0 sur 7).
-  Nouvelle méthode (5/11) : flacon posé sur la brosse à dents, fait au
-  brossage ; fréquence selon la notice ou le pharmacien. Point dans une
-  semaine.
-- **Margaux** : vue 15 jours sur 27.
+- **Petits soins** (produit cheveux, crème visage, verrue) : 0 fait sur
+  tous les jours suivis. Verrue : nouvelle méthode le 5/11 (flacon posé
+  sur la brosse à dents, fait au brossage ; fréquence selon la notice ou
+  le pharmacien ; point dans une semaine).
+- **Margaux** : vue 13 jours sur 18 depuis le 12/10.
 - **To-do** : « Vider valises » prévue deux fois (27/10, 29/10), jamais
   faite ; « Recyclage » idem ; « Garage C3 » faite le 4/11 après deux
   reports. « Paramétrer IA recherche emploi » (2 h) jamais planifiée.

@@ -157,6 +157,11 @@ En attendant la to-do dans Ouinon (étape 1 : seulement les questions).
 - [ ] Changer les draps de tous les lits, avant le week-end avec les
   enfants (vendredi). Ajouté le 5/11/2026.
 
+## Liste de courses
+
+- [ ] Panier à linge pliable (il se replie tout plat, rangé à côté de la
+  machine à laver), si pas trop cher. Ajouté le 5/11/2026.
+
 ## Journal
 
 - **5/11/2026** : démarrage. Questionnaire en 3 séries. Carnet créé.

@@ -30,6 +30,11 @@ sera l'outil de suivi, conçu d'après les besoins de ce coaching.
   en soirée entre amis.
 - Matin : traîne au lit, puis en retard, prépare les enfants et lui en
   vitesse ; pas de petit-déjeuner.
+- **Tableau blanc** chez lui : à gauche, le planning du jour heure par
+  heure (8 h – 23 h) ; au milieu, les to-do un peu urgentes ; en bas,
+  les horaires de la nounou.
+- **Nounou** : 8 h – 18 h ; mercredi 8 h – 17 h 30 ; vendredi
+  8 h – 17 h (les jours où il a les enfants).
 - Emploi : CV, LinkedIn et pitch prêts. **0 à 2 candidatures sur les 4
   dernières semaines**, 4 à 10 entretiens depuis janvier. Méthode :
   alertes automatiques seulement (pas de réseau, ni chasseurs, ni
@@ -90,6 +95,13 @@ En attendant la to-do dans Ouinon (étape 1 : seulement les questions).
 
 - [ ] Coller un autocollant « Stop Pub » sur la boîte aux lettres
   (gratuit en mairie, ou à imprimer ; 5 min). Ajouté le 5/11/2026.
+- Du tableau blanc (5/11/2026) : déjà faits : lessive, plier les
+  vêtements, vaisselle, Wavents FB.
+- [ ] Courses : desserts, petit-déjeuner, Jow.
+- [ ] Serpillère.
+- [ ] Valises.
+- [ ] Poubelle (et retrouver la télécommande ?).
+- [ ] Recyclage.
 
 ## Journal
 
@@ -106,3 +118,7 @@ En attendant la to-do dans Ouinon (étape 1 : seulement les questions).
   7 h 45, Hyrox, ultimate, Bodycombat, cuisine, bloc emploi) ; les
   anciennes questions en pause ; bouton « Bilan pour le coach » qui
   copie les 7 derniers jours. Version 1.0.0+36.
+- **5/11/2026** : Paul a les enfants ce week-end : il les récupère
+  vendredi soir (nounou jusqu'à 17 h le vendredi). Ce soir (jeudi), chez
+  Margaux, départ vers 18 h – 19 h, avec quelque chose à manger pour
+  elle.

@@ -54,6 +54,29 @@ sera l'outil de suivi, conçu d'après les besoins de ce coaching.
 Lien logique : écrans → coucher tardif → fatigue → recherche d'emploi
 en dents de scie et grignotage. Le sommeil est le premier domino.
 
+## Ce que disent les données (export du 5/11/2026, 1/10 → 5/11)
+
+- **Sommeil** : « assez dormi » 6 jours sur 26 (23 %), « vraiment pas
+  assez » 13 sur 26. **Aucun « assez dormi » depuis le 16/10** (12
+  réponses).
+- **Forme** : les jours où il a assez dormi, « bien » 5 fois sur 6 ;
+  les jours « vraiment pas assez », « bien » 2 fois sur 11. (Va souvent
+  ensemble.)
+- **Marche** : presque tous les jours du 1 au 10/10, puis **1 fois sur
+  16 depuis le 11/10**. La baisse du sommeil et de la forme suit.
+- **Muscu** : 11 fois sur 15 en début de mois, **2 fois sur 10 depuis
+  le 22/10**.
+- **Rien manger après 21 h** : 1 fois sur 3.
+- **Alcool** : quasi nul (1 « un peu » sur 10). Pas un sujet.
+- **Petits soins** (produit cheveux, crème visage, « doigt ») : 0 fait
+  sur tous les jours suivis. Abandonnés ou pas prioritaires.
+- **Margaux** : vue 15 jours sur 27.
+- **To-do** : « Vider valises » prévue deux fois (27/10, 29/10), jamais
+  faite ; « Recyclage » idem ; « Garage C3 » faite le 4/11 après deux
+  reports. « Paramétrer IA recherche emploi » (2 h) jamais planifiée.
+  Les tâches de rangement prévues l'après-midi sautent.
+- **Emploi** : jamais suivi jusqu'ici.
+
 ## Le cap, au-delà de 6 mois
 
 - **Vivre longtemps et en bonne santé.**

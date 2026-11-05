@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../data/base.dart';
+import '../data/coaching.dart';
 import '../data/donnees_test.dart';
 import '../data/notifications.dart';
 import '../data/preferences.dart';
@@ -85,6 +87,18 @@ class _ReglagesScreenState extends State<ReglagesScreen>
           '${c.texte} ${heureFr(c.debut)} – ${heureFr(c.fin % (24 * 60))}',
       ].join(' · ');
     });
+  }
+
+  /// Toutes les données, copiées pour le coach.
+  Future<void> _exporte() async {
+    final texte = await exportComplet(widget.base, DateTime.now());
+    await Clipboard.setData(ClipboardData(text: texte));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Tout est copié : colle-le dans la conversation.'),
+      ),
+    );
   }
 
   Future<void> _ajouteTest() async {
@@ -254,6 +268,16 @@ class _ReglagesScreenState extends State<ReglagesScreen>
       body: ListView(
         padding: const EdgeInsets.fromLTRB(14, 8, 14, 32),
         children: [
+          _Section('Coaching', [
+            _Ligne(
+              cle: const ValueKey('export-coach'),
+              titre: 'Tout envoyer au coach',
+              sousTitre:
+                  'Copie toutes tes données, à coller dans la '
+                  'conversation avec Claude',
+              onTap: _exporte,
+            ),
+          ]),
           _Section('Suivi', [
             _Ligne(
               cle: const ValueKey('statistiques'),

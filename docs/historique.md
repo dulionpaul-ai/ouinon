@@ -524,4 +524,7 @@ demain »).
   lundi jusqu'à 23 h).
 - Bouton « Bilan pour le coach » : copie les 7 derniers jours, à coller
   dans la conversation.
+- Réglages, « Tout envoyer au coach » : copie toutes les données (chaque
+  question avec toutes ses réponses, la to-do, le planning) pour les
+  coller dans la conversation (`exportComplet`).
 

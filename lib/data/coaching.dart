@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/question.dart';
 import '../utils/date_fr.dart';
 import '../utils/jour.dart';
+import '../utils/planning.dart';
 import '../utils/stats.dart';
 import 'base.dart';
 import 'preferences.dart';
@@ -172,6 +173,59 @@ String bilanCoaching(
     }
     if (total == 0) continue;
     lignes.add('${q.texte} $oui/$total · ${jours.join(', ')}');
+  }
+  return lignes.join('\n');
+}
+
+/// Tout, d'un coup, pour le coach (5/11/2026) : chaque question (même en
+/// pause) avec toutes ses réponses depuis le début, la to-do et le
+/// planning. Les données de test sont laissées de côté.
+Future<String> exportComplet(Base base, DateTime maintenant) async {
+  final questions = await base.questions();
+  final reponses = await base.toutesLesReponses();
+  final liste = await base.liste(avecFaites: true);
+  final taches = await base.taches();
+  String d(DateTime j) => '${j.day}/${j.month}/${j.year % 100}';
+  final lignes = <String>['EXPORT OUINON du ${d(maintenant)}', '', 'QUESTIONS'];
+  for (final q in questions) {
+    final r = reponses[q.id] ?? const {};
+    final jours = r.keys.toList()..sort();
+    lignes.add(
+      '- ${q.texte} [${q.reponses.join(' / ')}] '
+      '${heureFr(q.heure)} · ${q.jours == 0 ? 'aucun jour' : joursFr(q.jours)}'
+      '${q.active ? '' : ' · en pause'} · ${jours.length} réponses',
+    );
+    if (jours.isNotEmpty) {
+      lignes.add(
+        '  ${[for (final j in jours) '${d(jourDepuisCle(j))} ${q.reponses[r[j]!]}'].join(', ')}',
+      );
+    }
+  }
+  lignes
+    ..add('')
+    ..add('TO-DO');
+  for (final a in liste) {
+    if (a.test) continue;
+    lignes.add(
+      '- ${a.texte} · ${dureeFr(a.duree)}'
+      ' · ${a.caseLe(maintenant).nom} · créée le ${d(a.creeLe)}'
+      '${a.faiteLe != null ? ' · faite le ${d(a.faiteLe!)}' : ''}'
+      '${a.choisiePour != null ? ' · choisie pour le ${d(a.choisiePour!)}' : ''}',
+    );
+  }
+  lignes
+    ..add('')
+    ..add('PLANNING');
+  for (final t in taches) {
+    if (t.test) continue;
+    lignes.add(
+      '- ${d(t.jour)} ${heureFr(t.debut)} ${t.texte} (${t.duree} min) : '
+      '${switch (t.etat) {
+        0 => 'fait',
+        1 => 'pas fait',
+        _ => 'sans réponse',
+      }}',
+    );
   }
   return lignes.join('\n');
 }

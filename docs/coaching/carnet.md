@@ -33,7 +33,13 @@ sera l'outil de suivi, conçu d'après les besoins de ce coaching.
   pistes. Marché difficile : peu de recrutements en avant-vente SIRH,
   et des développeurs (concurrencés par l'IA) se repositionnent sur ces
   postes (avant-vente, commercial, PO).
-- À compléter : âge, taille, poids actuel.
+- À compléter : âge. Taille environ 1,77 m (déduite de l'IMC).
+- **Poids, départ 5/11/2026 à 9 h 45** (après le petit-déjeuner ;
+  balance connectée) : **90,7 kg**, IMC 29,0, graisse 24,6 %, graisse
+  viscérale 11, masse musculaire 64,9 kg, âge métabolique 38,
+  métabolisme de base 1 845 kcal. Le 19/10 : 90,0 kg (+0,7 kg depuis).
+  Objectif -5 à -10 kg : **entre 80,7 et 85,7 kg**. Pesée suivante : le
+  lundi matin, à jeun.
 - Soirée : séries, jeux vidéo, ordinateur, téléphone (tout). Dîne avant
   20 h. Pas de café, pas d'énergisant, pas de tabac ; alcool seulement
   en soirée entre amis.

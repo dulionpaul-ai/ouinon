@@ -49,6 +49,12 @@ sera l'outil de suivi, conçu d'après les besoins de ce coaching.
 Lien logique : écrans → coucher tardif → fatigue → recherche d'emploi
 en dents de scie et grignotage. Le sommeil est le premier domino.
 
+## Le cap, au-delà de 6 mois
+
+- **Vivre longtemps et en bonne santé.**
+- **Rendre fière Margaux**, sa nouvelle amoureuse (levier émotionnel
+  fort ; le coach rappelle que c'est d'abord pour lui).
+
 ## Succès dans 6 mois (mai 2027)
 
 - Un **CDI signé** (marge : 3 mois avant la fin du chômage).
@@ -85,3 +91,6 @@ en dents de scie et grignotage. Le sommeil est le premier domino.
   (avant-vente ; contacté par LinkedIn ; déjà vu pour commercial SIRH,
   jugé trop junior) et **17 h Fortify** (avant-vente ; connu d'avant,
   soutenances faites en partenariat).
+- **5/11/2026** : Paul ajoute son cap : vivre longtemps en bonne santé,
+  et rendre fière Margaux. Proposé : un bilan chez le médecin traitant
+  comme point de départ (tension, prise de sang).

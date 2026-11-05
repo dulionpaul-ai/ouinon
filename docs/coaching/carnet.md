@@ -29,6 +29,13 @@ sera l'outil de suivi, conçu d'après les besoins de ce coaching.
   2027.**
 - Enfants en garde alternée : chez Paul le lundi soir, le mercredi soir,
   et un week-end sur deux (rythme 1-1-1-1-3, ajustable).
+- **Parcours** : droit du travail, puis RH ; 4 ans chef de projet et
+  consultant SIRH chez Fédéris (devenu Septéo) ; puis commercial et
+  avant-vente, puis avant-vente à plein temps (3-4 ans) ; puis Nibelis
+  quelques mois (restructuration commerciale, pas de besoin d'avant-vente
+  sur son secteur, montée en compétences d'environ 18 mois) ; parti fin
+  janvier 2026. Depuis : projets perso (sites web, applis mobiles, dont
+  Ouinon).
 - Visé : **avant-vente SIRH ou commercial SIRH**, ouvert à d'autres
   pistes. Marché difficile : peu de recrutements en avant-vente SIRH,
   et des développeurs (concurrencés par l'IA) se repositionnent sur ces

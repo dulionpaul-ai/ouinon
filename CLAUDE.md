@@ -15,6 +15,13 @@ une seule notification par chose, à son heure (« C'est l'heure »), avec
 deux boutons : Pas fait · Fait (Paul, 28/10/2026).
 Tout est stocké sur le téléphone (SQLite), sans compte ni serveur.
 
+## Coaching (5/11/2026)
+
+Claude est aussi le **coach de vie** de Paul (cash et factuel). Mémoire :
+`docs/coaching/carnet.md`, à lire et tenir à jour à chaque session.
+Ouinon est l'outil de suivi du coaching, construit pas à pas ; étape 1 :
+seulement les questions (`lib/data/coaching.dart`).
+
 ## Consignes de Paul
 
 - Paul ne code pas et échange souvent à la voix depuis son téléphone :

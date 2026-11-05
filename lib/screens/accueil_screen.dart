@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/base.dart';
+import '../data/coaching.dart';
 import '../data/notifications.dart';
 import '../theme/app_theme.dart';
 import '../utils/jour.dart';
@@ -46,6 +47,9 @@ class _AccueilScreenState extends State<AccueilScreen>
   static const _cleHeurePrecise = 'heure_precise_demandee';
 
   static const todo = 0;
+
+  /// Coaching, étape 1 (5/11/2026) : un seul écran, les questions.
+  static const seulementQuestions = true;
 
   /// Ce qui attend aujourd'hui (pastille de l'onglet).
   int _attend = 0;
@@ -96,6 +100,8 @@ class _AccueilScreenState extends State<AccueilScreen>
   Future<void> _ouvre() async {
     try {
       final base = await Base.ouvrir();
+      // Le coaching (5/11/2026) : ses suivis, une seule fois.
+      await installeCoaching(base);
       // Les choses d'hier restées sans réponse : pas faites, reportées.
       await base.classeSansReponse(jourDe(widget.maintenant()));
       if (!mounted) return;
@@ -283,6 +289,14 @@ class _AccueilScreenState extends State<AccueilScreen>
       data: AppTheme.avecAccent(theme, _onglets[i].couleur),
       child: ecran,
     );
+    // Coaching, étape 1 : seulement l'écran des questions ; la to-do et
+    // la journée attendent, leur code est gardé.
+    if (seulementQuestions) {
+      return page(
+        2,
+        QuestionsDuJourScreen(base: base, maintenant: widget.maintenant),
+      );
+    }
     return Scaffold(
       // Chaque changement de page la fait arriver : elle glisse du côté
       // de l'onglet touché et s'éclaire ; un trait balaie l'écran.

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ouinon/data/base.dart';
 import 'package:ouinon/data/donnees_test.dart';
@@ -25,6 +26,7 @@ import 'package:ouinon/widgets/graphiques.dart';
 import 'package:ouinon/widgets/grille_journee.dart';
 import 'package:ouinon/widgets/retro.dart';
 import 'package:ouinon/widgets/rond.dart';
+import 'package:ouinon/widgets/vivant.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'outils.dart';
@@ -364,57 +366,41 @@ void main() {
     expect(prefs.getBool('bilan_dimanche'), isFalse);
   });
 
-  testWidgets('le bandeau du bas : To-do, Aujourd\'hui, Questions', (
+  testWidgets('coaching : l\'accueil ne montre que les suivis du coach', (
     tester,
   ) async {
     SharedPreferences.setMockInitialValues({
       'notifs_demandees': true,
       'heure_precise_demandee': true,
     });
+    String? copie;
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (appel) async {
+        if (appel.method == 'Clipboard.setData') {
+          copie = (appel.arguments as Map)['text'] as String;
+        }
+        return null;
+      },
+    );
     await ouvre(tester, AccueilScreen(maintenant: midi));
-    await tester.pumpAndSettle();
-    // On arrive sur Aujourd'hui.
-    for (final (i, ecran) in [
-      (1, JourneeScreen),
-      (0, TodoScreen),
-      (2, QuestionsDuJourScreen),
-      (1, JourneeScreen),
-    ]) {
-      await tester.tap(find.byKey(ValueKey('onglet-$i')));
-      await tester.pumpAndSettle();
-      expect(
-        find.descendant(
-          of: find.byType(Offstage).hitTestable(),
-          matching: find.byType(ecran),
-        ),
-        findsWidgets,
-      );
-    }
-    expect(find.text('TO-DO'), findsOneWidget);
-    expect(find.text('QUESTIONS'), findsOneWidget);
-    // Dans la to-do, toucher le bandeau « Aujourd'hui » ouvre l'onglet.
-    await tester.tap(find.byKey(const ValueKey('onglet-0')));
-    await tester.pumpAndSettle();
-    await tester.tap(
-      find.byKey(const ValueKey('cible-aujourdhui')).hitTestable(),
-    );
-    await tester.pumpAndSettle();
-    expect(
-      find.descendant(
-        of: find.byType(Offstage).hitTestable(),
-        matching: find.byType(JourneeScreen),
-      ),
-      findsWidgets,
-    );
-    // Les stats sont dans les Réglages.
-    await tester.tap(find.byIcon(Icons.tune_rounded).hitTestable().first);
-    await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('statistiques')), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('statistiques')));
-    await tester.pumpAndSettle();
-    expect(find.byType(StatsScreen), findsOneWidget);
     await attends(tester);
-    await tester.pump(const Duration(seconds: 11));
+    await tester.pumpAndSettle();
+    expect(find.byType(QuestionsDuJourScreen), findsOneWidget);
+    expect(find.byType(BarreEspace), findsNothing);
+    // Jeudi : sommeil, ultimate, bloc emploi ; les anciennes en pause.
+    expect(find.text('Couché à l\'heure ?'), findsOneWidget);
+    expect(find.text('Ultimate ?', skipOffstage: false), findsOneWidget);
+    expect(find.text('Sport ?'), findsNothing);
+    // Pas de rattrapage pour le sport (Hyrox, c'est le lundi).
+    expect(find.text('Hyrox ?', skipOffstage: false), findsNothing);
+    final prefs = (await tester.runAsync(SharedPreferences.getInstance))!;
+    expect(prefs.getBool('rappel_planning'), isFalse);
+    // Le bilan pour le coach.
+    await tester.tap(find.byKey(const ValueKey('bilan-coach')));
+    await attends(tester);
+    expect(copie, contains('Couché à l\'heure ?'));
+    expect(copie, contains('Cible du coucher'));
   });
 
   testWidgets('ajouter : ce qui existe déjà s\'affiche en tapant', (
@@ -845,22 +831,6 @@ void main() {
       expect(demain.single.texte, 'Papiers');
       expect(demain.single.debut, 8 * 60);
       expect((await tester.runAsync(() => base.tachesDu(jeudi)))!, isEmpty);
-    });
-
-    testWidgets('le rappel du soir ouvre la to-do', (tester) async {
-      await ouvre(tester, AccueilScreen(maintenant: soir20h));
-      notifs.ouverture.value = Notifications.preparer;
-      await tester.pumpAndSettle();
-      await attends(tester);
-      final todo = tester.widget<Semantics>(
-        find
-            .descendant(
-              of: find.byKey(const ValueKey('onglet-0')),
-              matching: find.byType(Semantics),
-            )
-            .first,
-      );
-      expect(todo.properties.selected, isTrue);
     });
 
     testWidgets('Aujourd\'hui : l\'heure imposée est respectée', (

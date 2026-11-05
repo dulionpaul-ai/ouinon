@@ -11,6 +11,7 @@ import '../utils/planification.dart';
 import '../utils/planning.dart';
 import '../utils/stats.dart';
 import 'base.dart';
+import 'coaching.dart';
 import 'preferences.dart';
 
 /// Le moment où une notification doit partir, en temps universel.
@@ -280,6 +281,7 @@ class Notifications {
         title: n.rattrapage
             ? '${n.question.texte} (de ${nomJour(n.jour.weekday)})'
             : n.question.texte,
+        body: detailNotification(n.question, n.jour),
         scheduledDate: _tz(n.quand),
         notificationDetails: _details(n.question, n.duree),
         androidScheduleMode: mode,

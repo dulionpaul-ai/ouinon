@@ -84,6 +84,13 @@ en dents de scie et grignotage. Le sommeil est le premier domino.
 - Lun : Hyrox ? · Mar, jeu : ultimate ? · Ven : Bodycombat ? · Lun – ven :
   bloc recherche d'emploi ? · (liste coupée après « M… », à compléter).
 
+## À faire (tenu par le coach)
+
+En attendant la to-do dans Ouinon (étape 1 : seulement les questions).
+
+- [ ] Coller un autocollant « Stop Pub » sur la boîte aux lettres
+  (gratuit en mairie, ou à imprimer ; 5 min). Ajouté le 5/11/2026.
+
 ## Journal
 
 - **5/11/2026** : démarrage. Questionnaire en 3 séries. Carnet créé.
@@ -94,3 +101,8 @@ en dents de scie et grignotage. Le sommeil est le premier domino.
 - **5/11/2026** : Paul ajoute son cap : vivre longtemps en bonne santé,
   et rendre fière Margaux. Proposé : un bilan chez le médecin traitant
   comme point de départ (tension, prise de sang).
+- **5/11/2026** : Ouinon, étape 1 du coaching : l'appli ne montre plus
+  que les questions ; les 9 suivis du coach sont créés (sommeil à
+  7 h 45, Hyrox, ultimate, Bodycombat, cuisine, bloc emploi) ; les
+  anciennes questions en pause ; bouton « Bilan pour le coach » qui
+  copie les 7 derniers jours. Version 1.0.0+36.

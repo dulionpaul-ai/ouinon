@@ -511,3 +511,17 @@ demain »).
   compactes (nom sur deux lignes au plus), deux lignes visibles ; au-delà
   de quatre choses, un mini défilement intérieur avec sa barre.
 - APK n° 35 (1.0.0+35), 29/10/2026 : panier sur deux colonnes, points centrés, Aujourd'hui / Demain plus fluide.
+
+## 1.0.0+36 : coaching, étape 1 (5/11/2026)
+
+- Paul démarre un coaching de vie avec Claude (`docs/coaching/carnet.md`).
+  Ouinon devient l'outil de suivi, construit pas à pas.
+- L'appli ne montre plus que l'écran des questions (to-do et journée
+  cachées, code gardé : `AccueilScreen.seulementQuestions`).
+- Suivis créés une fois (`lib/data/coaching.dart`) ; anciennes questions
+  en pause ; rappel du soir coupé. Le coucher : « Couché à l'heure ? »,
+  la notification donne la cible (0 h 30, puis 30 min plus tôt chaque
+  lundi jusqu'à 23 h).
+- Bouton « Bilan pour le coach » : copie les 7 derniers jours, à coller
+  dans la conversation.
+

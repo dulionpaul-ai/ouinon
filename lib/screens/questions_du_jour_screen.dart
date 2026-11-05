@@ -1,8 +1,10 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../data/base.dart';
+import '../data/coaching.dart';
 import '../data/notifications.dart';
 import '../models/question.dart';
 import '../theme/app_theme.dart';
@@ -147,6 +149,19 @@ class _QuestionsDuJourScreenState extends State<QuestionsDuJourScreen> {
     );
   }
 
+  /// Le bilan des 7 derniers jours, copié pour être collé dans la
+  /// conversation avec le coach (coaching, étape 1).
+  Future<void> _bilan() async {
+    final texte = bilanCoaching(
+      await widget.base.questions(),
+      await widget.base.toutesLesReponses(),
+      widget.maintenant(),
+    );
+    await Clipboard.setData(ClipboardData(text: texte));
+    if (!mounted) return;
+    annonce(context, 'Bilan copié : colle-le dans la conversation avec Claude');
+  }
+
   void _nouvelle() => Navigator.push(
     context,
     MaterialPageRoute(builder: (_) => EditionQuestionScreen(base: widget.base)),
@@ -180,6 +195,12 @@ class _QuestionsDuJourScreenState extends State<QuestionsDuJourScreen> {
                       part: repondues / _questions.length,
                       aide: '$repondues réponses sur ${_questions.length}',
                     ),
+                  BoutonRond(
+                    key: const ValueKey('bilan-coach'),
+                    icone: Icons.ios_share_rounded,
+                    aide: 'Bilan pour le coach',
+                    onTap: _bilan,
+                  ),
                   BoutonRond(
                     icone: Icons.tune_rounded,
                     aide: 'Réglages et stats',

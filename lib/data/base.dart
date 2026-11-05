@@ -455,12 +455,16 @@ class Base {
       final id = await db.insert('planning', tache.versLigne());
       return tache.copie(id: id);
     }
-    await db.update(
+    final n = await db.update(
       'planning',
       tache.versLigne(),
       where: 'id = ?',
       whereArgs: [tache.id],
     );
+    // Supprimée entre-temps (« Annuler » après un retrait) : on la remet.
+    if (n == 0) {
+      await db.insert('planning', {...tache.versLigne(), 'id': tache.id});
+    }
     return tache;
   }());
 

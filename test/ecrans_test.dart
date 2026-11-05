@@ -386,8 +386,11 @@ void main() {
     await ouvre(tester, AccueilScreen(maintenant: midi));
     await attends(tester);
     await tester.pumpAndSettle();
-    expect(find.byType(QuestionsDuJourScreen), findsOneWidget);
-    expect(find.byType(BarreEspace), findsNothing);
+    // Deux onglets : la journée d'abord, puis les questions.
+    expect(find.byType(BarreEspace), findsOneWidget);
+    expect(find.byType(JourneeScreen), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('onglet-1')));
+    await tester.pumpAndSettle();
     // Jeudi : sommeil, ultimate, bloc emploi ; les anciennes en pause.
     expect(find.text('Couché à l\'heure ?'), findsOneWidget);
     expect(find.text('Ultimate ?', skipOffstage: false), findsOneWidget);
@@ -800,6 +803,31 @@ void main() {
       final creneaux = (await tester.runAsync(base.creneaux))!;
       expect(creneaux.single.texte, 'Enfants');
       expect(find.text('Enfants'), findsOneWidget);
+    });
+
+    testWidgets('Aujourd\'hui : coller le programme du coach', (tester) async {
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (appel) async => appel.method == 'Clipboard.getData'
+            ? {
+                'text': '| 15 h – 16 h | Entretien Horoquartz |\n17:00-18:00 Fortify',
+              }
+            : null,
+      );
+      await ouvre(tester, JourneeScreen(base: base, maintenant: midi));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('coller-programme')).first);
+      await attends(tester);
+      await tester.pumpAndSettle();
+      final prevues = (await tester.runAsync(() => base.tachesDu(jeudi)))!;
+      expect(
+        [for (final t in prevues) (t.texte, t.debut, t.duree)],
+        [('Entretien Horoquartz', 15 * 60, 60), ('Fortify', 17 * 60, 60)],
+      );
+      // « Annuler » les retire.
+      await tester.tap(find.text('Annuler'));
+      await attends(tester);
+      expect((await tester.runAsync(() => base.tachesDu(jeudi)))!, isEmpty);
     });
 
     testWidgets('Aujourd\'hui : glisser vers demain et y caser une chose', (

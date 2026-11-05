@@ -48,8 +48,11 @@ class _AccueilScreenState extends State<AccueilScreen>
 
   static const todo = 0;
 
-  /// Coaching, étape 1 (5/11/2026) : un seul écran, les questions.
+  /// Coaching (5/11/2026) : seulement la journée et les questions.
   static const seulementQuestions = true;
+
+  /// Onglet montré en mode coaching : la journée d'abord.
+  int _ongletCoaching = 0;
 
   /// Ce qui attend aujourd'hui (pastille de l'onglet).
   int _attend = 0;
@@ -289,12 +292,25 @@ class _AccueilScreenState extends State<AccueilScreen>
       data: AppTheme.avecAccent(theme, _onglets[i].couleur),
       child: ecran,
     );
-    // Coaching, étape 1 : seulement l'écran des questions ; la to-do et
-    // la journée attendent, leur code est gardé.
+    // Coaching (5/11/2026) : deux onglets, la journée (le programme du
+    // coach) et les questions ; la to-do attend, son code est gardé.
     if (seulementQuestions) {
-      return page(
-        2,
-        QuestionsDuJourScreen(base: base, maintenant: widget.maintenant),
+      return Scaffold(
+        body: IndexedStack(
+          index: _ongletCoaching,
+          children: [
+            page(1, JourneeScreen(base: base, maintenant: widget.maintenant)),
+            page(
+              2,
+              QuestionsDuJourScreen(base: base, maintenant: widget.maintenant),
+            ),
+          ],
+        ),
+        bottomNavigationBar: BarreEspace(
+          index: _ongletCoaching,
+          onglets: [_onglets[1], _onglets[2]],
+          onChoix: (i) => setState(() => _ongletCoaching = i),
+        ),
       );
     }
     return Scaffold(

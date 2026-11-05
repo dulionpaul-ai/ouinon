@@ -229,3 +229,36 @@ Future<String> exportComplet(Base base, DateTime maintenant) async {
   }
   return lignes.join('\n');
 }
+
+/// Un créneau du programme envoyé par le coach.
+typedef Creneau2 = ({int debut, int fin, String texte});
+
+/// Lit le programme collé depuis la conversation (5/11/2026) : une ligne
+/// par créneau, « 9 h 45 – 10 h 45 Rangement », « 13:15-13:40 Sieste »,
+/// ou une ligne de tableau « | 15 h – 16 h | Entretien |». Les lignes
+/// sans plage horaire sont ignorées.
+List<Creneau2> lisProgramme(String texte) {
+  final plage = RegExp(
+    r'(\d{1,2})\s*(?:h|:)\s*(\d{2})?\s*[–—-]\s*(\d{1,2})\s*(?:h|:)\s*(\d{2})?\s*(.*)',
+  );
+  final creneaux = <Creneau2>[];
+  for (final brute in texte.split('\n')) {
+    final ligne = brute.replaceAll('|', ' ').replaceAll('*', ' ').trim();
+    final m = plage.firstMatch(ligne);
+    if (m == null) continue;
+    final h1 = int.parse(m.group(1)!), h2 = int.parse(m.group(3)!);
+    final debut = h1 * 60 + int.parse(m.group(2) ?? '0');
+    var fin = h2 * 60 + int.parse(m.group(4) ?? '0');
+    if (h1 > 23 || h2 > 24 || debut >= 24 * 60) continue;
+    // « 23 h 30 – 0 h 30 » : jusqu'à minuit.
+    if (fin <= debut) fin = 24 * 60;
+    final nom = m
+        .group(5)!
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .replaceFirst(RegExp(r'^[\s:·,.-]+'), '')
+        .trim();
+    if (nom.isEmpty) continue;
+    creneaux.add((debut: debut, fin: fin, texte: nom));
+  }
+  return creneaux;
+}

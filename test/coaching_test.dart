@@ -49,4 +49,21 @@ void main() {
       expect(texte, contains('22/10/26 9 h Mails (60 min) : fait'));
     },
   );
+
+  test('lire le programme collé depuis la conversation', () {
+    final c = lisProgramme('''
+## Ton programme du jour
+| Heure | Quoi |
+|---|---|
+| 9 h 45 – 10 h 45 | Rangement : serpillère |
+| 15 h – 16 h | **Entretien Horoquartz** |
+13:15-13:40 Micro-sieste
+| 0 h | Écrans coupés |
+''');
+    expect(c, [
+      (debut: 9 * 60 + 45, fin: 10 * 60 + 45, texte: 'Rangement : serpillère'),
+      (debut: 15 * 60, fin: 16 * 60, texte: 'Entretien Horoquartz'),
+      (debut: 13 * 60 + 15, fin: 13 * 60 + 40, texte: 'Micro-sieste'),
+    ]);
+  });
 }

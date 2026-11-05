@@ -528,3 +528,11 @@ demain »).
   question avec toutes ses réponses, la to-do, le planning) pour les
   coller dans la conversation (`exportComplet`).
 - APK n° 36 (1.0.0+36) envoyé le 5/11/2026.
+- 5/11/2026 (1.0.0+37) : deux onglets en mode coaching, « Aujourd'hui »
+  (la journée) et « Questions ». Bouton « Coller le programme du coach »
+  (icône presse-papiers) : le programme copié depuis la conversation
+  (« 9 h 45 – 10 h 45 Rangement », tableau accepté) devient la journée,
+  avec une notification par créneau ; il remplace les rendez-vous sans
+  réponse du jour (`lisProgramme`). Corrigé : « Annuler » après le
+  retrait d'un bloc le remet bien.
+

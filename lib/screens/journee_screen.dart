@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../data/base.dart';
+import '../data/coaching.dart';
 import '../data/notifications.dart';
 import '../data/preferences.dart';
 import '../models/a_faire.dart';
@@ -257,6 +259,52 @@ class _PageJourState extends State<_PageJour>
     );
   }
 
+  /// Le programme du coach, copié depuis la conversation, devient la
+  /// journée (5/11/2026) : il remplace les rendez-vous sans réponse de ce
+  /// jour ; chaque créneau a sa notification « C'est l'heure ».
+  Future<void> _collePrograme() async {
+    final presse = await Clipboard.getData(Clipboard.kTextPlain);
+    final creneaux = lisProgramme(presse?.text ?? '');
+    if (!mounted) return;
+    if (creneaux.isEmpty) {
+      annonce(context, 'Rien à coller : copie d\'abord le programme du coach');
+      return;
+    }
+    final anciens = [
+      for (final t in await widget.base.tachesDu(_jour))
+        if (t.imperatif && t.etat == null) t,
+    ];
+    for (final t in anciens) {
+      await widget.base.supprimeTache(t.id!);
+    }
+    final nouveaux = <Tache>[];
+    for (final c in creneaux) {
+      nouveaux.add(
+        await widget.base.enregistreTache(
+          Tache(
+            jour: _jour,
+            debut: c.debut,
+            duree: (c.fin - c.debut).clamp(15, 24 * 60),
+            texte: c.texte,
+          ),
+        ),
+      );
+    }
+    if (!mounted) return;
+    annonce(
+      context,
+      'Programme : ${creneaux.length} créneaux',
+      annuler: () async {
+        for (final t in nouveaux) {
+          await widget.base.supprimeTache(t.id!);
+        }
+        for (final t in anciens) {
+          await widget.base.enregistreTache(t);
+        }
+      },
+    );
+  }
+
   /// Toucher un bloc : sa fiche (heure, durée, texte, supprimer).
   void _ouvre(Tache tache) => Navigator.push(
     context,
@@ -327,6 +375,12 @@ class _PageJourState extends State<_PageJour>
                           '${dureeFr(resteMin)}',
                 titre: widget.decalage == 0 ? 'Aujourd\'hui' : 'Demain',
                 actions: [
+                  BoutonRond(
+                    key: const ValueKey('coller-programme'),
+                    icone: Icons.content_paste_rounded,
+                    aide: 'Coller le programme du coach',
+                    onTap: _collePrograme,
+                  ),
                   BoutonRond(
                     icone: Icons.tune_rounded,
                     aide: 'Réglages et stats',

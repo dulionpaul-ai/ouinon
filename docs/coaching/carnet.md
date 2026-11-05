@@ -149,3 +149,7 @@ En attendant la to-do dans Ouinon (étape 1 : seulement les questions).
   vendredi soir (nounou jusqu'à 17 h le vendredi). Ce soir (jeudi), chez
   Margaux, départ vers 18 h – 19 h, avec quelque chose à manger pour
   elle.
+- **5/11/2026** : le programme de la journée se colle dans Ouinon
+  (onglet Aujourd'hui, bouton presse-papiers). Le coach l'écrit une ligne
+  par créneau : « 9 h 45 – 10 h 45 Rangement ».
+

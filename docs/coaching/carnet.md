@@ -1,0 +1,74 @@
+# Carnet de coaching de Paul
+
+Mémoire du coaching de vie (démarré le 5/11/2026). **À lire en premier
+à chaque session de coaching.** Claude est le coach de Paul ; Ouinon 2
+sera l'outil de suivi, conçu d'après les besoins de ce coaching.
+
+## Le contrat
+
+- Coach **cash et factuel** : la logique et les chiffres. Les sentiments
+  aussi marchent (« me prendre par les sentiments, ça marche »).
+- Habitudes, organisation, motivation. Pas de médical : si le sommeil
+  reste mauvais malgré les efforts, ou pour le poids, orienter vers un
+  professionnel.
+- Rythme voulu : **toute la journée** (pas seulement un bilan le soir ou
+  le dimanche). Ouinon 2 doit être là au fil de la journée.
+
+## Profil
+
+- Sans emploi depuis fin janvier 2026. **Fin du chômage : fin août
+  2027.**
+- Enfants en garde alternée : chez Paul le lundi soir, le mercredi soir,
+  et un week-end sur deux (rythme 1-1-1-1-3, ajustable).
+- Visé : **avant-vente SIRH ou commercial SIRH**, ouvert à d'autres
+  pistes. Marché difficile : peu de recrutements en avant-vente SIRH,
+  et des développeurs (concurrencés par l'IA) se repositionnent sur ces
+  postes (avant-vente, commercial, PO).
+- À compléter : âge, taille, poids actuel.
+
+## Diagnostic (5/11/2026)
+
+1. **Sommeil (priorité n° 1)** : couché après 1 h, moins de 6 h de
+   sommeil, peu d'énergie le matin. Cause : **tous les écrans**
+   (téléphone au lit, séries, jeux vidéo, ordinateur).
+2. **Forme et poids (n° 2)** : objectif **-5 à -10 kg**. Hyrox, ultimate,
+   Bodycombat. Repas en semaine : **vite fait et grignotage**.
+3. **Emploi (n° 3)** : environ 13 h/semaine, recherche **par vagues de
+   motivation**. Ce qui fait retomber : pas de réponses, fatigue, marché
+   tendu.
+
+Lien logique : écrans → coucher tardif → fatigue → recherche d'emploi
+en dents de scie et grignotage. Le sommeil est le premier domino.
+
+## Succès dans 6 mois (mai 2027)
+
+- Un **CDI signé** (marge : 3 mois avant la fin du chômage).
+- **-5 kg ou plus**, en forme.
+- Se sentir bien, des journées cadrées, plus de motivation et de
+  discipline.
+
+## Règles en place
+
+- Alarme « on lâche tout » à minuit, extinction à 0 h 30 ; on avance de
+  30 min par semaine jusqu'à 23 h.
+- Lever avant 7 h 30 ; téléphone hors de la chambre.
+
+## Semaine type
+
+- Lun : Hyrox 10 h 15, recherche d'emploi 14 h – 16 h (enfants le soir).
+- Mar : recherche d'emploi 9 h – 12 h, ultimate le soir.
+- Mer : recherche d'emploi 9 h – 12 h, cuisine l'après-midi (enfants le
+  soir).
+- Jeu : recherche d'emploi 9 h – 12 h, ultimate le soir.
+- Ven : recherche d'emploi 9 h – 11 h, Bodycombat 12 h 30.
+
+## Suivis oui/non voulus
+
+- Chaque jour : écran coupé à minuit ? couché avant 0 h 30 ? levé avant
+  7 h 30 ?
+- Lun : Hyrox ? · Mar, jeu : ultimate ? · Ven : Bodycombat ? · Lun – ven :
+  bloc recherche d'emploi ? · (liste coupée après « M… », à compléter).
+
+## Journal
+
+- **5/11/2026** : démarrage. Questionnaire en 3 séries. Carnet créé.

@@ -11,7 +11,8 @@ Mis à jour le 27/10/2026.
 - Ouinon, étape 1 du coaching (1.0.0+36) : seulement les questions, les
   suivis du coach, « Bilan pour le coach ». Étape 2 envisagée : envoi
   automatique des données pour que le coach les consulte.
-- Prochain APK : 1.0.0+36, **toujours demander à Paul avant**.
+- APK n° 36 (1.0.0+36) envoyé le 5/11/2026. Prochain APK : 1.0.0+37,
+  **toujours demander à Paul avant**.
 - Avant chaque envoi : `dart format --output=none --set-exit-if-changed
   lib test`, `flutter analyze`, `flutter test test`.
 

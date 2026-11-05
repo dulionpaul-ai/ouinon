@@ -527,4 +527,4 @@ demain »).
 - Réglages, « Tout envoyer au coach » : copie toutes les données (chaque
   question avec toutes ses réponses, la to-do, le planning) pour les
   coller dans la conversation (`exportComplet`).
-
+- APK n° 36 (1.0.0+36) envoyé le 5/11/2026.

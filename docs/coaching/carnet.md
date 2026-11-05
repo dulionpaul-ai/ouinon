@@ -25,6 +25,15 @@ sera l'outil de suivi, conçu d'après les besoins de ce coaching.
   et des développeurs (concurrencés par l'IA) se repositionnent sur ces
   postes (avant-vente, commercial, PO).
 - À compléter : âge, taille, poids actuel.
+- Soirée : séries, jeux vidéo, ordinateur, téléphone (tout). Dîne avant
+  20 h. Pas de café, pas d'énergisant, pas de tabac ; alcool seulement
+  en soirée entre amis.
+- Matin : traîne au lit, puis en retard, prépare les enfants et lui en
+  vitesse ; pas de petit-déjeuner.
+- Emploi : CV, LinkedIn et pitch prêts. **0 à 2 candidatures sur les 4
+  dernières semaines**, 4 à 10 entretiens depuis janvier. Méthode :
+  alertes automatiques seulement (pas de réseau, ni chasseurs, ni
+  spontanées).
 
 ## Diagnostic (5/11/2026)
 
@@ -72,3 +81,7 @@ en dents de scie et grignotage. Le sommeil est le premier domino.
 ## Journal
 
 - **5/11/2026** : démarrage. Questionnaire en 3 séries. Carnet créé.
+- **5/11/2026** : deux entretiens le jour même : **15 h Horoquartz**
+  (avant-vente ; contacté par LinkedIn ; déjà vu pour commercial SIRH,
+  jugé trop junior) et **17 h Fortify** (avant-vente ; connu d'avant,
+  soutenances faites en partenariat).

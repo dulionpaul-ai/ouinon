@@ -33,7 +33,7 @@ sera l'outil de suivi, conçu d'après les besoins de ce coaching.
   pistes. Marché difficile : peu de recrutements en avant-vente SIRH,
   et des développeurs (concurrencés par l'IA) se repositionnent sur ces
   postes (avant-vente, commercial, PO).
-- À compléter : âge. Taille environ 1,77 m (déduite de l'IMC).
+- **Né le 19/06/1992** (34 ans). **1,77 m.**
 - **Poids, départ 5/11/2026 à 9 h 45** (après le petit-déjeuner ;
   balance connectée) : **90,7 kg**, IMC 29,0, graisse 24,6 %, graisse
   viscérale 11, masse musculaire 64,9 kg, âge métabolique 38,

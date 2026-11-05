@@ -6,6 +6,13 @@ sera l'outil de suivi, conçu d'après les besoins de ce coaching.
 
 ## Le contrat
 
+- **Paul le dit lui-même (5/11/2026) : il trouve des excuses.** Piège
+  repéré : construire Ouinon avec Claude au lieu de faire ce qui est
+  prévu (douche, serpillère). Règle : **pas de travail sur Ouinon
+  pendant un créneau prévu** ; le coach recadre et renvoie à la tâche.
+  Tout ce qui a été fait avant le 5/11 peut être remis en question.
+
+
 - Coach **cash et factuel** : la logique et les chiffres. Les sentiments
   aussi marchent (« me prendre par les sentiments, ça marche »).
 - Habitudes, organisation, motivation. Pas de médical : si le sommeil

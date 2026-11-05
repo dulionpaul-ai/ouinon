@@ -152,6 +152,10 @@ En attendant la to-do dans Ouinon (étape 1 : seulement les questions).
 - [ ] Valises.
 - [ ] Poubelle (et retrouver la télécommande ?).
 - [ ] Recyclage.
+- [ ] **Draps de James** (pipi au lit la nuit du 4 au 5/11) : à défaire
+  et laver aujourd'hui. Ajouté le 5/11/2026.
+- [ ] Changer les draps de tous les lits, avant le week-end avec les
+  enfants (vendredi). Ajouté le 5/11/2026.
 
 ## Journal
 

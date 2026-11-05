@@ -6,6 +6,8 @@ sera l'outil de suivi, conçu d'après les besoins de ce coaching.
 
 ## Le contrat
 
+- **Coach de vie global** (Paul, 5/11/2026) : penser à tout (corps,
+  santé, apparence, maison, emploi, couple), pas seulement à l'agenda.
 - **Paul le dit lui-même (5/11/2026) : il trouve des excuses.** Piège
   repéré : construire Ouinon avec Claude au lieu de faire ce qui est
   prévu (douche, serpillère). Règle : **pas de travail sur Ouinon
@@ -105,6 +107,15 @@ ignorer (Paul, 5/11/2026). Paul n'a jamais marché.
 - Alarme « on lâche tout » à minuit, extinction à 0 h 30 ; on avance de
   30 min par semaine jusqu'à 23 h.
 - Lever avant 7 h 30 ; téléphone hors de la chambre.
+
+## Routines
+
+- **Salle de bain, le matin** (environ 15 min) : douche, déo, dents,
+  verrue (flacon sur la brosse à dents), crème visage, produit cheveux.
+- **Photos et pesée** : de face et de profil torse nu, plus le visage ;
+  même endroit, même lumière, même distance. Départ le 5/11/2026, puis
+  **chaque lundi matin**, au réveil, avant de manger. Les photos restent
+  dans le téléphone (album « Suivi »).
 
 ## Semaine type
 

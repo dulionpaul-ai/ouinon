@@ -535,4 +535,4 @@ demain »).
   avec une notification par créneau ; il remplace les rendez-vous sans
   réponse du jour (`lisProgramme`). Corrigé : « Annuler » après le
   retrait d'un bloc le remet bien.
-
+- APK n° 37 (1.0.0+37) envoyé le 5/11/2026.

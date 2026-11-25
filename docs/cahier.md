@@ -1,27 +1,25 @@
-# Cahier de Ouinon (repartir de zéro, 27/10/2026)
+# Cahier de Ouinon
 
-Écrit avec Paul, écran par écran. Rien n'est codé tant que Paul n'a pas
-validé l'écran. Le moteur existant (notifications, base, courbes) est
-gardé ; les écrans sont refaits.
+Les écrans validés par Paul. Rien n'est codé tant que Paul n'a pas
+validé l'écran.
 
-## Écran 1 : Mes questions
+## Écran unique : mes questions (25/11/2026)
 
-- La liste de mes questions : pour chacune, son texte, son heure, ses
-  jours.
-- Créer une question : le texte (« Sport ? »), les 2 ou 3 réponses
-  écrites à la main (pas de modèles ; « Fait » et « Pas fait » écrits par
-  défaut, modifiables, depuis le 28/10/2026), l'heure, les jours.
-- Les jours : aucun coché par défaut. Raccourcis : « Tous les jours »,
-  « En semaine », « Le week-end ». Chaque jour se coche ou se décoche.
-- Toucher une question : la modifier (texte, réponses, heure, jours)
-  quand on veut, ou la supprimer.
-- On répond surtout par la notification. On peut aussi répondre dans
-  l'appli (écran à définir).
-- Une notification ratée reste affichée jusqu'à ce qu'on réponde. Sans
-  réponse, le jour compte comme « pas de réponse ».
+- Validé : écran 1 du 27/10/2026, et version minimaliste acceptée par
+  Paul le 25/11/2026 (« on repart de zéro, il peut y avoir 3
+  réponses »).
+- La liste de mes questions, dans l'ordre de la journée : le texte,
+  l'heure, les jours. Celles du jour portent leurs réponses (la moins
+  bonne à gauche) : on peut répondre dans l'appli si on a raté la
+  notification. Toucher la réponse choisie l'enlève.
+- En bas, « En pause » : les questions sans aucun jour.
+- « + » : nouvelle question. Toucher une question : la modifier.
+- En haut : copier le bilan des 7 derniers jours, pour le coach.
 
-- Une question sans aucun jour coché ne sonne jamais (en pause).
-- La notification ratée reste jusqu'à la suivante de la même question,
-  qui la remplace.
+## Formulaire : une question
 
-**Validé par Paul le 27/10/2026.**
+- Le texte, 2 ou 3 réponses écrites à la main (« Fait » et « Pas fait »
+  par défaut ; « Réponse du milieu » en ajoute une), l'heure (cadran),
+  les jours (aucun par défaut ; raccourcis Tous, Semaine, Week-end).
+- Modifier : tout se change, y compris le nombre de réponses. Supprimer
+  (la corbeille en haut) efface aussi ses réponses.

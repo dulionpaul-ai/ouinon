@@ -11,7 +11,8 @@
 - La nouvelle appli reprend la base du téléphone : les questions et les
   réponses de Paul sont gardées (les questions en pause passent sans
   jours, les réponses de test sont effacées).
-- APK 2.0.0+38 **pas encore fabriqué** : demander à Paul.
+- APK n° 38 (2.0.0+38) envoyé le 25/11/2026. Prochain : 2.0.0+39,
+  **toujours demander à Paul avant**.
 
 ## Le code (`lib/`)
 

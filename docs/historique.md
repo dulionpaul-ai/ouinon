@@ -19,3 +19,4 @@ les questions et le bilan pour le coach).
   test. Tout le reste retiré : to-do, planning, stats, dictée, onglets,
   réglages, bilan du dimanche, rappel du soir.
 - Un écran, un formulaire, 16 tests.
+- APK n° 38 envoyé à Paul le 25/11/2026.

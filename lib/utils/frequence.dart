@@ -65,3 +65,50 @@ String frequenceFr(Question q) {
       ? base
       : '$base · ${joursFr(q.jours).toLowerCase()}';
 }
+
+/// La série en cours : les jours posés d'affilée avec la meilleure
+/// réponse, jusqu'à [aujourdhui] (pas encore répondu aujourd'hui : la
+/// série d'hier tient toujours). Les jours où elle n'est pas posée ne
+/// cassent pas la série.
+int serie(Question q, DateTime aujourdhui, Reponses reponses) {
+  var n = 0;
+  for (var d = 0; d < 400; d++) {
+    final j = ajouteJours(jourDe(aujourdhui), -d);
+    if (!poseeLe(q, j, reponses)) continue;
+    final c = reponses[cleJour(j)];
+    if (d == 0 && c == null) continue;
+    if (c != 0) break;
+    n++;
+  }
+  return n;
+}
+
+/// Les 7 derniers jours d'une question, aujourd'hui en dernier : l'indice
+/// de la réponse, −1 si posée sans réponse, nul si pas posée.
+List<int?> septJours(Question q, DateTime aujourdhui, Reponses reponses) => [
+  for (var n = 6; n >= 0; n--)
+    () {
+      final j = ajouteJours(jourDe(aujourdhui), -n);
+      if (!poseeLe(q, j, reponses)) return null;
+      return reponses[cleJour(j)] ?? -1;
+    }(),
+];
+
+/// Pour une tâche : depuis combien de jours elle a été faite (meilleure
+/// réponse) avant [jour] ; nul si jamais.
+int? faitIlYA(Question q, DateTime jour, Reponses reponses) {
+  for (var n = 1; n <= 366; n++) {
+    if (reponses[cleJour(ajouteJours(jourDe(jour), -n))] == 0) return n;
+  }
+  return null;
+}
+
+/// Le texte sous la question dans la notification : le « pourquoi » de
+/// Paul ; pour une tâche sans pourquoi, depuis quand elle est faite.
+String? texteNotif(Question q, DateTime jour, Reponses reponses) {
+  if (q.pourquoi.isNotEmpty) return q.pourquoi;
+  if (q.intervalle < 2) return null;
+  final n = faitIlYA(q, jour, reponses);
+  if (n == null) return null;
+  return n == 1 ? 'Faite hier.' : 'Faite il y a $n jours.';
+}

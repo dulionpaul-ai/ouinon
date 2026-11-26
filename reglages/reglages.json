@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "couleurs": {
+    "fond": "#05070A",
+    "surface": "#0A1016",
+    "trait": "#13202A",
+    "texte": "#E6F1F5",
+    "doux": "#6F808A",
+    "meilleure": "#3EE6FF",
+    "moinsBonne": "#FF5A36",
+    "milieu": "#8FA3AD"
+  },
+  "grille": true,
+  "notification": {
+    "symbole": "▸",
+    "majuscules": true,
+    "images": true
+  },
+  "tailles": {
+    "question": 24,
+    "phrase": 22,
+    "ligne": 17
+  },
+  "afficher": {
+    "phrase": true,
+    "semaine": true,
+    "barres": true,
+    "apercu": true
+  },
+  "textes": {
+    "titre": "OUINON",
+    "phrase": "Je deviens quelqu'un qui",
+    "nouvelle": "+ NOUVELLE HABITUDE",
+    "enregistrer": "ENREGISTRER",
+    "retour": "‹ RETOUR",
+    "supprimer": "SUPPR",
+    "apercu": "APERÇU DE LA NOTIFICATION",
+    "question": "QUESTION",
+    "pourquoi": "POURQUOI",
+    "reponses": "RÉPONSES",
+    "heure": "HEURE",
+    "jours": "JOURS",
+    "repeter": "RÉPÉTER",
+    "vide": "Aucune habitude.\nTouche le bouton du bas pour en créer une."
+  }
+}

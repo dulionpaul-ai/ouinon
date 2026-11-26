@@ -70,3 +70,16 @@ const _mois = [
 String dateLongue(DateTime d) =>
     '${_joursLongs[d.weekday - 1]} ${d.day == 1 ? '1er' : d.day} '
     '${_mois[d.month - 1]}';
+
+/// Numéro de la semaine (norme ISO : la semaine 1 contient le premier
+/// jeudi de l'année).
+int numeroSemaine(DateTime d) {
+  final jeudi = ajouteJours(jourDe(d), 4 - d.weekday);
+  final premier = DateTime(jeudi.year);
+  return ecartJours(premier, jeudi) ~/ 7 + 1;
+}
+
+/// « 07:45 » ([minutes] depuis minuit).
+String heureMono(int minutes) =>
+    '${(minutes ~/ 60).toString().padLeft(2, '0')}:'
+    '${(minutes % 60).toString().padLeft(2, '0')}';

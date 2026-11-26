@@ -2,10 +2,17 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
+import 'package:sqflite/sqflite.dart' show getDatabasesPath;
+
+import '../models/apparence.dart';
+import '../theme/app_theme.dart';
 import '../models/question.dart';
+import '../utils/frequence.dart';
 import '../utils/jour.dart';
 import '../utils/planification.dart';
+import 'apparence_distante.dart';
 import 'base.dart';
+import 'images_notif.dart';
 
 /// Le moment où une notification doit partir, envoyé à Android en temps
 /// universel : l'heure locale est calculée avec l'horloge du téléphone
@@ -119,14 +126,22 @@ class Notifications {
     await replanifie(base);
   }
 
-  /// Reprogramme toutes les notifications.
+  /// Reprogramme toutes les notifications, au style de l'apparence en
+  /// cours (HUD, 26/11/2026) : couleur d'accent, symbole et majuscules
+  /// dans le titre, le « pourquoi » dessous, et sur Android deux images
+  /// dessinées par l'appli (la série à droite, les 7 derniers jours quand
+  /// on déplie).
   Future<void> replanifie(Base base) async {
     await prepare();
+    await ApparenceDistante.charge(base);
+    final a = Apparence.actuelle;
     final questions = await base.questions();
+    final reponses = await base.toutesLesReponses();
+    final maintenant = DateTime.now();
     final plan = planifie(
       questions: questions,
-      reponses: await base.toutesLesReponses(),
-      maintenant: DateTime.now(),
+      reponses: reponses,
+      maintenant: maintenant,
       // iPhone : 64 notifications programmées au plus. Android : 500.
       maxNotifs: defaultTargetPlatform == TargetPlatform.iOS ? 63 : 400,
     );
@@ -136,17 +151,44 @@ class Notifications {
     final mode = await heurePrecise()
         ? AndroidScheduleMode.exactAllowWhileIdle
         : AndroidScheduleMode.inexactAllowWhileIdle;
+    // Les images, une paire par question programmée.
+    final images = <int, ({String icone, String grande})>{};
+    if (a.images && defaultTargetPlatform == TargetPlatform.android) {
+      final dossier = await getDatabasesPath();
+      for (final q in {
+        for (final n in plan.notifs) n.question.id: n.question,
+      }.values) {
+        final r = reponses[q.id] ?? const {};
+        final i = await ImagesNotif.ecris(
+          q: q,
+          serie: serie(q, maintenant, r),
+          jours: septJours(q, maintenant, r),
+          a: a,
+          dossier: dossier,
+        );
+        if (i != null) images[q.id!] = i;
+      }
+    }
     await _plugin.cancelAllPendingNotifications();
     for (final n in plan.notifs) {
+      final q = n.question;
+      final titre = titreNotif(q, a);
+      final corps = texteNotif(q, n.jour, reponses[q.id] ?? const {});
       await _plugin.zonedSchedule(
         id: n.id,
-        title: n.question.texte,
-        // Le « pourquoi » de Paul, sous la question.
-        body: n.question.pourquoi.isEmpty ? null : n.question.pourquoi,
+        title: titre,
+        body: corps,
         scheduledDate: instantProgramme(n.quand),
-        notificationDetails: _details(n.question, n.duree),
+        notificationDetails: _details(
+          q,
+          n.duree,
+          a,
+          titre,
+          corps,
+          images[q.id],
+        ),
         androidScheduleMode: mode,
-        payload: '${n.question.id}|${cleJour(n.jour)}',
+        payload: '${q.id}|${cleJour(n.jour)}',
       );
     }
     final rappel = plan.rappelContinuer;
@@ -177,22 +219,49 @@ class Notifications {
   }
 
   /// [duree] : temps d'affichage, jusqu'à la suivante de la même question.
-  NotificationDetails _details(Question q, Duration duree) =>
-      NotificationDetails(
-        android: AndroidNotificationDetails(
-          _canal,
-          'Questions',
-          channelDescription: 'Les questions du jour, avec leurs réponses.',
-          importance: Importance.high,
-          priority: Priority.high,
-          category: AndroidNotificationCategory.reminder,
-          icon: '@drawable/ic_stat_ouinon',
-          timeoutAfter: duree.inMilliseconds,
-          actions: [
-            for (var i = q.nbReponses - 1; i >= 0; i--)
-              AndroidNotificationAction('r$i', q.reponses[i]),
-          ],
-        ),
-        iOS: DarwinNotificationDetails(categoryIdentifier: 'q${q.id}'),
-      );
+  NotificationDetails _details(
+    Question q,
+    Duration duree,
+    Apparence a,
+    String titre,
+    String? corps,
+    ({String icone, String grande})? images,
+  ) => NotificationDetails(
+    android: AndroidNotificationDetails(
+      _canal,
+      'Questions',
+      channelDescription: 'Les questions du jour, avec leurs réponses.',
+      importance: Importance.high,
+      priority: Priority.high,
+      category: AndroidNotificationCategory.reminder,
+      icon: '@drawable/ic_stat_ouinon',
+      color: a.meilleure,
+      timeoutAfter: duree.inMilliseconds,
+      largeIcon: images == null ? null : FilePathAndroidBitmap(images.icone),
+      styleInformation: images == null
+          ? (corps == null ? null : BigTextStyleInformation(corps))
+          : BigPictureStyleInformation(
+              FilePathAndroidBitmap(images.grande),
+              hideExpandedLargeIcon: true,
+              contentTitle: titre,
+              summaryText: corps,
+            ),
+      actions: [
+        for (var i = q.nbReponses - 1; i >= 0; i--)
+          AndroidNotificationAction(
+            'r$i',
+            a.majuscules ? q.reponses[i].toUpperCase() : q.reponses[i],
+            titleColor: AppTheme.couleurReponse(i, q.nbReponses),
+          ),
+      ],
+    ),
+    iOS: DarwinNotificationDetails(categoryIdentifier: 'q${q.id}'),
+  );
+}
+
+/// Le titre d'une notification : le symbole, puis la question (en
+/// capitales si l'apparence le demande).
+String titreNotif(Question q, Apparence a) {
+  final texte = a.majuscules ? q.texte.toUpperCase() : q.texte;
+  return a.symbole.isEmpty ? texte : '${a.symbole} $texte';
 }

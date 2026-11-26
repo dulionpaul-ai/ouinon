@@ -126,23 +126,29 @@ class Base {
 
   // Réglages
 
-  /// La phrase du haut : « Je deviens quelqu'un qui… » (vide : pas encore
-  /// écrite).
-  Future<String> phrase() async {
+  /// Un réglage gardé sur le téléphone (nul s'il n'existe pas).
+  Future<String?> reglage(String cle) async {
     final lignes = await db.query(
       'reglages',
       where: 'cle = ?',
-      whereArgs: ['phrase'],
+      whereArgs: [cle],
     );
-    return lignes.isEmpty ? '' : lignes.first['valeur'] as String;
+    return lignes.isEmpty ? null : lignes.first['valeur'] as String;
   }
 
-  Future<void> changePhrase(String phrase) => _ecrit(
+  Future<void> changeReglage(String cle, String valeur) => _ecrit(
     db.insert('reglages', {
-      'cle': 'phrase',
-      'valeur': phrase.trim(),
+      'cle': cle,
+      'valeur': valeur,
     }, conflictAlgorithm: ConflictAlgorithm.replace),
   );
+
+  /// La phrase du haut : « Je deviens quelqu'un qui… » (vide : pas encore
+  /// écrite).
+  Future<String> phrase() async => await reglage('phrase') ?? '';
+
+  Future<void> changePhrase(String phrase) =>
+      changeReglage('phrase', phrase.trim());
 
   // Questions
 

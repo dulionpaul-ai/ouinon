@@ -19,28 +19,30 @@
   Voir `docs/cahier.md`. Habitudes proposées par le coach :
   `docs/coaching/habitudes.md`. APK n° 39 pas encore envoyé (Paul l'a
   arrêté).
-- **26/11/2026, en attente du choix de Paul** : thème futuriste. Les
-  réponses se donnent seulement dans les notifications (plus de boutons
-  dans l'appli) ; l'écran clé devient le formulaire (créer, modifier),
-  avec un aperçu de la notification. Deux pistes en maquettes, page
-  « Futuriste » : HUD (bleu glacier sur noir) et Acide (jaune acide,
-  angles vifs). Notifications : couleur de l'appli, image à droite
-  (série, 7 jours), grande image dépliée dessinée par l'appli.
+- **26/11/2026 : thème HUD codé** (choix de Paul), réponses seulement
+  dans les notifications, réglages sans APK (voir `CLAUDE.md`,
+  « Réglable sans APK »). En attente de Paul : créer le dépôt public
+  `ouinon-reglages` (vide) et passer `ouinon` en privé ; Claude y pousse
+  ensuite `reglages/reglages.json` (add_repo). Sans ce fichier, l'appli
+  garde le thème par défaut.
 
 ## Le code (`lib/`)
 
 | Fichier | Rôle |
 |---|---|
 | `main.dart` | Lancement, thème, français. |
-| `screens/questions_screen.dart` | L'écran unique : la phrase, la semaine, les questions du jour (7 points, réponses, pastille), « Pas aujourd'hui » et « En pause » repliés, bilan copié, alerte si l'heure précise n'est pas autorisée. |
-| `screens/question_screen.dart` | Créer, modifier, supprimer une question. |
+| `screens/questions_screen.dart` | La liste : la phrase, la semaine, les habitudes (heure, fréquence, 7 barres) ; pas de réponses ici. Bilan copié, alerte si l'heure précise n'est pas autorisée. |
+| `screens/question_screen.dart` | L'écran clé : créer, modifier, supprimer une habitude, avec l'aperçu de sa notification. |
 | `data/base.dart` | Base SQLite `ouinon.sqlite` (version 9) : `questions` (avec `pourquoi` et `intervalle`), `reponses`, `reglages` (la phrase). |
 | `utils/frequence.dart` | Quand une question est posée (`poseeLe` : jours, et intervalle pour une tâche), le compte de la semaine, les fréquences en français. |
 | `data/notifications.dart` | Notifications à boutons, réponse enregistrée même appli fermée, tout reprogrammé à chaque changement. |
 | `utils/planification.dart` | Quoi programmer : 14 jours d'avance, rappel « ouvre l'appli » au-delà. |
 | `utils/bilan.dart` | Le bilan des 7 derniers jours pour le coach. |
 | `utils/jour.dart` | Jours, heures et dates en français. |
-| `theme/app_theme.dart` | Le style. |
+| `theme/app_theme.dart` | Le style HUD, d'après l'apparence en cours. |
+| `models/apparence.dart` | Tout ce qui se règle sans APK, avec les valeurs par défaut ; lecture du fichier `reglages.json`. |
+| `data/apparence_distante.dart` | Télécharge le fichier public de réglages, le garde dans la base. |
+| `data/images_notif.dart` | Les deux images des notifications (série, 7 derniers jours). |
 
 ## Installer les outils (session neuve)
 

@@ -3,6 +3,28 @@
 Les écrans validés par Paul. Rien n'est codé tant que Paul n'a pas
 validé l'écran.
 
+## Thème HUD et réponses dans les notifications (26/11/2026)
+
+- Paul : « les réponses sont dans les notifs seulement », « un thème
+  futuriste, très moderne », « la seule page qui compte, c'est la création
+  et modification d'une question », « les notifs futuristes aussi ». Piste
+  HUD choisie (maquettes, page « Futuriste » :
+  https://claude.ai/artifact/9qEJgr3tmc5cgxpp6LKSsQ).
+- Liste : « OUINON », bilan, la phrase, « SEM 48 ── 17/26 », puis les
+  habitudes numérotées (texte, « 07:45 · TOUS LES JOURS · DANS 2 J »,
+  7 barres). Plus de boutons de réponse. En bas : « + NOUVELLE
+  HABITUDE ».
+- Formulaire : « ‹ RETOUR · NOUVELLE/HABITUDE · SUPPR », l'aperçu en
+  direct de la notification (titre, pourquoi, série, boutons), puis 01
+  Question, 02 Pourquoi, 03 Réponses (cadres à leur couleur, la moins
+  bonne à gauche), 04 Heure (grands chiffres), 05 Jours (cases), 06
+  Répéter ; « ENREGISTRER » en bas.
+- Notifications : couleur d'accent, « ▸ QUESTION EN CAPITALES », le
+  pourquoi dessous, boutons en capitales ; à droite une image avec la
+  série et les 7 jours ; dépliée, une grande image (7 derniers jours,
+  score). Le fond de la notification reste celui du téléphone.
+- Avec le texte agrandi sur un petit écran, le formulaire défile un peu.
+
 ## Écran unique : mon jour (validé le 26/11/2026)
 
 - Maquette validée par Paul (« Go ») :

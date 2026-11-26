@@ -33,3 +33,17 @@ les questions et le bilan pour le coach).
 - Coaching : `docs/coaching/habitudes.md`, l'analyse et la liste des
   habitudes à trier.
 
+## 26/11/2026 : thème HUD, réponses dans les notifications, réglable sans APK (2.0.0+39)
+
+- Paul arrête l'APK et demande un thème futuriste ; quatre essais
+  modernes, puis deux pistes (HUD, Acide) : HUD retenu.
+- On répond seulement dans les notifications. Liste et formulaire au
+  style HUD ; aperçu de la notification dans le formulaire. Notifications
+  colorées, en capitales, avec deux images dessinées par l'appli.
+- Réglable sans APK : l'appli lit un fichier public de réglages
+  (accord de Paul, rien n'est envoyé). Le dépôt public
+  `ouinon-reglages` est à créer par Paul (Claude ne peut pas créer de
+  dépôt) ; il conseille aussi de passer `ouinon` en privé (le carnet de
+  coaching y est lisible par tous).
+- Polices : Oxanium + JetBrains Mono. 32 tests.
+

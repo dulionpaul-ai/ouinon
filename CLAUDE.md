@@ -7,8 +7,10 @@ notification avec 2 ou 3 boutons, sans ouvrir l'appli. Tout est stocké
 sur le téléphone (SQLite), sans compte ni serveur.
 
 Repartie de zéro le 25/11/2026 (Paul : « trop de choses, partons sur du
-minimaliste »). L'appli tient en **un seul écran** (mes questions, on
-peut aussi y répondre) et un formulaire. Tout le reste (to-do, planning,
+minimaliste »). L'appli tient en **un seul écran** (mes habitudes) et un
+formulaire. Depuis le 26/11/2026 : **on répond seulement dans les
+notifications** ; l'écran clé est le formulaire (créer, modifier, avec
+l'aperçu de la notification). Tout le reste (to-do, planning,
 stats, onglets) est mis de côté (`docs/idees.md`) ; l'ancien code reste
 dans l'historique git.
 
@@ -47,7 +49,9 @@ bilan des 7 derniers jours, à coller au coach.
 ## Garde-fous (non négociables)
 
 - Aucune réponse ne quitte le téléphone : pas de compte, pas de serveur,
-  pas d'outil d'analyse ni de publicité.
+  pas d'outil d'analyse ni de publicité. Seule exception, décidée par
+  Paul le 26/11/2026 : l'appli **télécharge** un fichier public de
+  réglages (couleurs, textes, tailles), sans rien envoyer de Paul.
 - L'appli constate, elle ne conseille pas : jamais de diagnostic ni de
   conseil médical.
 
@@ -66,10 +70,20 @@ bilan des 7 derniers jours, à coller au coach.
 - Une question sans aucun jour est en pause : elle ne sonne jamais, son
   historique est gardé. Une notification ratée reste affichée jusqu'à la
   suivante de la même question.
-- Style : **toujours sombre**, une seule police (**Oxanium**), deux
-  couleurs translucides : **vert** (meilleure réponse) et **orange**
-  (moins bonne), gris pour celle du milieu. Pas de look « IA » (violet,
-  halos, dégradés). Une vibration légère à chaque action.
+- Style : thème **HUD** (choisi le 26/11/2026), toujours sombre : noir,
+  **bleu glacier** (meilleure réponse, accent), **rouge-orange** (moins
+  bonne), gris pour celle du milieu ; lignes fines, équerres, quadrillage.
+  Polices : **Oxanium** (texte) et **JetBrains Mono** (chiffres,
+  étiquettes). Pas de violet, de halos ni de dégradés. Une vibration
+  légère à chaque action.
+- **Réglable sans APK** : `lib/models/apparence.dart` (valeurs par défaut)
+  et le fichier public `reglages.json` du dépôt `dulionpaul-ai/
+  ouinon-reglages` (copie de référence : `reglages/reglages.json`). Pour
+  un ajustement de couleur, texte, taille, symbole ou d'affichage : ne
+  modifier que ce fichier et le pousser ; l'appli le relit à chaque
+  ouverture (une minute au plus de délai). Une nouvelle réglette =
+  ajouter la clé dans `Apparence` (APK une fois), puis régler par le
+  fichier.
 - Structure : `lib/models`, `lib/data`, `lib/screens`, `lib/utils`,
   `lib/theme`, tests dans `test/`. Flutter 3.47.7
   (`tool/installer_outils.sh`). Identifiant `fr.ouinon.app`, nom

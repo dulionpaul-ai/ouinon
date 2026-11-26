@@ -28,8 +28,8 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # Une seule police partout : Oxanium (licence OFL :
-  # assets/fonts/OFL-Oxanium.txt).
+  # Oxanium (texte) et JetBrains Mono (chiffres, étiquettes du thème HUD),
+  # licence OFL : assets/fonts/OFL-*.txt.
   fonts:
     - family: Oxanium
       fonts:
@@ -40,4 +40,10 @@ flutter:
         - asset: assets/fonts/Oxanium-SemiBold.ttf
           weight: 600
         - asset: assets/fonts/Oxanium-Bold.ttf
+          weight: 700
+    - family: JetBrainsMono
+      fonts:
+        - asset: assets/fonts/JetBrainsMono-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/JetBrainsMono-Bold.ttf
           weight: 700

@@ -46,4 +46,4 @@ les questions et le bilan pour le coach).
   dépôt) ; il conseille aussi de passer `ouinon` en privé (le carnet de
   coaching y est lisible par tous).
 - Polices : Oxanium + JetBrains Mono. 28 tests.
-
+- APK n° 39 (2.0.0+39) envoyé à Paul le 26/11/2026.

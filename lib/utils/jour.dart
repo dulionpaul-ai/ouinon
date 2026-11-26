@@ -57,3 +57,16 @@ String joursFr(int masque) {
 /// « 18/11 ».
 String dateCourte(DateTime d) =>
     '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}';
+
+const _joursLongs = [
+  'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche', //
+];
+const _mois = [
+  'janvier', 'février', 'mars', 'avril', 'mai', 'juin', //
+  'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
+];
+
+/// « Jeudi 26 novembre ».
+String dateLongue(DateTime d) =>
+    '${_joursLongs[d.weekday - 1]} ${d.day == 1 ? '1er' : d.day} '
+    '${_mois[d.month - 1]}';

@@ -6,12 +6,16 @@ import '../data/notifications.dart';
 import '../models/question.dart';
 import '../theme/app_theme.dart';
 import '../utils/bilan.dart';
+import '../utils/frequence.dart';
 import '../utils/jour.dart';
 import 'question_screen.dart';
 
-/// Le seul écran de l'appli : mes questions. Celles du jour portent leurs
-/// réponses (pour répondre sans la notification) ; toucher une question
-/// la modifie ; « + » en crée une. En haut, le bilan pour le coach.
+/// Le seul écran de l'appli (maquette validée le 26/11/2026) : en haut, la
+/// phrase « Je deviens quelqu'un qui… » et le compte de la semaine ; puis
+/// les questions du jour, avec 7 points (les 7 derniers jours) et leurs
+/// réponses ; repliées en bas, celles qui ne sont pas posées aujourd'hui
+/// et celles en pause. Toucher une question la modifie ; « + » en crée
+/// une ; le bouton du haut copie le bilan pour le coach.
 class QuestionsScreen extends StatefulWidget {
   /// Moment présent imposé (tests).
   final DateTime Function() maintenant;
@@ -28,7 +32,13 @@ class _QuestionsScreenState extends State<QuestionsScreen>
   Object? _erreur;
   List<Question> _questions = const [];
   Map<int, Reponses> _reponses = const {};
+  String _phrase = '';
   bool _heurePrecise = true;
+
+  /// Questions répondues aujourd'hui dont on a rouvert les boutons.
+  final _rouvertes = <int>{};
+  bool _voirAutres = false;
+  bool _voirPause = false;
 
   @override
   void initState() {
@@ -84,10 +94,12 @@ class _QuestionsScreenState extends State<QuestionsScreen>
     if (base == null) return;
     final questions = await base.questions();
     final reponses = await base.toutesLesReponses();
+    final phrase = await base.phrase();
     if (!mounted) return;
     setState(() {
       _questions = questions;
       _reponses = reponses;
+      _phrase = phrase;
     });
   }
 
@@ -97,6 +109,7 @@ class _QuestionsScreenState extends State<QuestionsScreen>
     final base = _base!;
     HapticFeedback.selectionClick();
     final actuelle = _reponses[q.id]?[cleJour(_aujourdhui)];
+    setState(() => _rouvertes.remove(q.id));
     // Toucher la réponse déjà choisie l'enlève.
     if (actuelle == choix) {
       await base.efface(q.id!, _aujourdhui);
@@ -128,20 +141,73 @@ class _QuestionsScreenState extends State<QuestionsScreen>
       );
   }
 
+  /// Écrire ou changer la phrase du haut.
+  Future<void> _changePhrase() async {
+    final champ = TextEditingController(text: _phrase);
+    final phrase = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Je deviens quelqu\'un qui…'),
+        content: TextField(
+          key: const ValueKey('phrase'),
+          controller: champ,
+          autofocus: true,
+          maxLength: 100,
+          maxLines: 3,
+          minLines: 1,
+          textCapitalization: TextCapitalization.sentences,
+          decoration: const InputDecoration(
+            hintText: 'dort, bouge et tient parole.',
+            counterText: '',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, champ.text),
+            child: const Text('Enregistrer'),
+          ),
+        ],
+      ),
+    );
+    if (phrase == null) return;
+    HapticFeedback.lightImpact();
+    await _base!.changePhrase(phrase);
+  }
+
   @override
   Widget build(BuildContext context) {
     final aujourdhui = _aujourdhui;
-    final actives = [
+    Reponses r(Question q) => _reponses[q.id] ?? const {};
+    final duJour = [
       for (final q in _questions)
-        if (!q.enPause) q,
+        if (poseeLe(q, aujourdhui, r(q))) q,
+    ];
+    final autres = [
+      for (final q in _questions)
+        if (!q.enPause && !poseeLe(q, aujourdhui, r(q))) q,
     ];
     final enPause = [
       for (final q in _questions)
         if (q.enPause) q,
     ];
+    final repondues = duJour
+        .where((q) => r(q).containsKey(cleJour(aujourdhui)))
+        .length;
+    final s = semaine(_questions, _reponses, aujourdhui);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ouinon'),
+        title: Text(
+          dateLongue(aujourdhui),
+          style: const TextStyle(
+            fontSize: 15,
+            color: AppTheme.doux,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
         actions: [
           if (_base != null)
             IconButton(
@@ -165,6 +231,8 @@ class _QuestionsScreenState extends State<QuestionsScreen>
           : ListView(
               padding: const EdgeInsets.only(bottom: 96),
               children: [
+                _Phrase(phrase: _phrase, onTap: _changePhrase),
+                if (s.total > 0) _Semaine(oui: s.oui, total: s.total),
                 if (!_heurePrecise)
                   ListTile(
                     leading: const Icon(
@@ -188,83 +256,303 @@ class _QuestionsScreenState extends State<QuestionsScreen>
                       style: TextStyle(color: AppTheme.doux, fontSize: 16),
                     ),
                   ),
-                for (final q in actives)
+                if (duJour.isNotEmpty)
+                  _Section('Aujourd\'hui · $repondues sur ${duJour.length}'),
+                for (final q in duJour)
                   _Ligne(
+                    key: ValueKey('q${q.id}'),
                     question: q,
-                    choix: q.revientLe(aujourdhui.weekday)
-                        ? (reponse: _reponses[q.id]?[cleJour(aujourdhui)])
-                        : null,
+                    points: _points(q, aujourdhui),
+                    reponse: r(q)[cleJour(aujourdhui)],
+                    ouverte:
+                        !r(q).containsKey(cleJour(aujourdhui)) ||
+                        _rouvertes.contains(q.id),
                     onTap: () => _ouvre(q),
+                    onRouvre: () => setState(() => _rouvertes.add(q.id!)),
                     onRepond: (c) => _repond(q, c),
                   ),
-                if (enPause.isNotEmpty)
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(16, 24, 16, 4),
-                    child: Text(
-                      'EN PAUSE',
-                      style: TextStyle(
-                        color: AppTheme.doux,
-                        fontSize: 12,
-                        letterSpacing: 1.5,
-                      ),
+                if (autres.isNotEmpty || enPause.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 12, 8, 0),
+                    child: Wrap(
+                      children: [
+                        if (autres.isNotEmpty)
+                          TextButton(
+                            onPressed: () =>
+                                setState(() => _voirAutres = !_voirAutres),
+                            child: Text(
+                              'Pas aujourd\'hui (${autres.length})',
+                              style: TextStyle(
+                                color: _voirAutres
+                                    ? AppTheme.texte
+                                    : AppTheme.doux,
+                              ),
+                            ),
+                          ),
+                        if (enPause.isNotEmpty)
+                          TextButton(
+                            onPressed: () =>
+                                setState(() => _voirPause = !_voirPause),
+                            child: Text(
+                              'En pause (${enPause.length})',
+                              style: TextStyle(
+                                color: _voirPause
+                                    ? AppTheme.texte
+                                    : AppTheme.doux,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
-                for (final q in enPause)
-                  _Ligne(question: q, onTap: () => _ouvre(q)),
+                if (_voirAutres)
+                  for (final q in autres)
+                    _Ligne(
+                      key: ValueKey('q${q.id}'),
+                      question: q,
+                      dans: revientDans(q, aujourdhui, r(q)),
+                      onTap: () => _ouvre(q),
+                    ),
+                if (_voirPause)
+                  for (final q in enPause)
+                    _Ligne(
+                      key: ValueKey('q${q.id}'),
+                      question: q,
+                      onTap: () => _ouvre(q),
+                    ),
               ],
             ),
     );
   }
+
+  /// Les 7 derniers jours (aujourd'hui en dernier) : la couleur de la
+  /// réponse ; posée sans réponse : un rond vide ; pas posée : rien.
+  List<_Point> _points(Question q, DateTime aujourdhui) {
+    final r = _reponses[q.id] ?? const {};
+    return [
+      for (var n = 6; n >= 0; n--)
+        () {
+          final j = ajouteJours(aujourdhui, -n);
+          if (!poseeLe(q, j, r)) return _Point.rien;
+          final c = r[cleJour(j)];
+          if (c == null) return _Point.vide;
+          return c == 0
+              ? _Point.vert
+              : c == q.nbReponses - 1
+              ? _Point.orange
+              : _Point.gris;
+        }(),
+    ];
+  }
 }
 
-/// Une question : son texte, son heure et ses jours ; si elle est posée
-/// aujourd'hui, ses réponses (la moins bonne à gauche).
+enum _Point { rien, vide, vert, gris, orange }
+
+/// La phrase du haut, à toucher pour l'écrire ou la changer.
+class _Phrase extends StatelessWidget {
+  final String phrase;
+  final VoidCallback onTap;
+
+  const _Phrase({required this.phrase, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+    onTap: onTap,
+    child: Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+      child: Text(
+        phrase.isEmpty
+            ? 'Je deviens quelqu\'un qui…'
+            : 'Je deviens quelqu\'un qui $phrase',
+        style: TextStyle(
+          fontSize: 24,
+          height: 1.25,
+          fontWeight: FontWeight.w600,
+          color: phrase.isEmpty ? AppTheme.doux : AppTheme.texte,
+        ),
+      ),
+    ),
+  );
+}
+
+/// « Cette semaine · 17 oui sur 26 », et sa barre.
+class _Semaine extends StatelessWidget {
+  final int oui;
+  final int total;
+
+  const _Semaine({required this.oui, required this.total});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            const Expanded(
+              child: Text(
+                'Cette semaine',
+                style: TextStyle(color: AppTheme.doux, fontSize: 14),
+              ),
+            ),
+            Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: '$oui oui',
+                    style: const TextStyle(
+                      color: AppTheme.vert,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  TextSpan(
+                    text: ' sur $total',
+                    style: const TextStyle(color: AppTheme.doux),
+                  ),
+                ],
+              ),
+              style: const TextStyle(fontSize: 14),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(3),
+          child: LinearProgressIndicator(
+            value: total == 0 ? 0 : oui / total,
+            minHeight: 6,
+            color: AppTheme.vert,
+            backgroundColor: AppTheme.trait,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class _Section extends StatelessWidget {
+  final String texte;
+
+  const _Section(this.texte);
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(16, 24, 16, 4),
+    child: Text(
+      texte.toUpperCase(),
+      style: const TextStyle(
+        color: AppTheme.doux,
+        fontSize: 12,
+        letterSpacing: 1.5,
+        fontWeight: FontWeight.w600,
+      ),
+    ),
+  );
+}
+
+/// Une question. Posée aujourd'hui : ses 7 points et son heure, puis ses
+/// réponses (la moins bonne à gauche) ; répondue, sa réponse en pastille
+/// (la toucher rouvre les boutons). Sinon : sa fréquence.
 class _Ligne extends StatelessWidget {
   final Question question;
+  final List<_Point>? points;
 
-  /// Nul : pas posée aujourd'hui. Sinon, la réponse du jour (nulle : pas
-  /// encore répondu).
-  final ({int? reponse})? choix;
+  /// La réponse du jour (nulle : pas encore répondu).
+  final int? reponse;
+  final bool ouverte;
+
+  /// Pour une tâche pas posée aujourd'hui : dans combien de jours.
+  final int? dans;
   final VoidCallback onTap;
+  final VoidCallback? onRouvre;
   final ValueChanged<int>? onRepond;
 
   const _Ligne({
+    super.key,
     required this.question,
     required this.onTap,
-    this.choix,
+    this.points,
+    this.reponse,
+    this.ouverte = false,
+    this.dans,
+    this.onRouvre,
     this.onRepond,
   });
 
   @override
   Widget build(BuildContext context) {
     final q = question;
-    final pause = q.enPause;
+    final duJour = points != null;
+    final c = reponse;
     return InkWell(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
         decoration: const BoxDecoration(
           border: Border(bottom: BorderSide(color: AppTheme.trait)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              q.texte,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: pause ? AppTheme.doux : AppTheme.texte,
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        q.texte,
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w600,
+                          color: q.enPause ? AppTheme.doux : AppTheme.texte,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      if (duJour)
+                        Row(
+                          children: [
+                            for (final p in points!) _Rond(p),
+                            const SizedBox(width: 6),
+                            Text(
+                              heureFr(q.heure),
+                              style: const TextStyle(
+                                color: AppTheme.doux,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        )
+                      else
+                        Text(
+                          [
+                            heureFr(q.heure),
+                            frequenceFr(q),
+                            if (dans != null)
+                              dans == 1 ? 'demain' : 'dans $dans jours',
+                          ].join(' · '),
+                          style: const TextStyle(
+                            color: AppTheme.doux,
+                            fontSize: 13,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                if (duJour && c != null && !ouverte) ...[
+                  const SizedBox(width: 10),
+                  _Bouton(
+                    texte: q.reponses[c],
+                    couleur: AppTheme.couleurReponse(c, q.nbReponses),
+                    choisi: true,
+                    compact: true,
+                    onTap: onRouvre ?? () {},
+                  ),
+                ],
+              ],
             ),
-            const SizedBox(height: 2),
-            Text(
-              pause
-                  ? heureFr(q.heure)
-                  : '${heureFr(q.heure)} · ${joursFr(q.jours)}',
-              style: const TextStyle(color: AppTheme.doux, fontSize: 13),
-            ),
-            if (choix != null) ...[
+            if (duJour && ouverte) ...[
               const SizedBox(height: 10),
               Row(
                 children: [
@@ -273,7 +561,7 @@ class _Ligne extends StatelessWidget {
                       child: _Bouton(
                         texte: q.reponses[i],
                         couleur: AppTheme.couleurReponse(i, q.nbReponses),
-                        choisi: choix!.reponse == i,
+                        choisi: c == i,
                         onTap: () => onRepond?.call(i),
                       ),
                     ),
@@ -289,11 +577,41 @@ class _Ligne extends StatelessWidget {
   }
 }
 
+/// Un des 7 points.
+class _Rond extends StatelessWidget {
+  final _Point point;
+
+  const _Rond(this.point);
+
+  @override
+  Widget build(BuildContext context) {
+    final couleur = switch (point) {
+      _Point.vert => AppTheme.vert,
+      _Point.orange => AppTheme.orange,
+      _Point.gris => AppTheme.gris,
+      _ => null,
+    };
+    return Container(
+      width: 8,
+      height: 8,
+      margin: const EdgeInsets.only(right: 4),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: couleur ?? (point == _Point.rien ? AppTheme.trait : null),
+        border: point == _Point.vide
+            ? Border.all(color: AppTheme.doux.withValues(alpha: 0.6))
+            : null,
+      ),
+    );
+  }
+}
+
 /// Un bouton de réponse, translucide ; plein quand il est choisi.
 class _Bouton extends StatelessWidget {
   final String texte;
   final Color couleur;
   final bool choisi;
+  final bool compact;
   final VoidCallback onTap;
 
   const _Bouton({
@@ -301,6 +619,7 @@ class _Bouton extends StatelessWidget {
     required this.couleur,
     required this.choisi,
     required this.onTap,
+    this.compact = false,
   });
 
   @override
@@ -312,7 +631,8 @@ class _Bouton extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 220),
         curve: Curves.easeOut,
-        height: 40,
+        height: compact ? 34 : 40,
+        padding: compact ? const EdgeInsets.symmetric(horizontal: 14) : null,
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: couleur.withValues(alpha: choisi ? 0.32 : 0.06),

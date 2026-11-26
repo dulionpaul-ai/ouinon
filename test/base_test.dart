@@ -72,74 +72,92 @@ void main() {
     expect((await base.toutesLesReponses())[q.id], {'2026-11-24': 1});
   });
 
-  test('la base de l\'ancienne appli (version 7) est reprise', () async {
-    sqfliteFfiInit();
-    final dossier = await Directory.systemTemp.createTemp('ouinon');
-    final chemin = p.join(dossier.path, 'ouinon.sqlite');
-    final ancienne = await databaseFactoryFfi.openDatabase(
-      chemin,
-      options: OpenDatabaseOptions(
-        version: 7,
-        onCreate: (db, _) async {
-          await db.execute('''
+  test(
+    'la base de l\'ancienne appli (version 7) est reprise (version 9)',
+    () async {
+      sqfliteFfiInit();
+      final dossier = await Directory.systemTemp.createTemp('ouinon');
+      final chemin = p.join(dossier.path, 'ouinon.sqlite');
+      final ancienne = await databaseFactoryFfi.openDatabase(
+        chemin,
+        options: OpenDatabaseOptions(
+          version: 7,
+          onCreate: (db, _) async {
+            await db.execute('''
             CREATE TABLE questions (
               id INTEGER PRIMARY KEY AUTOINCREMENT, texte TEXT NOT NULL,
               reponses TEXT NOT NULL, heure INTEGER NOT NULL,
               jours INTEGER NOT NULL, active INTEGER NOT NULL DEFAULT 1,
               ordre INTEGER NOT NULL DEFAULT 0, famille TEXT,
               redemande INTEGER)''');
-          await db.execute('''
+            await db.execute('''
             CREATE TABLE reponses (
               question_id INTEGER NOT NULL, jour TEXT NOT NULL,
               choix INTEGER NOT NULL, repondu_le TEXT NOT NULL,
               PRIMARY KEY (question_id, jour))''');
-          await db.execute('CREATE TABLE planning (id INTEGER PRIMARY KEY)');
-        },
-      ),
-    );
-    await ancienne.insert('questions', {
-      'texte': 'Hyrox ?',
-      'reponses': 'Fait\nPas fait',
-      'heure': 720,
-      'jours': 1,
-    });
-    await ancienne.insert('questions', {
-      'texte': 'Sommeil ?',
-      'reponses': '8 h\n6 h\nMoins',
-      'heure': 540,
-      'jours': 0x7F,
-      'active': 0,
-    });
-    await ancienne.insert('reponses', {
-      'question_id': 1,
-      'jour': '2026-11-23',
-      'choix': 0,
-      'repondu_le': '2026-11-23T12:00:00',
-    });
-    await ancienne.insert('reponses', {
-      'question_id': 1,
-      'jour': '2026-09-01',
-      'choix': 1,
-      'repondu_le': 'test',
-    });
-    await ancienne.close();
+            await db.execute('CREATE TABLE planning (id INTEGER PRIMARY KEY)');
+          },
+        ),
+      );
+      await ancienne.insert('questions', {
+        'texte': 'Hyrox ?',
+        'reponses': 'Fait\nPas fait',
+        'heure': 720,
+        'jours': 1,
+      });
+      await ancienne.insert('questions', {
+        'texte': 'Sommeil ?',
+        'reponses': '8 h\n6 h\nMoins',
+        'heure': 540,
+        'jours': 0x7F,
+        'active': 0,
+      });
+      await ancienne.insert('reponses', {
+        'question_id': 1,
+        'jour': '2026-11-23',
+        'choix': 0,
+        'repondu_le': '2026-11-23T12:00:00',
+      });
+      await ancienne.insert('reponses', {
+        'question_id': 1,
+        'jour': '2026-09-01',
+        'choix': 1,
+        'repondu_le': 'test',
+      });
+      await ancienne.close();
 
-    final base = Base(
-      await Base.ouvrirAvec(databaseFactoryFfi, chemin, instanceUnique: false),
-    );
-    final questions = await base.questions();
-    expect(questions.map((q) => q.texte), ['Sommeil ?', 'Hyrox ?']);
-    expect(questions.first.enPause, isTrue);
-    expect(questions.last.jours, 1);
-    expect(await base.toutesLesReponses(), {
-      1: {'2026-11-23': 0},
-    });
-    // Une nouvelle question s'ajoute sans les anciennes colonnes.
-    await base.enregistre(_sport);
-    expect(await base.questions(), hasLength(3));
-    await base.db.close();
-    await dossier.delete(recursive: true);
-  });
+      final base = Base(
+        await Base.ouvrirAvec(
+          databaseFactoryFfi,
+          chemin,
+          instanceUnique: false,
+        ),
+      );
+      final questions = await base.questions();
+      expect(questions.map((q) => q.texte), ['Sommeil ?', 'Hyrox ?']);
+      expect(questions.first.enPause, isTrue);
+      expect(questions.last.jours, 1);
+      expect(await base.toutesLesReponses(), {
+        1: {'2026-11-23': 0},
+      });
+      // Version 9 : pourquoi et intervalle vides, la phrase à écrire.
+      expect(questions.last.pourquoi, '');
+      expect(questions.last.intervalle, 0);
+      expect(await base.phrase(), '');
+      await base.changePhrase(' dort bien. ');
+      expect(await base.phrase(), 'dort bien.');
+      // Une nouvelle question s'ajoute sans les anciennes colonnes.
+      await base.enregistre(
+        _sport.copie(pourquoi: 'Pour la forme.', intervalle: 3),
+      );
+      final toutes = await base.questions();
+      expect(toutes, hasLength(3));
+      expect(toutes.last.pourquoi, 'Pour la forme.');
+      expect(toutes.last.intervalle, 3);
+      await base.db.close();
+      await dossier.delete(recursive: true);
+    },
+  );
 
   test('un bouton de notification enregistre la réponse', () async {
     final base = await ouvreBase();

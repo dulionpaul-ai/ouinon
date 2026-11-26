@@ -73,7 +73,15 @@ void main() {
       '2026-11-25': 0,
     });
     expect(notifs.retirees, hasLength(1));
+    // Répondue : sa réponse en pastille, et les 7 points, la semaine.
+    expect(find.text('Non'), findsNothing);
+    expect(find.text('1 oui sur 4', findRichText: true), findsOneWidget);
 
+    // Toucher la pastille rouvre les boutons ; toucher à nouveau la
+    // réponse choisie l'enlève.
+    await tester.tap(find.text('Oui'));
+    await tester.pumpAndSettle();
+    expect(find.text('Non'), findsOneWidget);
     await tester.tap(find.text('Oui'));
     await tester.runAsync(
       () => Future.delayed(const Duration(milliseconds: 50)),
@@ -105,5 +113,72 @@ void main() {
     expect(questions.single.jours, Question.tousLesJours);
     expect(find.text('En forme ?'), findsOneWidget);
     expect(find.text('Moyen'), findsOneWidget);
+  });
+
+  testWidgets('la phrase du haut, et les tâches pas posées aujourd\'hui', (
+    tester,
+  ) async {
+    await tester.runAsync(() async {
+      final plantes = await base.enregistre(
+        const Question(
+          texte: 'Arroser les plantes ?',
+          reponses: ['Fait', 'Pas fait'],
+          heure: 10 * 60,
+          jours: Question.tousLesJours,
+          intervalle: 5,
+        ),
+      );
+      // Arrosées lundi : reviennent samedi.
+      await base.repond(plantes.id!, DateTime(2026, 11, 23), 0);
+    });
+    await lance(tester);
+    expect(find.text('Je deviens quelqu\'un qui…'), findsOneWidget);
+    await tester.tap(find.text('Je deviens quelqu\'un qui…'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('phrase')),
+      'dort, bouge et tient parole.',
+    );
+    await tester.tap(find.text('Enregistrer'));
+    await tester.runAsync(
+      () => Future.delayed(const Duration(milliseconds: 50)),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Je deviens quelqu\'un qui dort, bouge et tient parole.'),
+      findsOneWidget,
+    );
+    expect(find.text('Arroser les plantes ?'), findsNothing);
+    await tester.tap(find.text('Pas aujourd\'hui (1)'));
+    await tester.pumpAndSettle();
+    expect(find.text('Arroser les plantes ?'), findsOneWidget);
+    expect(find.text('10 h · Tous les 5 jours · dans 3 jours'), findsOneWidget);
+  });
+
+  testWidgets('une tâche tous les 7 jours, avec son pourquoi', (tester) async {
+    await lance(tester);
+    await tester.tap(find.byIcon(Icons.add_rounded));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, 'Draps ?');
+    await tester.enterText(
+      find.byKey(const ValueKey('pourquoi')),
+      'Bien dormir.',
+    );
+    for (var i = 0; i < 5; i++) {
+      await tester.tap(find.byTooltip('Moins souvent'));
+      await tester.pump();
+    }
+    expect(find.text('Tous les 7 jours'), findsOneWidget);
+    await tester.ensureVisible(find.text('Enregistrer'));
+    await tester.tap(find.text('Enregistrer'));
+    await tester.runAsync(
+      () => Future.delayed(const Duration(milliseconds: 50)),
+    );
+    await tester.pumpAndSettle();
+    final q = (await tester.runAsync(base.questions))!.single;
+    expect(q.intervalle, 7);
+    expect(q.pourquoi, 'Bien dormir.');
+    // Choisir un intervalle sans jour coche tous les jours.
+    expect(q.jours, Question.tousLesJours);
   });
 }

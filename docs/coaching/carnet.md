@@ -195,3 +195,10 @@ En attendant la to-do dans Ouinon (étape 1 : seulement les questions).
   coach : une sieste encadrée de 90 min (un cycle) avec réveil, à la
   place de la micro-sieste de l'après-midi ; machine des draps de James
   lancée avant.
+- **26/11/2026** : Paul veut « devenir une meilleure version de
+  lui-même ». Analyse et liste d'habitudes : `docs/coaching/habitudes.md`
+  (le socle de 8 d'abord ; une de plus seulement après deux semaines à
+  plus de 80 % de oui). Ouinon gère aussi les tâches « tous les N
+  jours » (plantes, draps, ménage). Message à 3 h 30 du matin : rappel
+  de la règle du coucher.
+

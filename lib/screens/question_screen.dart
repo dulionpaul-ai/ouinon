@@ -6,8 +6,10 @@ import '../models/question.dart';
 import '../theme/app_theme.dart';
 import '../utils/jour.dart';
 
-/// Créer ou modifier une question : le texte, 2 ou 3 réponses (la
-/// meilleure en haut), l'heure, les jours. Aucun jour : en pause.
+/// Créer ou modifier une question : le texte, son « pourquoi » (affiché
+/// dans la notification), 2 ou 3 réponses (la meilleure en haut), l'heure,
+/// les jours, et pour une tâche « tous les N jours ». Aucun jour : en
+/// pause.
 class QuestionScreen extends StatefulWidget {
   final Base base;
 
@@ -22,12 +24,17 @@ class QuestionScreen extends StatefulWidget {
 
 class _QuestionScreenState extends State<QuestionScreen> {
   late final _texte = TextEditingController(text: widget.question?.texte);
+  late final _pourquoi = TextEditingController(text: widget.question?.pourquoi);
   late final List<TextEditingController> _reponses = [
     for (final r in widget.question?.reponses ?? const ['Fait', 'Pas fait'])
       TextEditingController(text: r),
   ];
   late int _heure = widget.question?.heure ?? 21 * 60;
   late int _jours = widget.question?.jours ?? 0;
+  late int _intervalle = widget.question?.intervalle ?? 0;
+
+  /// Les intervalles proposés (0 : chaque jour coché).
+  static const _intervalles = [0, 2, 3, 4, 5, 7, 10, 14, 21, 30, 60, 90];
 
   static const _libelles = {
     2: ['Meilleure', 'Moins bonne'],
@@ -37,6 +44,7 @@ class _QuestionScreenState extends State<QuestionScreen> {
   @override
   void dispose() {
     _texte.dispose();
+    _pourquoi.dispose();
     for (final c in _reponses) {
       c.dispose();
     }
@@ -63,9 +71,11 @@ class _QuestionScreenState extends State<QuestionScreen> {
     final q = Question(
       id: ancienne?.id,
       texte: _texte.text.trim(),
+      pourquoi: _pourquoi.text.trim(),
       reponses: [for (final c in _reponses) c.text.trim()],
       heure: _heure,
       jours: _jours,
+      intervalle: _intervalle,
     );
     if (ancienne == null) {
       await widget.base.enregistre(q);
@@ -124,6 +134,18 @@ class _QuestionScreenState extends State<QuestionScreen> {
       ) ??
       false;
 
+  /// Intervalle précédent ([sens] = −1) ou suivant (+1). Choisir un
+  /// intervalle sans aucun jour coché coche tous les jours.
+  void _changeIntervalle(int sens) {
+    final i = _intervalles.indexOf(_intervalle);
+    final j = ((i < 0 ? 0 : i) + sens).clamp(0, _intervalles.length - 1);
+    HapticFeedback.selectionClick();
+    setState(() {
+      _intervalle = _intervalles[j];
+      if (_intervalle > 0 && _jours == 0) _jours = Question.tousLesJours;
+    });
+  }
+
   void _ajouteReponse() =>
       setState(() => _reponses.insert(1, TextEditingController(text: 'Moyen')));
 
@@ -158,6 +180,22 @@ class _QuestionScreenState extends State<QuestionScreen> {
                 style: const TextStyle(fontSize: 18),
                 decoration: const InputDecoration(hintText: 'Sport ?'),
                 onChanged: (_) => setState(() {}),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                key: const ValueKey('pourquoi'),
+                controller: _pourquoi,
+                maxLength: Question.longueurMaxPourquoi,
+                textCapitalization: TextCapitalization.sentences,
+                decoration: const InputDecoration(
+                  hintText: 'Pourquoi ? (dans la notification)',
+                  counterText: '',
+                  prefixIcon: Icon(
+                    Icons.favorite_border_rounded,
+                    size: 18,
+                    color: AppTheme.vert,
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
               for (var i = 0; i < n; i++)
@@ -224,7 +262,41 @@ class _QuestionScreenState extends State<QuestionScreen> {
                 jours: _jours,
                 onChange: (j) => setState(() => _jours = j),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  const Expanded(child: _Titre('Répéter', bas: 0)),
+                  IconButton(
+                    tooltip: 'Plus souvent',
+                    onPressed: _intervalle == 0
+                        ? null
+                        : () => _changeIntervalle(-1),
+                    icon: const Icon(Icons.remove_rounded),
+                  ),
+                  SizedBox(
+                    width: 150,
+                    child: Text(
+                      _intervalle == 0
+                          ? 'Chaque jour coché'
+                          : 'Tous les $_intervalle jours',
+                      key: const ValueKey('intervalle'),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: _intervalle == 0 ? AppTheme.doux : AppTheme.vert,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'Moins souvent',
+                    onPressed: _intervalle == _intervalles.last
+                        ? null
+                        : () => _changeIntervalle(1),
+                    icon: const Icon(Icons.add_rounded),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
               FilledButton(
                 onPressed: _valide ? _enregistre : null,
                 style: FilledButton.styleFrom(

@@ -1,5 +1,6 @@
 import '../data/base.dart';
 import '../models/question.dart';
+import 'frequence.dart';
 import 'jour.dart';
 
 /// Le bilan des 7 derniers jours, à coller dans la conversation avec le
@@ -22,7 +23,7 @@ String bilan(
     var meilleure = 0, total = 0;
     for (var n = 0; n < 7; n++) {
       final j = ajouteJours(debut, n);
-      if (!q.revientLe(j.weekday)) continue;
+      if (!poseeLe(q, j, r)) continue;
       final c = r[cleJour(j)];
       total++;
       if (c == 0) meilleure++;

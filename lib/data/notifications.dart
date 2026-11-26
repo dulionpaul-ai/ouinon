@@ -21,7 +21,8 @@ Future<void> reponseNotifArrierePlan(NotificationResponse reponse) =>
     Notifications.instance.traiteReponse(reponse);
 
 /// Les notifications des questions, programmées sur le téléphone. Le titre
-/// est la question ; ses boutons sont les réponses, la moins bonne à
+/// est la question, le texte son « pourquoi » ; ses boutons sont les
+/// réponses, la moins bonne à
 /// gauche, la meilleure à droite (bouton « r0 » = la meilleure). Le jour
 /// dont elle parle est dans son contenu caché (« id|2026-10-22 »).
 ///
@@ -140,6 +141,8 @@ class Notifications {
       await _plugin.zonedSchedule(
         id: n.id,
         title: n.question.texte,
+        // Le « pourquoi » de Paul, sous la question.
+        body: n.question.pourquoi.isEmpty ? null : n.question.pourquoi,
         scheduledDate: instantProgramme(n.quand),
         notificationDetails: _details(n.question, n.duree),
         androidScheduleMode: mode,

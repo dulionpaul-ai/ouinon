@@ -1,5 +1,6 @@
 import '../data/base.dart';
 import '../models/question.dart';
+import 'frequence.dart';
 import 'jour.dart';
 
 /// Une notification à programmer : une question, le jour dont elle parle
@@ -41,8 +42,9 @@ int idNotification(int questionId, DateTime jour) =>
     questionId * 100000 + ecartJours(DateTime(2020), jour) % 100000;
 
 /// Ce qu'il faut programmer à partir de [maintenant] : chaque question qui
-/// n'est pas en pause, à son heure et ses jours, sauf les jours déjà
-/// répondus. Moins de jours d'avance s'il y a beaucoup de questions
+/// n'est pas en pause, à son heure, les jours où elle est posée
+/// (`poseeLe` : ses jours, et son intervalle pour une tâche), sauf les
+/// jours déjà répondus. Moins de jours d'avance s'il y a beaucoup de questions
 /// ([maxNotifs] : limite du téléphone, 64 sur iPhone).
 ({List<NotifPrevue> notifs, DateTime? rappelContinuer}) planifie({
   required List<Question> questions,
@@ -61,8 +63,9 @@ int idNotification(int questionId, DateTime jour) =>
   for (var n = 0; n < horizon; n++) {
     final jour = ajouteJours(aujourdhui, n);
     for (final q in actives) {
-      if (!q.revientLe(jour.weekday)) continue;
-      if (reponses[q.id]?.containsKey(cleJour(jour)) ?? false) continue;
+      final r = reponses[q.id] ?? const {};
+      if (!poseeLe(q, jour, r)) continue;
+      if (r.containsKey(cleJour(jour))) continue;
       final quand = DateTime(
         jour.year,
         jour.month,

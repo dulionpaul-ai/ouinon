@@ -17,8 +17,9 @@ typedef Reponses = Map<String, int>;
 class Base {
   /// 8 : nouvelle Ouinon, repartie de zéro (25/11/2026). Les tables de
   /// l'ancienne appli (planning, liste, créneaux) restent dans le fichier,
-  /// inutilisées.
-  static const version = 8;
+  /// inutilisées. 9 (26/11/2026) : le « pourquoi » et l'intervalle des
+  /// questions, la table `reglages` (la phrase « Je deviens… »).
+  static const version = 9;
 
   final Database db;
 
@@ -70,7 +71,9 @@ class Base {
             texte TEXT NOT NULL,
             reponses TEXT NOT NULL,
             heure INTEGER NOT NULL,
-            jours INTEGER NOT NULL
+            jours INTEGER NOT NULL,
+            pourquoi TEXT NOT NULL DEFAULT '',
+            intervalle INTEGER NOT NULL DEFAULT 0
           )''');
         await db.execute('''
           CREATE TABLE reponses (
@@ -81,6 +84,7 @@ class Base {
             repondu_le TEXT NOT NULL,
             PRIMARY KEY (question_id, jour)
           )''');
+        await _creeReglages(db);
       },
       onUpgrade: (db, ancienne, _) async {
         if (ancienne < 8) {
@@ -90,9 +94,54 @@ class Base {
           // Les fausses réponses ajoutées pour essayer les stats.
           await db.delete('reponses', where: "repondu_le = 'test'");
         }
+        if (ancienne < 9) {
+          final colonnes = {
+            for (final c in await db.rawQuery('PRAGMA table_info(questions)'))
+              c['name'] as String,
+          };
+          if (!colonnes.contains('pourquoi')) {
+            await db.execute(
+              "ALTER TABLE questions ADD COLUMN pourquoi TEXT NOT NULL "
+              "DEFAULT ''",
+            );
+          }
+          if (!colonnes.contains('intervalle')) {
+            await db.execute(
+              'ALTER TABLE questions ADD COLUMN intervalle INTEGER NOT NULL '
+              'DEFAULT 0',
+            );
+          }
+          await _creeReglages(db);
+        }
       },
       singleInstance: instanceUnique,
     ),
+  );
+
+  static Future<void> _creeReglages(Database db) => db.execute('''
+    CREATE TABLE IF NOT EXISTS reglages (
+      cle TEXT PRIMARY KEY,
+      valeur TEXT NOT NULL
+    )''');
+
+  // Réglages
+
+  /// La phrase du haut : « Je deviens quelqu'un qui… » (vide : pas encore
+  /// écrite).
+  Future<String> phrase() async {
+    final lignes = await db.query(
+      'reglages',
+      where: 'cle = ?',
+      whereArgs: ['phrase'],
+    );
+    return lignes.isEmpty ? '' : lignes.first['valeur'] as String;
+  }
+
+  Future<void> changePhrase(String phrase) => _ecrit(
+    db.insert('reglages', {
+      'cle': 'phrase',
+      'valeur': phrase.trim(),
+    }, conflictAlgorithm: ConflictAlgorithm.replace),
   );
 
   // Questions

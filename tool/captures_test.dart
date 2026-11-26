@@ -56,6 +56,20 @@ const _questions = [
     jours: 0x01,
   ),
   Question(texte: 'Sorti dehors ?', reponses: ['Oui', 'Non'], heure: 21 * 60),
+  Question(
+    texte: 'Arroser les plantes ?',
+    reponses: ['Fait', 'Pas fait'],
+    heure: 10 * 60,
+    jours: 0x7F,
+    intervalle: 5,
+  ),
+  Question(
+    texte: 'Changer les draps ?',
+    reponses: ['Fait', 'Pas fait'],
+    heure: 10 * 60,
+    jours: 0x7F,
+    intervalle: 14,
+  ),
 ];
 
 void main() {
@@ -102,8 +116,18 @@ void main() {
         return [for (final q in _questions) (await base.enregistre(q)).id!];
       });
       await tester.runAsync(() async {
+        await base.changePhrase('dort, bouge et tient parole.');
+        // Une semaine de réponses, pour les 7 points.
+        for (var n = 1; n <= 6; n++) {
+          final j = mardi.subtract(Duration(days: n));
+          await base.repond(ids![0], j, n % 3 == 0 ? 0 : 1);
+          await base.repond(ids[1], j, n % 3);
+          if (j.weekday <= 5) await base.repond(ids[2], j, n == 2 ? 1 : 0);
+        }
         await base.repond(ids![0], mardi, 1);
         await base.repond(ids[1], mardi, 0);
+        // Plantes arrosées hier ; draps jamais changés.
+        await base.repond(ids[6], mardi.subtract(const Duration(days: 1)), 0);
       });
       await lance(tester, QuestionsScreen(maintenant: () => mardi));
       await expectLater(
@@ -114,9 +138,18 @@ void main() {
 
     testWidgets('nouvelle $nom', (tester) async {
       await lance(tester, QuestionScreen(base: base));
-      await tester.enterText(find.byType(TextField).first, 'En forme ?');
-      await tester.tap(find.text('Réponse du milieu'));
-      await tester.tap(find.text('Semaine'));
+      await tester.enterText(
+        find.byType(TextField).first,
+        'Arroser les plantes ?',
+      );
+      await tester.enterText(
+        find.byKey(const ValueKey('pourquoi')),
+        'Une maison vivante.',
+      );
+      await tester.tap(find.text('Tous'));
+      for (var i = 0; i < 4; i++) {
+        await tester.tap(find.byTooltip('Moins souvent'));
+      }
       await tester.pumpAndSettle();
       FocusManager.instance.primaryFocus?.unfocus();
       await tester.pumpAndSettle();

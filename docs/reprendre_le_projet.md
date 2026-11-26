@@ -13,23 +13,21 @@
   jours, les réponses de test sont effacées).
 - APK n° 38 (2.0.0+38) envoyé le 25/11/2026. Prochain : 2.0.0+39,
   **toujours demander à Paul avant**.
-- **26/11/2026, en attente de validation** : Paul demande « un truc
-  minimaliste qui m'aide à devenir une meilleure version de moi-même ».
-  Proposition (rien de codé) : une phrase « Je deviens quelqu'un
-  qui… » en haut, le compte de la semaine (« 17 oui sur 26 »), 7 points
-  sous chaque habitude, et un « Pourquoi ? » écrit par Paul affiché
-  sous la question dans la notification. On garde le moteur actuel
-  (notifications, base, réponses). Maquettes :
-  https://claude.ai/artifact/9qEJgr3tmc5cgxpp6LKSsQ
+- **26/11/2026 (2.0.0+39)** : maquette validée et codée : la phrase
+  « Je deviens quelqu'un qui… », la semaine, 7 points par question, le
+  « pourquoi » dans la notification, les tâches « tous les N jours ».
+  Voir `docs/cahier.md`. Habitudes proposées par le coach :
+  `docs/coaching/habitudes.md`.
 
 ## Le code (`lib/`)
 
 | Fichier | Rôle |
 |---|---|
 | `main.dart` | Lancement, thème, français. |
-| `screens/questions_screen.dart` | L'écran unique : les questions, répondre pour aujourd'hui (toucher la réponse choisie l'enlève), bilan copié, alerte si l'heure précise n'est pas autorisée. |
+| `screens/questions_screen.dart` | L'écran unique : la phrase, la semaine, les questions du jour (7 points, réponses, pastille), « Pas aujourd'hui » et « En pause » repliés, bilan copié, alerte si l'heure précise n'est pas autorisée. |
 | `screens/question_screen.dart` | Créer, modifier, supprimer une question. |
-| `data/base.dart` | Base SQLite `ouinon.sqlite` (version 8) : `questions`, `reponses`. |
+| `data/base.dart` | Base SQLite `ouinon.sqlite` (version 9) : `questions` (avec `pourquoi` et `intervalle`), `reponses`, `reglages` (la phrase). |
+| `utils/frequence.dart` | Quand une question est posée (`poseeLe` : jours, et intervalle pour une tâche), le compte de la semaine, les fréquences en français. |
 | `data/notifications.dart` | Notifications à boutons, réponse enregistrée même appli fermée, tout reprogrammé à chaque changement. |
 | `utils/planification.dart` | Quoi programmer : 14 jours d'avance, rappel « ouvre l'appli » au-delà. |
 | `utils/bilan.dart` | Le bilan des 7 derniers jours pour le coach. |

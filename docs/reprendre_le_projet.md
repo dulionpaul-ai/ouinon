@@ -25,8 +25,8 @@
   ensuite `reglages/reglages.json` (add_repo). Sans ce fichier, l'appli
   garde le thème par défaut.
 - **26/11/2026 : copie en ligne** dans Supabase (projet « Ouinon »,
-  Paris), version 2.0.0+41, APK pas encore fabriqué (**toujours
-  demander à Paul avant**). Chaque changement part en ligne ; à
+  Paris). APK n° 41 (2.0.0+41) envoyé le 26/11/2026. Prochain :
+  2.0.0+42, **toujours demander à Paul avant**. Chaque changement part en ligne ; à
   l'ouverture, tout est renvoyé ; téléphone vide → tout revient. Rien
   n'est supprimé en ligne, sauf une suppression faite dans l'appli.
 

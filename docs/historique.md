@@ -65,3 +65,4 @@ les questions et le bilan pour le coach).
   coller. Projet « Ouinon » créé à côté de Wavents (sans y toucher).
 - Chaque changement part en ligne ; à l'ouverture, tout est renvoyé ;
   nouveau téléphone → tout revient.
+- APK n° 41 (2.0.0+41) envoyé à Paul le 26/11/2026.

@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Copie en ligne des réponses (Supabase, 26/11/2026). -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <!-- Notifications des questions (programmées sur le téléphone), à
          reprogrammer après un redémarrage du téléphone. -->
     <!-- Seulement pour lire le fichier public de réglages (couleurs,

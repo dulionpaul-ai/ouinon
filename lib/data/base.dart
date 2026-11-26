@@ -4,9 +4,29 @@ import 'package:sqflite/sqflite.dart';
 
 import '../models/question.dart';
 import '../utils/jour.dart';
+import 'supabase.dart';
 
 /// Réponses d'une question : « 2026-10-22 » → indice de la réponse.
 typedef Reponses = Map<String, int>;
+
+/// Toutes les questions et réponses.
+typedef Copie = ({
+  List<Question> questions,
+  Map<int, Reponses> reponses,
+  Map<String, String> reglages,
+});
+
+/// La copie en ligne (Supabase), tenue à jour à chaque changement.
+abstract interface class Miroir {
+  Future<void> envoieQuestion(Question q);
+  Future<void> supprimeQuestion(int id);
+  Future<void> envoieReponse(int questionId, DateTime jour, int choix);
+  Future<void> effaceReponse(int questionId, DateTime jour);
+  Future<void> remplaceReponsesDe(int questionId, Reponses reponses);
+  Future<void> envoieReglage(String cle, String valeur);
+  Future<void> envoieTout(Copie copie);
+  Future<Copie> telecharge();
+}
 
 /// Les questions et les réponses, dans une base SQLite sur le téléphone
 /// (`ouinon.sqlite`). Rien ne part sur internet.
@@ -23,7 +43,81 @@ class Base {
 
   final Database db;
 
-  Base(this.db);
+  /// La copie en ligne ; nulle dans les tests.
+  final Miroir? miroir;
+
+  Base(this.db, {this.miroir});
+
+  final _envois = <Future<void>>{};
+
+  /// Envoie un changement à la copie en ligne, sans faire attendre
+  /// l'écran. Sans réseau, tant pis : tout est renvoyé à la prochaine
+  /// ouverture de l'appli ([synchronise]).
+  void _envoie(Future<void> Function(Miroir m) envoi) {
+    final m = miroir;
+    if (m == null) return;
+    late final Future<void> f;
+    f = Future(() => envoi(m))
+        .catchError((Object _) {})
+        .whenComplete(() => _envois.remove(f));
+    _envois.add(f);
+  }
+
+  /// Attend la fin des envois en cours (moteur d'arrière-plan, avant
+  /// qu'Android ne l'arrête).
+  Future<void> envoisTermines() => Future.wait([..._envois]);
+
+  /// À l'ouverture de l'appli : téléphone vide (nouveau téléphone,
+  /// appli réinstallée) → tout revient de la copie en ligne ; sinon, tout
+  /// y est renvoyé. Rend vrai si des données sont revenues. Ne supprime
+  /// jamais rien en ligne.
+  Future<bool> synchronise() async {
+    final m = miroir;
+    if (m == null) return false;
+    try {
+      final locales = await questions();
+      if (locales.isEmpty) {
+        final copie = await m.telecharge();
+        if (copie.questions.isEmpty) return false;
+        await _ecrit(
+          db.transaction((t) async {
+            for (final MapEntry(key: cle, value: valeur)
+                in copie.reglages.entries) {
+              await t.insert('reglages', {
+                'cle': cle,
+                'valeur': valeur,
+              }, conflictAlgorithm: ConflictAlgorithm.replace);
+            }
+            for (final q in copie.questions) {
+              await t.insert('questions', q.versLigne());
+            }
+            for (final MapEntry(key: id, value: r) in copie.reponses.entries) {
+              for (final e in r.entries) {
+                await t.insert('reponses', {
+                  'question_id': id,
+                  'jour': e.key,
+                  'choix': e.value,
+                  'repondu_le': DateTime.now().toIso8601String(),
+                });
+              }
+            }
+          }),
+        );
+        return true;
+      }
+      await m.envoieTout((
+        questions: locales,
+        reponses: await toutesLesReponses(),
+        reglages: {
+          for (final l in await db.query('reglages'))
+            l['cle'] as String: l['valeur'] as String,
+        },
+      ));
+    } catch (_) {
+      // Sans réseau : on réessaiera à la prochaine ouverture.
+    }
+    return false;
+  }
 
   /// Incrémenté à chaque modification : l'écran l'écoute.
   final changements = ValueNotifier<int>(0);
@@ -50,7 +144,10 @@ class Base {
 
   static Future<Base> _ouvre() async {
     final chemin = p.join(await getDatabasesPath(), 'ouinon.sqlite');
-    return Base(await ouvrirAvec(databaseFactory, chemin));
+    return Base(
+      await ouvrirAvec(databaseFactory, chemin),
+      miroir: Supabase.disponible ? Supabase() : null,
+    );
   }
 
   /// Ouverture avec une fabrique donnée (tests : base en mémoire, neuve à
@@ -136,12 +233,15 @@ class Base {
     return lignes.isEmpty ? null : lignes.first['valeur'] as String;
   }
 
-  Future<void> changeReglage(String cle, String valeur) => _ecrit(
-    db.insert('reglages', {
-      'cle': cle,
-      'valeur': valeur,
-    }, conflictAlgorithm: ConflictAlgorithm.replace),
-  );
+  Future<void> changeReglage(String cle, String valeur) async {
+    await _ecrit(
+      db.insert('reglages', {
+        'cle': cle,
+        'valeur': valeur,
+      }, conflictAlgorithm: ConflictAlgorithm.replace),
+    );
+    _envoie((m) => m.envoieReglage(cle, valeur));
+  }
 
   /// La phrase du haut : « Je deviens quelqu'un qui… » (vide : pas encore
   /// écrite).
@@ -170,23 +270,35 @@ class Base {
 
   /// Ajoute (sans id) ou met à jour une question.
   Future<Question> enregistre(Question q) => _ecrit(() async {
-    if (q.id == null) {
-      return q.copie(id: await db.insert('questions', q.versLigne()));
+    final enregistree = q.id == null
+        ? q.copie(id: await db.insert('questions', q.versLigne()))
+        : q;
+    if (q.id != null) {
+      await db.update(
+        'questions',
+        q.versLigne(),
+        where: 'id = ?',
+        whereArgs: [q.id],
+      );
     }
-    await db.update(
-      'questions',
-      q.versLigne(),
-      where: 'id = ?',
-      whereArgs: [q.id],
-    );
-    return q;
+    _envoie((m) => m.envoieQuestion(enregistree));
+    return enregistree;
   }());
 
   /// Met à jour une question dont le nombre de réponses change, et
   /// convertit ses réponses passées : de 2 à 3, la moins bonne (indice 1)
   /// passe en 2 ; de 3 à 2, celles du milieu sont effacées et la moins
   /// bonne passe en 1. La meilleure reste toujours 0.
-  Future<void> enregistreAvecNombre(Question q, int ancienNombre) => _ecrit(
+  Future<void> enregistreAvecNombre(Question q, int ancienNombre) async {
+    await _convertit(q, ancienNombre);
+    final reponses = (await toutesLesReponses())[q.id] ?? {};
+    _envoie((m) async {
+      await m.envoieQuestion(q);
+      await m.remplaceReponsesDe(q.id!, reponses);
+    });
+  }
+
+  Future<void> _convertit(Question q, int ancienNombre) => _ecrit(
     db.transaction((t) async {
       if (ancienNombre == 2 && q.nbReponses == 3) {
         await t.rawUpdate(
@@ -214,8 +326,10 @@ class Base {
   );
 
   /// Supprime une question et toutes ses réponses.
-  Future<void> supprime(int id) =>
-      _ecrit(db.delete('questions', where: 'id = ?', whereArgs: [id]));
+  Future<void> supprime(int id) async {
+    await _ecrit(db.delete('questions', where: 'id = ?', whereArgs: [id]));
+    _envoie((m) => m.supprimeQuestion(id));
+  }
 
   // Réponses
 
@@ -225,23 +339,29 @@ class Base {
     DateTime jour,
     int choix, {
     DateTime? maintenant,
-  }) => _ecrit(
-    db.insert('reponses', {
-      'question_id': questionId,
-      'jour': cleJour(jour),
-      'choix': choix,
-      'repondu_le': (maintenant ?? DateTime.now()).toIso8601String(),
-    }, conflictAlgorithm: ConflictAlgorithm.replace),
-  );
+  }) async {
+    await _ecrit(
+      db.insert('reponses', {
+        'question_id': questionId,
+        'jour': cleJour(jour),
+        'choix': choix,
+        'repondu_le': (maintenant ?? DateTime.now()).toIso8601String(),
+      }, conflictAlgorithm: ConflictAlgorithm.replace),
+    );
+    _envoie((m) => m.envoieReponse(questionId, jour, choix));
+  }
 
   /// Efface la réponse d'une question pour un jour.
-  Future<void> efface(int questionId, DateTime jour) => _ecrit(
-    db.delete(
-      'reponses',
-      where: 'question_id = ? AND jour = ?',
-      whereArgs: [questionId, cleJour(jour)],
-    ),
-  );
+  Future<void> efface(int questionId, DateTime jour) async {
+    await _ecrit(
+      db.delete(
+        'reponses',
+        where: 'question_id = ? AND jour = ?',
+        whereArgs: [questionId, cleJour(jour)],
+      ),
+    );
+    _envoie((m) => m.effaceReponse(questionId, jour));
+  }
 
   /// Toutes les réponses, par question.
   Future<Map<int, Reponses>> toutesLesReponses() async {

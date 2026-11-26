@@ -69,6 +69,8 @@ class _QuestionsScreenState extends State<QuestionsScreen>
       _base = base;
       await ApparenceDistante.charge(base);
       await _relis();
+      // Nouveau téléphone : les questions reviennent de la copie en ligne.
+      if (await base.synchronise()) await _relis();
       await Notifications.instance.demandeAutorisation();
       await _reprogramme();
       await _metsAJourApparence();
@@ -85,6 +87,7 @@ class _QuestionsScreenState extends State<QuestionsScreen>
       _relis();
       _reprogramme();
       _metsAJourApparence();
+      _base!.synchronise();
     }
   }
 

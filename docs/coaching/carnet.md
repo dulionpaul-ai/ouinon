@@ -201,4 +201,5 @@ En attendant la to-do dans Ouinon (étape 1 : seulement les questions).
   plus de 80 % de oui). Ouinon gère aussi les tâches « tous les N
   jours » (plantes, draps, ménage). Message à 3 h 30 du matin : rappel
   de la règle du coucher.
-
+- **26/11/2026** : Les réponses partent dans Supabase (projet « Ouinon ») :
+  le coach les lit directement, plus besoin de coller le bilan.

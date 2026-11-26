@@ -124,6 +124,7 @@ class Notifications {
     if (question == null || choix < 0 || choix >= question.nbReponses) return;
     await base.repond(id, jourDepuisCle(morceaux[1]), choix);
     await replanifie(base);
+    await base.envoisTermines();
   }
 
   /// Reprogramme toutes les notifications, au style de l'apparence en

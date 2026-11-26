@@ -17,5 +17,4 @@ seulement si le besoin revient à l'usage :
 - Bilan du dimanche soir en notification.
 - Familles de questions (« Sport » : Cardio, Muscu).
 - Coller dans l'appli le programme de la journée envoyé par le coach.
-- Envoi automatique des données au coach (étape 2 du coaching).
-- Sauvegarde dans un fichier, iPhone, stores.
+- iPhone, stores.

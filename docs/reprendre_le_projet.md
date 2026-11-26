@@ -11,21 +11,24 @@
 - La nouvelle appli reprend la base du téléphone : les questions et les
   réponses de Paul sont gardées (les questions en pause passent sans
   jours, les réponses de test sont effacées).
-- APK n° 38 (2.0.0+38) envoyé le 25/11/2026. Prochain : 2.0.0+39,
-  **toujours demander à Paul avant**.
+- APK n° 38 (2.0.0+38) envoyé le 25/11/2026.
 - **26/11/2026 (2.0.0+39)** : maquette validée et codée : la phrase
   « Je deviens quelqu'un qui… », la semaine, 7 points par question, le
   « pourquoi » dans la notification, les tâches « tous les N jours ».
   Voir `docs/cahier.md`. Habitudes proposées par le coach :
   `docs/coaching/habitudes.md`. APK n° 39 (thème HUD) puis n° 40 (retour au
-  minimaliste) envoyés le 26/11/2026. Prochain : 2.0.0+41, **toujours
-  demander à Paul avant**.
+  minimaliste) envoyés le 26/11/2026. 
 - **26/11/2026 : retour à la version minimaliste** (2.0.0+40, Paul n'a
   pas aimé le thème HUD de l'APK n° 39), réglages sans APK (voir `CLAUDE.md`,
   « Réglable sans APK »). En attente de Paul : créer le dépôt public
   `ouinon-reglages` (vide) et passer `ouinon` en privé ; Claude y pousse
   ensuite `reglages/reglages.json` (add_repo). Sans ce fichier, l'appli
   garde le thème par défaut.
+- **26/11/2026 : copie en ligne** dans Supabase (projet « Ouinon »,
+  Paris), version 2.0.0+41, APK pas encore fabriqué (**toujours
+  demander à Paul avant**). Chaque changement part en ligne ; à
+  l'ouverture, tout est renvoyé ; téléphone vide → tout revient. Rien
+  n'est supprimé en ligne, sauf une suppression faite dans l'appli.
 
 ## Le code (`lib/`)
 
@@ -36,6 +39,7 @@
 | `screens/question_screen.dart` | L'écran clé : créer, modifier, supprimer une habitude, avec l'aperçu de sa notification. |
 | `data/base.dart` | Base SQLite `ouinon.sqlite` (version 9) : `questions` (avec `pourquoi` et `intervalle`), `reponses`, `reglages` (la phrase). |
 | `utils/frequence.dart` | Quand une question est posée (`poseeLe` : jours, et intervalle pour une tâche), le compte de la semaine, les fréquences en français. |
+| `data/supabase.dart` | La copie en ligne (API REST de Supabase). |
 | `data/notifications.dart` | Notifications à boutons, réponse enregistrée même appli fermée, tout reprogrammé à chaque changement. |
 | `utils/planification.dart` | Quoi programmer : 14 jours d'avance, rappel « ouvre l'appli » au-delà. |
 | `utils/bilan.dart` | Le bilan des 7 derniers jours pour le coach. |
@@ -70,7 +74,9 @@ GitHub refait format, analyse et tests à chaque envoi sur `main`.
 ## Fabriquer un APK (toujours avec l'accord de Paul)
 
 1. Monter le numéro après le `+` dans `pubspec.yaml`.
-2. `flutter build apk --release --split-per-abi --target-platform android-arm64`
+2. `bash tool/cle_supabase.sh` (clé Supabase dans `supabase.json`, non
+   commité ; **sans elle, pas de copie en ligne**), puis
+   `flutter build apk --release --split-per-abi --target-platform android-arm64 --dart-define-from-file=supabase.json`
 3. Envoyer `build/app/outputs/flutter-apk/app-arm64-v8a-release.apk`.
 
 Clé de test stable (`android/app/cle-test.jks`) : chaque APK s'installe

@@ -57,3 +57,11 @@ les questions et le bilan pour le coach).
   APK (couleurs, textes, tailles, affichage, et maintenant les boutons de
   réponse dans l'appli).
 - APK n° 40 (2.0.0+40) envoyé à Paul le 26/11/2026.
+
+## 26/11/2026 : copie en ligne (2.0.0+41)
+
+- Paul lève la règle « rien ne quitte le téléphone » et choisit
+  Supabase : sauvegarde, et le coach lit les réponses sans bilan à
+  coller. Projet « Ouinon » créé à côté de Wavents (sans y toucher).
+- Chaque changement part en ligne ; à l'ouverture, tout est renvoyé ;
+  nouveau téléphone → tout revient.

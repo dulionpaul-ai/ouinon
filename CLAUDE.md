@@ -4,7 +4,8 @@ Appli mobile Flutter (Android d'abord, iPhone ensuite) de suivi de vie
 **minimaliste** : chaque question (« Sport ? », « Assez dormi ? »)
 arrive en notification à son heure ; on répond directement depuis la
 notification avec 2 ou 3 boutons, sans ouvrir l'appli. Tout est stocké
-sur le téléphone (SQLite), sans compte ni serveur.
+sur le téléphone (SQLite), avec une copie en ligne dans le projet
+Supabase « Ouinon » de Paul (sauvegarde, et le coach peut la lire).
 
 Repartie de zéro le 25/11/2026 (Paul : « trop de choses, partons sur du
 minimaliste »). L'appli tient en **un seul écran** (mon jour : la
@@ -18,8 +19,12 @@ dans l'historique git.
 
 Claude est aussi le **coach de vie** de Paul (cash et factuel). Mémoire :
 `docs/coaching/carnet.md`, à lire et tenir à jour à chaque session.
-Ouinon est l'outil de suivi du coaching : le bouton en haut copie le
-bilan des 7 derniers jours, à coller au coach.
+Ouinon est l'outil de suivi du coaching. Pour lire les réponses de
+Paul : requête SQL sur le projet Supabase « Ouinon » (API de gestion,
+`POST /v1/projects/mcusodanxgriodltqkhc/database/query`, tables
+`questions` et `reponses`). Le bouton en haut de l'appli copie aussi le
+bilan des 7 derniers jours. Ne jamais toucher au projet Supabase
+Wavents.
 
 ## Consignes de Paul
 
@@ -48,10 +53,12 @@ bilan des 7 derniers jours, à coller au coach.
 
 ## Garde-fous (non négociables)
 
-- Aucune réponse ne quitte le téléphone : pas de compte, pas de serveur,
-  pas d'outil d'analyse ni de publicité. Seule exception, décidée par
-  Paul le 26/11/2026 : l'appli **télécharge** un fichier public de
-  réglages (couleurs, textes, tailles), sans rien envoyer de Paul.
+- Les réponses ne vont que dans le Supabase de Paul (projet « Ouinon ») :
+  aucun autre serveur, pas d'outil d'analyse ni de publicité (règle
+  « rien ne quitte le téléphone » levée par Paul le 26/11/2026). La clé
+  Supabase n'est jamais écrite dans le code, le dépôt est public
+  (`tool/cle_supabase.sh`). L'appli télécharge aussi un fichier public de
+  réglages (couleurs, textes, tailles).
 - L'appli constate, elle ne conseille pas : jamais de diagnostic ni de
   conseil médical.
 

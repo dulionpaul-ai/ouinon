@@ -17,7 +17,15 @@
   « Je deviens quelqu'un qui… », la semaine, 7 points par question, le
   « pourquoi » dans la notification, les tâches « tous les N jours ».
   Voir `docs/cahier.md`. Habitudes proposées par le coach :
-  `docs/coaching/habitudes.md`.
+  `docs/coaching/habitudes.md`. APK n° 39 pas encore envoyé (Paul l'a
+  arrêté).
+- **26/11/2026, en attente du choix de Paul** : thème futuriste. Les
+  réponses se donnent seulement dans les notifications (plus de boutons
+  dans l'appli) ; l'écran clé devient le formulaire (créer, modifier),
+  avec un aperçu de la notification. Deux pistes en maquettes, page
+  « Futuriste » : HUD (bleu glacier sur noir) et Acide (jaune acide,
+  angles vifs). Notifications : couleur de l'appli, image à droite
+  (série, 7 jours), grande image dépliée dessinée par l'appli.
 
 ## Le code (`lib/`)
 

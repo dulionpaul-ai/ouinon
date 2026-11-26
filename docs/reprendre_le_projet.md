@@ -13,6 +13,14 @@
   jours, les réponses de test sont effacées).
 - APK n° 38 (2.0.0+38) envoyé le 25/11/2026. Prochain : 2.0.0+39,
   **toujours demander à Paul avant**.
+- **26/11/2026, en attente de validation** : Paul demande « un truc
+  minimaliste qui m'aide à devenir une meilleure version de moi-même ».
+  Proposition (rien de codé) : une phrase « Je deviens quelqu'un
+  qui… » en haut, le compte de la semaine (« 17 oui sur 26 »), 7 points
+  sous chaque habitude, et un « Pourquoi ? » écrit par Paul affiché
+  sous la question dans la notification. On garde le moteur actuel
+  (notifications, base, réponses). Maquettes :
+  https://claude.ai/artifact/9qEJgr3tmc5cgxpp6LKSsQ
 
 ## Le code (`lib/`)
 

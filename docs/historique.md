@@ -56,4 +56,4 @@ les questions et le bilan pour le coach).
 - Gardé : le « pourquoi », les tâches tous les N jours, les réglages sans
   APK (couleurs, textes, tailles, affichage, et maintenant les boutons de
   réponse dans l'appli).
-
+- APK n° 40 (2.0.0+40) envoyé à Paul le 26/11/2026.

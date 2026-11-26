@@ -17,8 +17,9 @@
   « Je deviens quelqu'un qui… », la semaine, 7 points par question, le
   « pourquoi » dans la notification, les tâches « tous les N jours ».
   Voir `docs/cahier.md`. Habitudes proposées par le coach :
-  `docs/coaching/habitudes.md`. APK n° 39 (thème HUD) envoyé le 26/11/2026.
-  Prochain : 2.0.0+40, **toujours demander à Paul avant**.
+  `docs/coaching/habitudes.md`. APK n° 39 (thème HUD) puis n° 40 (retour au
+  minimaliste) envoyés le 26/11/2026. Prochain : 2.0.0+41, **toujours
+  demander à Paul avant**.
 - **26/11/2026 : retour à la version minimaliste** (2.0.0+40, Paul n'a
   pas aimé le thème HUD de l'APK n° 39), réglages sans APK (voir `CLAUDE.md`,
   « Réglable sans APK »). En attente de Paul : créer le dépôt public

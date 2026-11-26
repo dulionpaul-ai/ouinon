@@ -47,3 +47,13 @@ les questions et le bilan pour le coach).
   coaching y est lisible par tous).
 - Polices : Oxanium + JetBrains Mono. 28 tests.
 - APK n° 39 (2.0.0+39) envoyé à Paul le 26/11/2026.
+
+## 26/11/2026 : retour à la version minimaliste (2.0.0+40)
+
+- Paul : « je préférais la version minimaliste du début ». Retour aux
+  écrans validés (vert et orange, la phrase, la semaine, 7 points,
+  réponses dans l'appli comme sur la maquette, notifications sobres).
+- Gardé : le « pourquoi », les tâches tous les N jours, les réglages sans
+  APK (couleurs, textes, tailles, affichage, et maintenant les boutons de
+  réponse dans l'appli).
+

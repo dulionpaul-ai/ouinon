@@ -19,7 +19,7 @@ void main() {
         "couleurs": {"meilleure": "#00FF88", "fond": "pas une couleur"},
         "notification": {"symbole": "◆", "majuscules": false},
         "tailles": {"question": 30, "phrase": 500},
-        "afficher": {"apercu": false},
+        "afficher": {"apercu": false, "reponses": true},
         "textes": {"enregistrer": "VALIDER"},
         "grille": false
       }''')!;
@@ -30,6 +30,7 @@ void main() {
     expect(a.tailleQuestion, 30);
     expect(a.taillePhrase, Apparence.defaut.taillePhrase);
     expect(a.voirApercu, isFalse);
+    expect(a.voirReponses, isTrue);
     expect(a.t('enregistrer'), 'VALIDER');
     expect(a.t('retour'), '‹ RETOUR');
     expect(a.grille, isFalse);
@@ -56,15 +57,15 @@ void main() {
 
   test('le titre de la notification', () {
     const q = Question(texte: 'Sport ?', reponses: ['Oui', 'Non'], heure: 0);
-    expect(titreNotif(q, Apparence.defaut), '▸ SPORT ?');
+    expect(titreNotif(q, Apparence.defaut), 'Sport ?');
     expect(
       titreNotif(
         q,
         Apparence.depuisJson(
-          '{"notification": {"symbole": "", "majuscules": false}}',
+          '{"notification": {"symbole": "▸", "majuscules": true}}',
         )!,
       ),
-      'Sport ?',
+      '▸ SPORT ?',
     );
   });
 
@@ -102,6 +103,9 @@ void main() {
     expect(a.doux, d.doux);
     expect(a.symbole, d.symbole);
     expect(a.tailleQuestion, d.tailleQuestion);
+    expect(a.grille, d.grille);
+    expect(a.images, d.images);
+    expect(a.voirReponses, d.voirReponses);
     expect(a.textes, d.textes);
   });
 }

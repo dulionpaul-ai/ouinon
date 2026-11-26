@@ -2,69 +2,56 @@ import 'package:flutter/material.dart';
 
 import '../models/apparence.dart';
 
-/// Le style de Ouinon, thème HUD (choisi par Paul le 26/11/2026) : noir,
-/// bleu glacier pour la meilleure réponse et l'accent, rouge-orange pour
-/// la moins bonne, lignes fines. Oxanium pour le texte, JetBrains Mono
-/// pour les chiffres et les étiquettes. Les couleurs viennent de
-/// l'apparence en cours (`Apparence.actuelle`), réglable sans APK.
+/// Le style de Ouinon : toujours sombre, une seule police (Oxanium), deux
+/// couleurs : orange (la moins bonne réponse) et vert (la meilleure),
+/// gris pour celle du milieu (version minimaliste validée le 26/11/2026,
+/// préférée par Paul au thème HUD). Les couleurs viennent de l'apparence
+/// en cours (`Apparence.actuelle`), réglable sans APK.
 abstract final class AppTheme {
   static const police = 'Oxanium';
+
+  /// Pour les chiffres des images de notification.
   static const mono = 'JetBrainsMono';
 
-  static Apparence get a => Apparence.actuelle;
-  static Color get fond => a.fond;
-  static Color get surface => a.surface;
-  static Color get trait => a.trait;
-  static Color get texte => a.texte;
-  static Color get doux => a.doux;
-  static Color get meilleure => a.meilleure;
-  static Color get moinsBonne => a.moinsBonne;
-  static Color get milieu => a.milieu;
+  static Apparence get _a => Apparence.actuelle;
+  static Color get fond => _a.fond;
+  static Color get surface => _a.surface;
+  static Color get trait => _a.trait;
+  static Color get texte => _a.texte;
+  static Color get doux => _a.doux;
 
-  /// Couleur d'une réponse : la meilleure (indice 0), la moins bonne, ou
-  /// celle du milieu.
+  static Color get orange => _a.moinsBonne;
+  static Color get vert => _a.meilleure;
+  static Color get gris => _a.milieu;
+
+  /// Couleur d'une réponse : la meilleure (indice 0) en vert, la moins
+  /// bonne en orange, celle du milieu en gris.
   static Color couleurReponse(int indice, int nombre) => indice == 0
-      ? meilleure
+      ? vert
       : indice == nombre - 1
-      ? moinsBonne
-      : milieu;
-
-  /// Une étiquette du HUD : petite, en capitales espacées.
-  static TextStyle etiquette({Color? couleur, double taille = 11}) => TextStyle(
-    fontFamily: mono,
-    fontSize: taille,
-    letterSpacing: 2,
-    fontWeight: FontWeight.w500,
-    color: couleur ?? doux,
-  );
+      ? orange
+      : gris;
 
   static ThemeData sombre() {
     final schema =
         ColorScheme.fromSeed(
-          seedColor: meilleure,
+          seedColor: vert,
           brightness: Brightness.dark,
         ).copyWith(
-          primary: meilleure,
+          primary: vert,
           onPrimary: fond,
-          secondary: moinsBonne,
+          secondary: orange,
           surface: fond,
           onSurface: texte,
           onSurfaceVariant: doux,
           outline: trait,
-          error: moinsBonne,
-          surfaceContainerHigh: surface,
-          surfaceContainerHighest: surface,
+          error: orange,
         );
     final base = ThemeData(
       useMaterial3: true,
       colorScheme: schema,
       fontFamily: police,
-      // Les symboles (▸, ◆…) absents d'Oxanium viennent de JetBrains Mono.
-      fontFamilyFallback: const [mono],
       scaffoldBackgroundColor: fond,
-    );
-    final carre = RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(2),
     );
     return base.copyWith(
       appBarTheme: AppBarTheme(
@@ -72,39 +59,37 @@ abstract final class AppTheme {
         surfaceTintColor: Colors.transparent,
         foregroundColor: texte,
         centerTitle: false,
-        titleTextStyle: etiquette(couleur: meilleure, taille: 13),
+        titleTextStyle: TextStyle(
+          fontFamily: police,
+          fontSize: 22,
+          fontWeight: FontWeight.w600,
+          color: texte,
+          letterSpacing: 0.5,
+        ),
       ),
       dividerTheme: DividerThemeData(color: trait, space: 1),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: false,
-        border: UnderlineInputBorder(borderSide: BorderSide(color: trait)),
-        enabledBorder: UnderlineInputBorder(
-          borderSide: BorderSide(color: trait),
-        ),
-        focusedBorder: UnderlineInputBorder(
-          borderSide: BorderSide(color: meilleure),
-        ),
-        hintStyle: TextStyle(color: doux),
-        isDense: true,
-        contentPadding: const EdgeInsets.symmetric(vertical: 10),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: vert.withValues(alpha: 0.18),
+        foregroundColor: vert,
+        elevation: 0,
+        shape: CircleBorder(side: BorderSide(color: vert)),
       ),
-      textSelectionTheme: TextSelectionThemeData(
-        cursorColor: meilleure,
-        selectionColor: meilleure.withValues(alpha: 0.3),
-        selectionHandleColor: meilleure,
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: surface,
+        border: OutlineInputBorder(borderSide: BorderSide(color: trait)),
+        enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: trait)),
+        focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: vert)),
+        isDense: true,
+        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       ),
       snackBarTheme: SnackBarThemeData(
         backgroundColor: surface,
         contentTextStyle: TextStyle(fontFamily: police, color: texte),
-        actionTextColor: meilleure,
+        actionTextColor: vert,
         behavior: SnackBarBehavior.floating,
-        shape: carre,
       ),
-      dialogTheme: DialogThemeData(backgroundColor: surface, shape: carre),
-      timePickerTheme: TimePickerThemeData(
-        backgroundColor: surface,
-        shape: carre,
-      ),
+      dialogTheme: DialogThemeData(backgroundColor: surface),
     );
   }
 }

@@ -8,9 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ouinon/data/base.dart';
 import 'package:ouinon/data/notifications.dart';
-import 'package:ouinon/data/images_notif.dart';
 import 'package:ouinon/main.dart';
-import 'package:ouinon/models/apparence.dart';
 import 'package:ouinon/models/question.dart';
 import 'package:ouinon/screens/question_screen.dart';
 import 'package:ouinon/screens/questions_screen.dart';
@@ -76,10 +74,6 @@ const _questions = [
 
 void main() {
   setUpAll(() async {
-    await _police('JetBrainsMono', [
-      'assets/fonts/JetBrainsMono-Medium.ttf',
-      'assets/fonts/JetBrainsMono-Bold.ttf',
-    ]);
     await _police('Oxanium', [
       for (final g in ['Regular', 'Medium', 'SemiBold', 'Bold'])
         'assets/fonts/Oxanium-$g.ttf',
@@ -144,11 +138,18 @@ void main() {
 
     testWidgets('nouvelle $nom', (tester) async {
       await lance(tester, QuestionScreen(base: base));
-      await tester.enterText(find.byType(TextField).first, 'Ultimate ?');
+      await tester.enterText(
+        find.byType(TextField).first,
+        'Arroser les plantes ?',
+      );
       await tester.enterText(
         find.byKey(const ValueKey('pourquoi')),
-        'Pour être fier de moi, et que Margaux le soit.',
+        'Une maison vivante.',
       );
+      await tester.tap(find.text('Tous'));
+      for (var i = 0; i < 4; i++) {
+        await tester.tap(find.byTooltip('Moins souvent'));
+      }
       await tester.pumpAndSettle();
       FocusManager.instance.primaryFocus?.unfocus();
       await tester.pumpAndSettle();
@@ -158,17 +159,4 @@ void main() {
       );
     });
   }
-
-  testWidgets('images de notification', (tester) async {
-    final dossier = Directory('tool/captures')..createSync(recursive: true);
-    await tester.runAsync(
-      () => ImagesNotif.ecris(
-        q: _questions.first.copie(id: 1),
-        serie: 4,
-        jours: const [1, 1, 0, 1, 0, 0, -1],
-        a: Apparence.defaut,
-        dossier: dossier.path,
-      ),
-    );
-  });
 }

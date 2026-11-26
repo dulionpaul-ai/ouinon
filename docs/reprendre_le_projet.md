@@ -19,8 +19,8 @@
   Voir `docs/cahier.md`. Habitudes proposées par le coach :
   `docs/coaching/habitudes.md`. APK n° 39 (thème HUD) envoyé le 26/11/2026.
   Prochain : 2.0.0+40, **toujours demander à Paul avant**.
-- **26/11/2026 : thème HUD codé** (choix de Paul), réponses seulement
-  dans les notifications, réglages sans APK (voir `CLAUDE.md`,
+- **26/11/2026 : retour à la version minimaliste** (2.0.0+40, Paul n'a
+  pas aimé le thème HUD de l'APK n° 39), réglages sans APK (voir `CLAUDE.md`,
   « Réglable sans APK »). En attente de Paul : créer le dépôt public
   `ouinon-reglages` (vide) et passer `ouinon` en privé ; Claude y pousse
   ensuite `reglages/reglages.json` (add_repo). Sans ce fichier, l'appli

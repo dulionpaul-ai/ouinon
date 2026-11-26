@@ -235,7 +235,7 @@ class Notifications {
       priority: Priority.high,
       category: AndroidNotificationCategory.reminder,
       icon: '@drawable/ic_stat_ouinon',
-      color: a.meilleure,
+      color: a.couleurNotif ? a.meilleure : null,
       timeoutAfter: duree.inMilliseconds,
       largeIcon: images == null ? null : FilePathAndroidBitmap(images.icone),
       styleInformation: images == null
@@ -251,7 +251,9 @@ class Notifications {
           AndroidNotificationAction(
             'r$i',
             a.majuscules ? q.reponses[i].toUpperCase() : q.reponses[i],
-            titleColor: AppTheme.couleurReponse(i, q.nbReponses),
+            titleColor: a.couleurNotif
+                ? AppTheme.couleurReponse(i, q.nbReponses)
+                : null,
           ),
       ],
     ),

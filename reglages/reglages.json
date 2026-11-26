@@ -1,31 +1,33 @@
 {
   "version": 1,
   "couleurs": {
-    "fond": "#05070A",
-    "surface": "#0A1016",
-    "trait": "#13202A",
-    "texte": "#E6F1F5",
-    "doux": "#6F808A",
-    "meilleure": "#3EE6FF",
-    "moinsBonne": "#FF5A36",
-    "milieu": "#8FA3AD"
+    "fond": "#07090C",
+    "surface": "#12151A",
+    "trait": "#22262E",
+    "texte": "#E8E6E1",
+    "doux": "#8B9099",
+    "meilleure": "#34E0B0",
+    "moinsBonne": "#FF8A2A",
+    "milieu": "#B5B8BF"
   },
-  "grille": true,
+  "grille": false,
   "notification": {
-    "symbole": "▸",
-    "majuscules": true,
-    "images": true
+    "symbole": "",
+    "majuscules": false,
+    "images": false,
+    "couleur": false
   },
   "tailles": {
-    "question": 24,
-    "phrase": 22,
+    "question": 18,
+    "phrase": 24,
     "ligne": 17
   },
   "afficher": {
     "phrase": true,
     "semaine": true,
     "barres": true,
-    "apercu": true
+    "apercu": false,
+    "reponses": true
   },
   "textes": {
     "titre": "OUINON",

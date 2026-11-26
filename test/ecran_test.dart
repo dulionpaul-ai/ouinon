@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ouinon/data/base.dart';
 import 'package:ouinon/data/notifications.dart';
 import 'package:ouinon/main.dart';
-import 'package:ouinon/models/apparence.dart';
 import 'package:ouinon/models/question.dart';
 import 'package:ouinon/screens/questions_screen.dart';
 
@@ -16,7 +15,6 @@ void main() {
   final mercredi = DateTime(2026, 11, 25, 12);
 
   setUp(() async {
-    Apparence.actuelle = Apparence.defaut;
     base = await ouvreBase();
     Base.remplace(base);
     notifs = FaussesNotifications();
@@ -24,10 +22,6 @@ void main() {
   });
 
   Future<void> lance(WidgetTester tester) async {
-    // Un grand téléphone : tout le formulaire tient à l'écran.
-    tester.view.physicalSize = const Size(400, 1300);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.reset);
     await tester.pumpWidget(
       OuinonApp(accueil: QuestionsScreen(maintenant: () => mercredi)),
     );
@@ -37,66 +31,93 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Future<void> attends(WidgetTester tester) async {
-    await tester.runAsync(
-      () => Future.delayed(const Duration(milliseconds: 50)),
-    );
-    await tester.pumpAndSettle();
-  }
-
-  testWidgets('sans habitude, on invite à en créer une', (tester) async {
+  testWidgets('sans question, on invite à en créer une', (tester) async {
     await lance(tester);
-    expect(find.textContaining('Aucune habitude'), findsOneWidget);
+    expect(find.textContaining('Aucune question'), findsOneWidget);
   });
 
-  testWidgets('la liste : la semaine, les habitudes, pas de réponses ici', (
+  testWidgets('répondre dans l\'appli, puis enlever la réponse', (
     tester,
   ) async {
-    await tester.runAsync(() async {
-      final sport = await base.enregistre(
+    final q = await tester.runAsync(
+      () => base.enregistre(
         const Question(
           texte: 'Sport ?',
           reponses: ['Oui', 'Non'],
           heure: 21 * 60,
           jours: Question.tousLesJours,
         ),
-      );
-      await base.enregistre(
+      ),
+    );
+    await tester.runAsync(
+      () => base.enregistre(
         const Question(
           texte: 'Hyrox ?',
           reponses: ['Fait', 'Pas fait'],
           heure: 12 * 60,
           jours: 0x01,
         ),
-      );
-      await base.enregistre(
-        const Question(
-          texte: 'Marche ?',
-          reponses: ['Fait', 'Pas fait'],
-          heure: 18 * 60,
-        ),
-      );
-      await base.repond(sport.id!, DateTime(2026, 11, 25), 0);
-    });
+      ),
+    );
     await lance(tester);
     expect(find.text('Sport ?'), findsOneWidget);
-    expect(find.text('Hyrox ?'), findsOneWidget);
-    expect(find.text('Marche ?'), findsOneWidget);
-    expect(find.text('21:00 · TOUS LES JOURS'), findsOneWidget);
-    expect(find.text('18:00 · EN PAUSE'), findsOneWidget);
-    // Semaine 48 : lundi et mardi sans réponse, mercredi oui ; Hyrox lundi.
-    expect(find.text('SEM 48'), findsOneWidget);
-    expect(find.text('1/4'), findsOneWidget);
-    // On ne répond que dans les notifications.
-    expect(find.text('Oui'), findsNothing);
+    // Hyrox n'est pas posée le mercredi : pas de boutons.
+    expect(find.text('Fait'), findsNothing);
 
-    await tester.tap(find.text('Hyrox ?'));
-    await attends(tester);
-    expect(find.text('HABITUDE'), findsOneWidget);
-    expect(find.text('▸ HYROX ?'), findsOneWidget);
+    await tester.tap(find.text('Oui'));
+    await tester.runAsync(
+      () => Future.delayed(const Duration(milliseconds: 50)),
+    );
+    await tester.pumpAndSettle();
+    expect((await tester.runAsync(base.toutesLesReponses))![q!.id], {
+      '2026-11-25': 0,
+    });
+    expect(notifs.retirees, hasLength(1));
+    // Répondue : sa réponse en pastille, et les 7 points, la semaine.
+    expect(find.text('Non'), findsNothing);
+    expect(find.text('1 oui sur 4', findRichText: true), findsOneWidget);
+
+    // Toucher la pastille rouvre les boutons ; toucher à nouveau la
+    // réponse choisie l'enlève.
+    await tester.tap(find.text('Oui'));
+    await tester.pumpAndSettle();
+    expect(find.text('Non'), findsOneWidget);
+    await tester.tap(find.text('Oui'));
+    await tester.runAsync(
+      () => Future.delayed(const Duration(milliseconds: 50)),
+    );
+    await tester.pumpAndSettle();
+    expect(await tester.runAsync(base.toutesLesReponses), isEmpty);
   });
 
-  testWidgets('la phrase du haut, et quand revient une tâche', (tester) async {
+  testWidgets('créer une question à 3 réponses', (tester) async {
+    await lance(tester);
+    await tester.tap(find.byIcon(Icons.add_rounded));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, 'En forme ?');
+    await tester.tap(find.text('Réponse du milieu'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Tous'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Enregistrer'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Enregistrer'));
+    await tester.runAsync(
+      () => Future.delayed(const Duration(milliseconds: 50)),
+    );
+    await tester.pumpAndSettle();
+
+    final questions = (await tester.runAsync(base.questions))!;
+    expect(questions.single.texte, 'En forme ?');
+    expect(questions.single.reponses, ['Fait', 'Moyen', 'Pas fait']);
+    expect(questions.single.jours, Question.tousLesJours);
+    expect(find.text('En forme ?'), findsOneWidget);
+    expect(find.text('Moyen'), findsOneWidget);
+  });
+
+  testWidgets('la phrase du haut, et les tâches pas posées aujourd\'hui', (
+    tester,
+  ) async {
     await tester.runAsync(() async {
       final plantes = await base.enregistre(
         const Question(
@@ -119,58 +140,44 @@ void main() {
       'dort, bouge et tient parole.',
     );
     await tester.tap(find.text('Enregistrer'));
-    await attends(tester);
+    await tester.runAsync(
+      () => Future.delayed(const Duration(milliseconds: 50)),
+    );
+    await tester.pumpAndSettle();
     expect(
       find.text('Je deviens quelqu\'un qui dort, bouge et tient parole.'),
       findsOneWidget,
     );
-    expect(find.text('10:00 · TOUS LES 5 JOURS · DANS 3 J'), findsOneWidget);
+    expect(find.text('Arroser les plantes ?'), findsNothing);
+    await tester.tap(find.text('Pas aujourd\'hui (1)'));
+    await tester.pumpAndSettle();
+    expect(find.text('Arroser les plantes ?'), findsOneWidget);
+    expect(find.text('10 h · Tous les 5 jours · dans 3 jours'), findsOneWidget);
   });
 
-  testWidgets('créer une habitude à 3 réponses, avec son aperçu', (
-    tester,
-  ) async {
+  testWidgets('une tâche tous les 7 jours, avec son pourquoi', (tester) async {
     await lance(tester);
-    await tester.tap(find.text('+ NOUVELLE HABITUDE'));
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField).first, 'En forme ?');
-    await tester.enterText(
-      find.byKey(const ValueKey('pourquoi')),
-      'Pour tenir la journée.',
-    );
-    await tester.pump();
-    // L'aperçu de la notification suit la saisie.
-    expect(find.text('▸ EN FORME ?'), findsOneWidget);
-    expect(find.text('Pour tenir la journée.'), findsNWidgets(2));
-    await tester.tap(find.text('+ RÉPONSE DU MILIEU'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('TOUS'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('ENREGISTRER'));
-    await attends(tester);
-
-    final questions = (await tester.runAsync(base.questions))!;
-    expect(questions.single.texte, 'En forme ?');
-    expect(questions.single.pourquoi, 'Pour tenir la journée.');
-    expect(questions.single.reponses, ['Fait', 'Moyen', 'Pas fait']);
-    expect(questions.single.jours, Question.tousLesJours);
-    expect(find.text('En forme ?'), findsOneWidget);
-  });
-
-  testWidgets('une tâche tous les 7 jours', (tester) async {
-    await lance(tester);
-    await tester.tap(find.text('+ NOUVELLE HABITUDE'));
+    await tester.tap(find.byIcon(Icons.add_rounded));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).first, 'Draps ?');
+    await tester.enterText(
+      find.byKey(const ValueKey('pourquoi')),
+      'Bien dormir.',
+    );
     for (var i = 0; i < 5; i++) {
       await tester.tap(find.byTooltip('Moins souvent'));
       await tester.pump();
     }
-    expect(find.text('TOUS LES 7 J'), findsOneWidget);
-    await tester.tap(find.text('ENREGISTRER'));
-    await attends(tester);
+    expect(find.text('Tous les 7 jours'), findsOneWidget);
+    await tester.ensureVisible(find.text('Enregistrer'));
+    await tester.tap(find.text('Enregistrer'));
+    await tester.runAsync(
+      () => Future.delayed(const Duration(milliseconds: 50)),
+    );
+    await tester.pumpAndSettle();
     final q = (await tester.runAsync(base.questions))!.single;
     expect(q.intervalle, 7);
+    expect(q.pourquoi, 'Bien dormir.');
     // Choisir un intervalle sans jour coche tous les jours.
     expect(q.jours, Question.tousLesJours);
   });

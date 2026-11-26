@@ -7,10 +7,10 @@ notification avec 2 ou 3 boutons, sans ouvrir l'appli. Tout est stocké
 sur le téléphone (SQLite), sans compte ni serveur.
 
 Repartie de zéro le 25/11/2026 (Paul : « trop de choses, partons sur du
-minimaliste »). L'appli tient en **un seul écran** (mes habitudes) et un
-formulaire. Depuis le 26/11/2026 : **on répond seulement dans les
-notifications** ; l'écran clé est le formulaire (créer, modifier, avec
-l'aperçu de la notification). Tout le reste (to-do, planning,
+minimaliste »). L'appli tient en **un seul écran** (mon jour : la
+phrase, la semaine, les questions du jour avec 7 points et leurs
+réponses) et un formulaire (version validée le 26/11/2026 ; le thème HUD
+essayé le même jour a été écarté par Paul). Tout le reste (to-do, planning,
 stats, onglets) est mis de côté (`docs/idees.md`) ; l'ancien code reste
 dans l'historique git.
 
@@ -70,13 +70,14 @@ bilan des 7 derniers jours, à coller au coach.
 - Une question sans aucun jour est en pause : elle ne sonne jamais, son
   historique est gardé. Une notification ratée reste affichée jusqu'à la
   suivante de la même question.
-- Style : thème **HUD** (choisi le 26/11/2026), toujours sombre : noir,
-  **bleu glacier** (meilleure réponse, accent), **rouge-orange** (moins
-  bonne), gris pour celle du milieu ; lignes fines, équerres, quadrillage.
-  Polices : **Oxanium** (texte) et **JetBrains Mono** (chiffres,
-  étiquettes). Pas de violet, de halos ni de dégradés. Une vibration
-  légère à chaque action.
-- **Réglable sans APK** : `lib/models/apparence.dart` (valeurs par défaut)
+- Style : **toujours sombre**, une seule police (**Oxanium**), deux
+  couleurs translucides : **vert** (meilleure réponse) et **orange**
+  (moins bonne), gris pour celle du milieu. Notifications sobres : la
+  question, le « pourquoi » dessous, les boutons. Pas de look « IA »
+  (violet, halos, dégradés). Une vibration légère à chaque action.
+- **Réglable sans APK** : `lib/models/apparence.dart` (valeurs par défaut,
+  dont `afficher.reponses` pour retirer les boutons de réponse de
+  l'appli, et le style HUD possible : symbole, capitales, images)
   et le fichier public `reglages.json` du dépôt `dulionpaul-ai/
   ouinon-reglages` (copie de référence : `reglages/reglages.json`). Pour
   un ajustement de couleur, texte, taille, symbole ou d'affichage : ne

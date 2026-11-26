@@ -6,7 +6,9 @@ import 'package:flutter/painting.dart';
 /// couleurs, textes, tailles, ce qui s'affiche, le style des
 /// notifications. Lu dans un fichier public (`reglages.json`, voir
 /// `data/apparence_distante.dart`) ; chaque valeur absente ou fausse
-/// garde sa valeur par défaut, le thème HUD.
+/// garde sa valeur par défaut : la version minimaliste validée le
+/// 26/11/2026 (vert et orange, notifications sobres). Le thème HUD reste
+/// possible par le fichier (couleurs, symbole, capitales, images).
 class Apparence {
   final Color fond;
   final Color surface;
@@ -14,10 +16,10 @@ class Apparence {
   final Color texte;
   final Color doux;
 
-  /// La meilleure réponse (bleu glacier), aussi la couleur d'accent.
+  /// La meilleure réponse (vert), aussi la couleur d'accent.
   final Color meilleure;
 
-  /// La moins bonne réponse (rouge-orange).
+  /// La moins bonne réponse (orange).
   final Color moinsBonne;
 
   /// La réponse du milieu.
@@ -32,6 +34,9 @@ class Apparence {
   final bool majuscules;
   final bool images;
 
+  /// Notifications teintées de la couleur de la meilleure réponse.
+  final bool couleurNotif;
+
   /// Tailles : la question dans le formulaire, la phrase, une ligne de la
   /// liste.
   final double tailleQuestion;
@@ -44,29 +49,35 @@ class Apparence {
   final bool voirBarres;
   final bool voirApercu;
 
+  /// Les boutons de réponse dans l'appli (sinon, seulement dans les
+  /// notifications).
+  final bool voirReponses;
+
   /// Les textes des boutons et titres.
   final Map<String, String> textes;
 
   const Apparence({
-    this.fond = const Color(0xFF05070A),
-    this.surface = const Color(0xFF0A1016),
-    this.trait = const Color(0xFF13202A),
-    this.texte = const Color(0xFFE6F1F5),
-    this.doux = const Color(0xFF6F808A),
-    this.meilleure = const Color(0xFF3EE6FF),
-    this.moinsBonne = const Color(0xFFFF5A36),
-    this.milieu = const Color(0xFF8FA3AD),
-    this.grille = true,
-    this.symbole = '▸',
-    this.majuscules = true,
-    this.images = true,
-    this.tailleQuestion = 24,
-    this.taillePhrase = 22,
+    this.fond = const Color(0xFF07090C),
+    this.surface = const Color(0xFF12151A),
+    this.trait = const Color(0xFF22262E),
+    this.texte = const Color(0xFFE8E6E1),
+    this.doux = const Color(0xFF8B9099),
+    this.meilleure = const Color(0xFF34E0B0),
+    this.moinsBonne = const Color(0xFFFF8A2A),
+    this.milieu = const Color(0xFFB5B8BF),
+    this.grille = false,
+    this.symbole = '',
+    this.majuscules = false,
+    this.images = false,
+    this.couleurNotif = false,
+    this.tailleQuestion = 18,
+    this.taillePhrase = 24,
     this.tailleLigne = 17,
     this.voirPhrase = true,
     this.voirSemaine = true,
     this.voirBarres = true,
-    this.voirApercu = true,
+    this.voirApercu = false,
+    this.voirReponses = true,
     this.textes = textesParDefaut,
   });
 
@@ -141,6 +152,7 @@ class Apparence {
       symbole: symbole is String && symbole.length <= 4 ? symbole : d.symbole,
       majuscules: oui(n, 'majuscules', d.majuscules),
       images: oui(n, 'images', d.images),
+      couleurNotif: oui(n, 'couleur', d.couleurNotif),
       tailleQuestion: taille('question', d.tailleQuestion),
       taillePhrase: taille('phrase', d.taillePhrase),
       tailleLigne: taille('ligne', d.tailleLigne),
@@ -148,6 +160,7 @@ class Apparence {
       voirSemaine: oui(af, 'semaine', d.voirSemaine),
       voirBarres: oui(af, 'barres', d.voirBarres),
       voirApercu: oui(af, 'apercu', d.voirApercu),
+      voirReponses: oui(af, 'reponses', d.voirReponses),
       textes: {
         ...textesParDefaut,
         for (final e in tx.entries)

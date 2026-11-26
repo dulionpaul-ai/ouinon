@@ -3,7 +3,12 @@
 Les écrans validés par Paul. Rien n'est codé tant que Paul n'a pas
 validé l'écran.
 
-## Thème HUD et réponses dans les notifications (26/11/2026)
+## Thème HUD (26/11/2026) : écarté
+
+Paul, après l'APK n° 39 : « je préférais la version minimaliste du
+début ». Retour à « Écran unique : mon jour » ci-dessous (boutons de
+réponse compris, comme sur la maquette). Le HUD reste possible par le
+fichier de réglages. Pour mémoire :
 
 - Paul : « les réponses sont dans les notifs seulement », « un thème
   futuriste, très moderne », « la seule page qui compte, c'est la création

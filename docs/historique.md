@@ -45,5 +45,5 @@ les questions et le bilan pour le coach).
   `ouinon-reglages` est à créer par Paul (Claude ne peut pas créer de
   dépôt) ; il conseille aussi de passer `ouinon` en privé (le carnet de
   coaching y est lisible par tous).
-- Polices : Oxanium + JetBrains Mono. 32 tests.
+- Polices : Oxanium + JetBrains Mono. 28 tests.
 

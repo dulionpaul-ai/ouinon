@@ -28,7 +28,8 @@
   Paris). APK n° 41 (2.0.0+41) envoyé le 26/11/2026.
 - **27/11/2026 (2.0.0+42)** : « Quand » = certains jours **ou** tous les
   N jours (avec « Prochaine fois ») ; répondre dans « Pas aujourd'hui ».
-  APK pas encore fabriqué : **toujours demander à Paul avant**. Chaque changement part en ligne ; à
+  APK n° 42 envoyé le 27/11/2026. Prochain : 2.0.0+43, **toujours
+  demander à Paul avant**. Chaque changement part en ligne ; à
   l'ouverture, tout est renvoyé ; téléphone vide → tout revient. Rien
   n'est supprimé en ligne, sauf une suppression faite dans l'appli.
 

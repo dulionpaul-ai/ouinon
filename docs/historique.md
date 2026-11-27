@@ -75,3 +75,4 @@ les questions et le bilan pour le coach).
 - On peut répondre dans « Pas aujourd'hui ».
 - Base en version 10 (`depart`) : une ancienne tâche avec des jours garde
   l'intervalle, sa prochaine fois est le prochain de ses jours.
+- APK n° 42 (2.0.0+42) envoyé à Paul le 27/11/2026.

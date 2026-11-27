@@ -29,11 +29,43 @@ void main() {
     expect(revientDans(_plantes, jour(3), r), isNull);
   });
 
-  test('jamais faite : posée chaque jour coché ; en pause : jamais', () {
+  test('jamais faite : posée chaque jour ; en pause : jamais', () {
     expect(poseeLe(_plantes, lundi, {}), isTrue);
-    final semaine = _plantes.copie(jours: 0x1F);
-    expect(poseeLe(semaine, DateTime(2026, 11, 28), {}), isFalse);
     expect(poseeLe(_plantes.copie(jours: 0), lundi, {}), isFalse);
+  });
+
+  test('faite un autre jour : la suite se recale sur ce jour', () {
+    // Plantes tous les 7 jours, prochaine fois dimanche 29/11.
+    final plantes = _plantes.copie(
+      intervalle: 7,
+      depart: () => DateTime(2026, 11, 29),
+    );
+    expect(poseeLe(plantes, jour(4), {}), isFalse); // vendredi
+    expect(poseeLe(plantes, jour(6), {}), isTrue); // dimanche
+    // Arrosées vendredi 27 : plus dimanche, mais le vendredi suivant.
+    final r = {'2026-11-27': 0};
+    expect(poseeLe(plantes, jour(4), r), isTrue);
+    expect(poseeLe(plantes, jour(6), r), isFalse);
+    expect(poseeLe(plantes, jour(10), r), isFalse);
+    expect(poseeLe(plantes, jour(11), r), isTrue);
+    expect(prochainJour(plantes, jour(5), r), DateTime(2026, 12, 4));
+    // Un « Fait » d'avant la prochaine fois choisie ne compte plus.
+    final r2 = {'2026-11-20': 0};
+    expect(prochainJour(plantes, lundi, r2), DateTime(2026, 11, 29));
+  });
+
+  test('certains jours : fixe, même répondue un autre jour', () {
+    const hyrox = Question(
+      id: 3,
+      texte: 'Hyrox ?',
+      reponses: ['Fait', 'Pas fait'],
+      heure: 12 * 60,
+      jours: 0x01,
+    );
+    expect(poseeLe(hyrox, jour(1), {}), isFalse); // mardi
+    final r = {'2026-11-24': 0}; // faite mardi quand même
+    expect(poseeLe(hyrox, jour(1), r), isTrue);
+    expect(poseeLe(hyrox, jour(7), r), isTrue); // lundi suivant, toujours
   });
 
   test('les notifications d\'une tâche', () {
@@ -70,10 +102,6 @@ void main() {
 
   test('les fréquences en français', () {
     expect(frequenceFr(_plantes), 'Tous les 3 jours');
-    expect(
-      frequenceFr(_plantes.copie(jours: 0x1F)),
-      'Tous les 3 jours · en semaine',
-    );
     expect(frequenceFr(_plantes.copie(intervalle: 0)), 'Tous les jours');
   });
 }

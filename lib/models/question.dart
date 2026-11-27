@@ -1,6 +1,10 @@
+import '../utils/jour.dart';
+
 /// Une question à suivre : son texte, son « pourquoi », ses 2 ou 3
-/// réponses, l'heure de sa notification, ses jours et, pour les tâches
-/// (arroser les plantes, changer les draps), un intervalle en jours.
+/// réponses, l'heure de sa notification, et quand elle revient, d'une
+/// seule des deux façons (Paul, 27/11/2026) : certains jours fixes
+/// (« Hyrox ? » le lundi), ou tous les N jours pour une tâche (arroser
+/// les plantes), qui se recale sur le jour où elle a été faite.
 class Question {
   final int? id;
   final String texte;
@@ -16,15 +20,20 @@ class Question {
   /// Heure de la notification, en minutes depuis minuit (21 h = 1260).
   final int heure;
 
-  /// Jours où elle revient : bit 0 = lundi … bit 6 = dimanche. Aucun jour =
-  /// en pause : elle ne sonne jamais, son historique est gardé.
+  /// Certains jours : bit 0 = lundi … bit 6 = dimanche. Aucun jour = en
+  /// pause : elle ne sonne jamais, son historique est gardé. Une tâche a
+  /// tous les jours (ou aucun, en pause).
   final int jours;
 
-  /// 0 : posée chaque jour coché. N (2 ou plus) : une tâche à refaire tous
-  /// les N jours ; elle revient N jours après la dernière meilleure
-  /// réponse (« Fait »), puis chaque jour coché tant qu'elle n'est pas
-  /// faite (`utils/frequence.dart`).
+  /// 0 : certains jours fixes. N (2 ou plus) : une tâche tous les N
+  /// jours ; elle revient N jours après la dernière meilleure réponse
+  /// (« Fait »), donnée n'importe quel jour, puis chaque jour tant qu'elle
+  /// n'est pas faite (`utils/frequence.dart`).
   final int intervalle;
+
+  /// Pour une tâche : « Prochaine fois », choisi dans le formulaire. Les
+  /// réponses d'avant ce jour ne comptent plus pour la suite.
+  final DateTime? depart;
 
   static const tousLesJours = 0x7F;
   static const longueurMaxPourquoi = 80;
@@ -38,7 +47,11 @@ class Question {
     required this.heure,
     this.jours = 0,
     this.intervalle = 0,
+    this.depart,
   });
+
+  /// Tous les N jours (sinon : certains jours fixes).
+  bool get tache => intervalle >= 2;
 
   bool get enPause => jours == 0;
 
@@ -55,6 +68,7 @@ class Question {
     int? heure,
     int? jours,
     int? intervalle,
+    DateTime? Function()? depart,
   }) => Question(
     id: id ?? this.id,
     texte: texte ?? this.texte,
@@ -63,6 +77,7 @@ class Question {
     heure: heure ?? this.heure,
     jours: jours ?? this.jours,
     intervalle: intervalle ?? this.intervalle,
+    depart: depart == null ? this.depart : depart(),
   );
 
   Map<String, Object?> versLigne() => {
@@ -73,6 +88,7 @@ class Question {
     'heure': heure,
     'jours': jours,
     'intervalle': intervalle,
+    'depart': depart == null ? null : cleJour(depart!),
   };
 
   factory Question.depuisLigne(Map<String, Object?> l) => Question(
@@ -83,5 +99,9 @@ class Question {
     heure: l['heure'] as int,
     jours: l['jours'] as int,
     intervalle: l['intervalle'] as int? ?? 0,
+    depart: switch (l['depart']) {
+      final String d => jourDepuisCle(d),
+      _ => null,
+    },
   );
 }

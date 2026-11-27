@@ -66,3 +66,12 @@ les questions et le bilan pour le coach).
 - Chaque changement part en ligne ; à l'ouverture, tout est renvoyé ;
   nouveau téléphone → tout revient.
 - APK n° 41 (2.0.0+41) envoyé à Paul le 26/11/2026.
+
+## 27/11/2026 : jours fixes ou tous les N jours (2.0.0+42)
+
+- Paul trouvait « dimanche + tous les 7 jours » contradictoire : le
+  formulaire propose maintenant l'un **ou** l'autre, avec « Prochaine
+  fois » pour une tâche. Faite un autre jour, la tâche se recale.
+- On peut répondre dans « Pas aujourd'hui ».
+- Base en version 10 (`depart`) : une ancienne tâche avec des jours garde
+  l'intervalle, sa prochaine fois est le prochain de ses jours.

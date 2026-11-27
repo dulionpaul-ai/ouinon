@@ -149,7 +149,12 @@ class _QuestionsScreenState extends State<QuestionsScreen>
   Future<void> _ouvre([Question? q]) async {
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => QuestionScreen(base: _base!, question: q),
+        builder: (_) => QuestionScreen(
+          base: _base!,
+          question: q,
+          reponses: q == null ? const {} : _reponses[q.id] ?? const {},
+          maintenant: widget.maintenant,
+        ),
       ),
     );
     await _reprogramme();
@@ -347,7 +352,12 @@ class _QuestionsScreenState extends State<QuestionsScreen>
                       key: ValueKey('q${q.id}'),
                       question: q,
                       dans: revientDans(q, aujourdhui, r(q)),
+                      // Répondre un jour non prévu (Paul, 27/11/2026) : la
+                      // réponse compte pour aujourd'hui ; pour une tâche,
+                      // la suite se recale sur ce jour.
+                      ouverte: Apparence.actuelle.voirReponses,
                       onTap: () => _ouvre(q),
+                      onRepond: (c) => _repond(q, c),
                     ),
                 if (_voirPause)
                   for (final q in enPause)
@@ -585,7 +595,7 @@ class _Ligne extends StatelessWidget {
                 ],
               ],
             ),
-            if (duJour && ouverte) ...[
+            if ((duJour || onRepond != null) && ouverte) ...[
               const SizedBox(height: 10),
               Row(
                 children: [

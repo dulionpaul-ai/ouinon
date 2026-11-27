@@ -73,7 +73,7 @@ void main() {
   });
 
   test(
-    'la base de l\'ancienne appli (version 7) est reprise (version 9)',
+    'la base de l\'ancienne appli (version 7) est reprise (version 10)',
     () async {
       sqfliteFfiInit();
       final dossier = await Directory.systemTemp.createTemp('ouinon');
@@ -156,6 +156,29 @@ void main() {
       expect(toutes.last.intervalle, 3);
       await base.db.close();
       await dossier.delete(recursive: true);
+    },
+  );
+
+  test(
+    'version 10 : une tâche avec des jours garde seulement l\'intervalle',
+    () async {
+      final base = await ouvreBase();
+      final plantes = await base.enregistre(
+        const Question(
+          texte: 'Plantes ?',
+          reponses: ['Fait', 'Pas fait'],
+          heure: 600,
+          jours: 0x40, // dimanche
+          intervalle: 7,
+        ),
+      );
+      final sport = await base.enregistre(_sport);
+      // Mercredi 25/11/2026.
+      await Base.versTachesSansColonne(base.db, DateTime(2026, 11, 25, 9));
+      final p = (await base.question(plantes.id!))!;
+      expect(p.jours, Question.tousLesJours);
+      expect(p.depart, DateTime(2026, 11, 29));
+      expect((await base.question(sport.id!))!.depart, isNull);
     },
   );
 

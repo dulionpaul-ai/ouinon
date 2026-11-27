@@ -2,33 +2,57 @@ import '../data/base.dart';
 import '../models/question.dart';
 import 'jour.dart';
 
-/// Quand une question est posée.
+/// Quand une question est posée. Un jour où elle a une réponse (même
+/// donnée un jour non prévu, Paul, 27/11/2026) compte toujours comme posé.
 ///
-/// Sans intervalle : chaque jour coché. Avec un intervalle de N jours (une
-/// tâche : arroser les plantes, changer les draps) : un jour coché sans
-/// meilleure réponse (« Fait ») dans les N − 1 jours d'avant. Elle revient
-/// donc N jours après avoir été faite, puis chaque jour coché tant qu'elle
-/// ne l'est pas. Un jour déjà répondu reste toujours posé.
+/// Certains jours : chaque jour coché. Tous les N jours (une tâche) : à
+/// partir de son échéance ([echeance]), et chaque jour ensuite tant
+/// qu'elle n'est pas faite.
 bool poseeLe(Question q, DateTime jour, Reponses reponses) {
-  if (q.enPause || !q.revientLe(jour.weekday)) return false;
-  if (q.intervalle < 2) return true;
+  if (q.enPause) return false;
   if (reponses.containsKey(cleJour(jour))) return true;
-  for (var n = 1; n < q.intervalle; n++) {
-    if (reponses[cleJour(ajouteJours(jour, -n))] == 0) return false;
+  if (!q.tache) return q.revientLe(jour.weekday);
+  final e = echeance(q, jour, reponses);
+  return e == null || !jour.isBefore(e);
+}
+
+/// Pour une tâche, vue depuis [jour] : N jours après le dernier « Fait »
+/// d'avant ce jour ; sans « Fait », sa « Prochaine fois » ; nulle si ni
+/// l'un ni l'autre (posée chaque jour). Un « Fait » compte s'il tombe dans
+/// les N jours avant la « Prochaine fois » (faite en avance : la suite se
+/// recale) ou après ; plus ancien, il est remplacé par la date choisie.
+DateTime? echeance(Question q, DateTime jour, Reponses reponses) {
+  final depart = q.depart;
+  final limite = depart == null
+      ? null
+      : ajouteJours(depart, -(q.intervalle - 1));
+  for (var n = 1; n <= 400; n++) {
+    final d = ajouteJours(jourDe(jour), -n);
+    if (limite != null && d.isBefore(limite)) break;
+    if (reponses[cleJour(d)] == 0) return ajouteJours(d, q.intervalle);
   }
-  return true;
+  return depart;
+}
+
+/// Le prochain jour où [q] est posée, à partir de [aujourdhui] compris
+/// (nul : en pause, ou rien dans l'année).
+DateTime? prochainJour(Question q, DateTime aujourdhui, Reponses reponses) {
+  if (q.enPause) return null;
+  for (var n = 0; n <= 366; n++) {
+    final j = ajouteJours(jourDe(aujourdhui), n);
+    if (poseeLe(q, j, reponses)) return j;
+  }
+  return null;
 }
 
 /// Pour une tâche pas posée [aujourdhui] : dans combien de jours elle
 /// revient (nul si elle est posée, ou sans intervalle).
 int? revientDans(Question q, DateTime aujourdhui, Reponses reponses) {
-  if (q.enPause || q.intervalle < 2) return null;
-  for (var n = 0; n <= q.intervalle + 7; n++) {
-    if (poseeLe(q, ajouteJours(aujourdhui, n), reponses)) {
-      return n == 0 ? null : n;
-    }
-  }
-  return null;
+  if (!q.tache) return null;
+  final j = prochainJour(q, aujourdhui, reponses);
+  if (j == null) return null;
+  final n = ecartJours(jourDe(aujourdhui), j);
+  return n == 0 ? null : n;
 }
 
 /// La semaine en cours (du lundi à [aujourdhui]) : les meilleures réponses
@@ -59,11 +83,8 @@ int? revientDans(Question q, DateTime aujourdhui, Reponses reponses) {
 /// 5 jours · en semaine »…
 String frequenceFr(Question q) {
   if (q.enPause) return 'En pause';
-  if (q.intervalle < 2) return joursFr(q.jours);
-  final base = 'Tous les ${q.intervalle} jours';
-  return q.jours == Question.tousLesJours
-      ? base
-      : '$base · ${joursFr(q.jours).toLowerCase()}';
+  if (!q.tache) return joursFr(q.jours);
+  return 'Tous les ${q.intervalle} jours';
 }
 
 /// La série en cours : les jours posés d'affilée avec la meilleure

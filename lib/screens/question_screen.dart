@@ -4,19 +4,32 @@ import 'package:flutter/services.dart';
 import '../data/base.dart';
 import '../models/question.dart';
 import '../theme/app_theme.dart';
+import '../utils/frequence.dart';
 import '../utils/jour.dart';
 
 /// Créer ou modifier une question : le texte, son « pourquoi » (affiché
 /// dans la notification), 2 ou 3 réponses (la meilleure en haut), l'heure,
-/// les jours, et pour une tâche « tous les N jours ». Aucun jour : en
-/// pause.
+/// et « Quand », d'une seule des deux façons : certains jours (aucun : en
+/// pause), ou tous les N jours avec sa prochaine fois.
 class QuestionScreen extends StatefulWidget {
   final Base base;
 
   /// Nulle : nouvelle question.
   final Question? question;
 
-  const QuestionScreen({super.key, required this.base, this.question});
+  /// Les réponses déjà données (pour la prochaine fois d'une tâche).
+  final Reponses reponses;
+
+  /// Aujourd'hui (tests).
+  final DateTime Function() maintenant;
+
+  const QuestionScreen({
+    super.key,
+    required this.base,
+    this.question,
+    this.reponses = const {},
+    this.maintenant = DateTime.now,
+  });
 
   @override
   State<QuestionScreen> createState() => _QuestionScreenState();
@@ -30,11 +43,31 @@ class _QuestionScreenState extends State<QuestionScreen> {
       TextEditingController(text: r),
   ];
   late int _heure = widget.question?.heure ?? 21 * 60;
-  late int _jours = widget.question?.jours ?? 0;
-  late int _intervalle = widget.question?.intervalle ?? 0;
+  late bool _tache = widget.question?.tache ?? false;
 
-  /// Les intervalles proposés (0 : chaque jour coché).
-  static const _intervalles = [0, 2, 3, 4, 5, 7, 10, 14, 21, 30, 60, 90];
+  /// Certains jours (gardés même en passant par « Tous les N jours »).
+  late int _jours = widget.question?.tache ?? false
+      ? 0
+      : widget.question?.jours ?? 0;
+  late int _intervalle = widget.question?.tache ?? false
+      ? widget.question!.intervalle
+      : 7;
+
+  /// « Prochaine fois » d'une tâche : celle calculée, tant qu'elle n'est
+  /// pas changée.
+  late DateTime _prochaine = _calculee();
+  bool _prochaineChangee = false;
+
+  /// Les intervalles proposés.
+  static const _intervalles = [2, 3, 4, 5, 7, 10, 14, 21, 30, 60, 90];
+
+  DateTime get _aujourdhui => jourDe(widget.maintenant());
+
+  DateTime _calculee() {
+    final q = widget.question;
+    if (q == null || !q.tache) return _aujourdhui;
+    return prochainJour(q, _aujourdhui, widget.reponses) ?? _aujourdhui;
+  }
 
   static const _libelles = {
     2: ['Meilleure', 'Moins bonne'],
@@ -74,8 +107,13 @@ class _QuestionScreenState extends State<QuestionScreen> {
       pourquoi: _pourquoi.text.trim(),
       reponses: [for (final c in _reponses) c.text.trim()],
       heure: _heure,
-      jours: _jours,
-      intervalle: _intervalle,
+      jours: _tache ? Question.tousLesJours : _jours,
+      intervalle: _tache ? _intervalle : 0,
+      depart: !_tache
+          ? null
+          : _prochaineChangee || ancienne == null || !ancienne.tache
+          ? _prochaine
+          : ancienne.depart,
     );
     if (ancienne == null) {
       await widget.base.enregistre(q);
@@ -101,7 +139,7 @@ class _QuestionScreenState extends State<QuestionScreen> {
     if (!await _confirme(
       'Supprimer « ${q.texte} » ?',
       'Toutes ses réponses seront effacées. Pour la garder sans qu\'elle '
-          'sonne, décoche tous ses jours.',
+          'sonne : « Certains jours », sans aucun jour coché.',
       'Supprimer',
     )) {
       return;
@@ -131,16 +169,33 @@ class _QuestionScreenState extends State<QuestionScreen> {
       ) ??
       false;
 
-  /// Intervalle précédent ([sens] = −1) ou suivant (+1). Choisir un
-  /// intervalle sans aucun jour coché coche tous les jours.
+  /// Intervalle précédent ([sens] = −1) ou suivant (+1).
   void _changeIntervalle(int sens) {
     final i = _intervalles.indexOf(_intervalle);
-    final j = ((i < 0 ? 0 : i) + sens).clamp(0, _intervalles.length - 1);
+    final j = ((i < 0 ? 4 : i) + sens).clamp(0, _intervalles.length - 1);
     HapticFeedback.selectionClick();
-    setState(() {
-      _intervalle = _intervalles[j];
-      if (_intervalle > 0 && _jours == 0) _jours = Question.tousLesJours;
-    });
+    setState(() => _intervalle = _intervalles[j]);
+  }
+
+  Future<void> _choisitProchaine() async {
+    final choisie = await showDatePicker(
+      context: context,
+      initialDate: _prochaine.isBefore(_aujourdhui) ? _aujourdhui : _prochaine,
+      firstDate: _aujourdhui,
+      lastDate: ajouteJours(_aujourdhui, 366),
+    );
+    if (choisie != null) {
+      setState(() {
+        _prochaine = jourDe(choisie);
+        _prochaineChangee = true;
+      });
+    }
+  }
+
+  String _prochaineFr() {
+    if (_prochaine == _aujourdhui) return 'Aujourd\'hui';
+    if (_prochaine == ajouteJours(_aujourdhui, 1)) return 'Demain';
+    return '${joursCourts[_prochaine.weekday - 1]} ${dateCourte(_prochaine)}';
   }
 
   void _ajouteReponse() =>
@@ -251,45 +306,83 @@ class _QuestionScreenState extends State<QuestionScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              _Titre('Jours · ${joursFr(_jours)}'),
-              _Jours(
-                jours: _jours,
-                onChange: (j) => setState(() => _jours = j),
-              ),
-              const SizedBox(height: 12),
+              _Titre('Quand'),
               Row(
                 children: [
-                  const Expanded(child: _Titre('Répéter', bas: 0)),
-                  IconButton(
-                    tooltip: 'Plus souvent',
-                    onPressed: _intervalle == 0
-                        ? null
-                        : () => _changeIntervalle(-1),
-                    icon: const Icon(Icons.remove_rounded),
-                  ),
-                  SizedBox(
-                    width: 150,
-                    child: Text(
-                      _intervalle == 0
-                          ? 'Chaque jour coché'
-                          : 'Tous les $_intervalle jours',
-                      key: const ValueKey('intervalle'),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: _intervalle == 0 ? AppTheme.doux : AppTheme.vert,
+                  for (final (texte, tache) in const [
+                    ('Certains jours', false),
+                    ('Tous les N jours', true),
+                  ])
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.only(left: tache ? 6 : 0),
+                        child: _Choix(
+                          texte: texte,
+                          choisi: _tache == tache,
+                          onTap: () => setState(() => _tache = tache),
+                        ),
                       ),
                     ),
-                  ),
-                  IconButton(
-                    tooltip: 'Moins souvent',
-                    onPressed: _intervalle == _intervalles.last
-                        ? null
-                        : () => _changeIntervalle(1),
-                    icon: const Icon(Icons.add_rounded),
-                  ),
                 ],
               ),
+              const SizedBox(height: 12),
+              if (!_tache) ...[
+                _Titre(joursFr(_jours)),
+                _Jours(
+                  jours: _jours,
+                  onChange: (j) => setState(() => _jours = j),
+                ),
+              ] else ...[
+                Row(
+                  children: [
+                    const Expanded(child: _Titre('Tous les', bas: 0)),
+                    IconButton(
+                      tooltip: 'Plus souvent',
+                      onPressed: _intervalle == _intervalles.first
+                          ? null
+                          : () => _changeIntervalle(-1),
+                      icon: const Icon(Icons.remove_rounded),
+                    ),
+                    SizedBox(
+                      width: 90,
+                      child: Text(
+                        '$_intervalle jours',
+                        key: const ValueKey('intervalle'),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 16, color: AppTheme.vert),
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'Moins souvent',
+                      onPressed: _intervalle == _intervalles.last
+                          ? null
+                          : () => _changeIntervalle(1),
+                      icon: const Icon(Icons.add_rounded),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Expanded(child: _Titre('Prochaine fois', bas: 0)),
+                    OutlinedButton(
+                      key: const ValueKey('prochaine'),
+                      onPressed: _choisitProchaine,
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(150, 44),
+                        side: BorderSide(color: AppTheme.trait),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                      child: Text(
+                        _prochaineFr(),
+                        style: TextStyle(fontSize: 16, color: AppTheme.texte),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: _valide ? _enregistre : null,
@@ -313,6 +406,50 @@ class _QuestionScreenState extends State<QuestionScreen> {
       ),
     );
   }
+}
+
+/// Un des deux choix de « Quand ».
+class _Choix extends StatelessWidget {
+  final String texte;
+  final bool choisi;
+  final VoidCallback onTap;
+
+  const _Choix({
+    required this.texte,
+    required this.choisi,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    selected: choisi,
+    child: GestureDetector(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        onTap();
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        height: 40,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: AppTheme.vert.withValues(alpha: choisi ? 0.22 : 0),
+          border: Border.all(color: choisi ? AppTheme.vert : AppTheme.trait),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Text(
+          texte,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: choisi ? AppTheme.texte : AppTheme.doux,
+            fontWeight: choisi ? FontWeight.w600 : FontWeight.w500,
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 class _Titre extends StatelessWidget {

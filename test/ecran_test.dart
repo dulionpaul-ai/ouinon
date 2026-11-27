@@ -97,6 +97,8 @@ void main() {
     await tester.enterText(find.byType(TextField).first, 'En forme ?');
     await tester.tap(find.text('Réponse du milieu'));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Tous'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Tous'));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Enregistrer'));
@@ -153,6 +155,16 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Arroser les plantes ?'), findsOneWidget);
     expect(find.text('10 h · Tous les 5 jours · dans 3 jours'), findsOneWidget);
+
+    // Arrosées aujourd'hui quand même : la suite se recale.
+    await tester.tap(find.text('Fait'));
+    await tester.runAsync(
+      () => Future.delayed(const Duration(milliseconds: 50)),
+    );
+    await tester.pumpAndSettle();
+    final r = (await tester.runAsync(base.toutesLesReponses))!.values.single;
+    expect(r['2026-11-25'], 0);
+    expect(find.textContaining('AUJOURD\'HUI · 1 SUR 1'), findsOneWidget);
   });
 
   testWidgets('une tâche tous les 7 jours, avec son pourquoi', (tester) async {
@@ -164,11 +176,14 @@ void main() {
       find.byKey(const ValueKey('pourquoi')),
       'Bien dormir.',
     );
-    for (var i = 0; i < 5; i++) {
-      await tester.tap(find.byTooltip('Moins souvent'));
-      await tester.pump();
-    }
-    expect(find.text('Tous les 7 jours'), findsOneWidget);
+    await tester.ensureVisible(find.text('Tous les N jours'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Tous les N jours'));
+    await tester.pumpAndSettle();
+    // Les jours à cocher disparaissent : l'un ou l'autre.
+    expect(find.text('Semaine'), findsNothing);
+    expect(find.text('7 jours'), findsOneWidget);
+    expect(find.text('Aujourd\'hui'), findsOneWidget);
     await tester.ensureVisible(find.text('Enregistrer'));
     await tester.tap(find.text('Enregistrer'));
     await tester.runAsync(
@@ -178,7 +193,7 @@ void main() {
     final q = (await tester.runAsync(base.questions))!.single;
     expect(q.intervalle, 7);
     expect(q.pourquoi, 'Bien dormir.');
-    // Choisir un intervalle sans jour coche tous les jours.
     expect(q.jours, Question.tousLesJours);
+    expect(q.depart, DateTime(2026, 11, 25));
   });
 }

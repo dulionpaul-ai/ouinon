@@ -146,16 +146,26 @@ void main() {
         find.byKey(const ValueKey('pourquoi')),
         'Une maison vivante.',
       );
-      await tester.tap(find.text('Tous'));
-      for (var i = 0; i < 4; i++) {
-        await tester.tap(find.byTooltip('Moins souvent'));
-      }
+      await tester.tap(find.text('Tous les N jours'));
       await tester.pumpAndSettle();
       FocusManager.instance.primaryFocus?.unfocus();
       await tester.pumpAndSettle();
       await expectLater(
         find.byType(MaterialApp),
         matchesGoldenFile('captures/nouvelle_$nom.png'),
+      );
+    });
+
+    testWidgets('jours fixes $nom', (tester) async {
+      await lance(tester, QuestionScreen(base: base));
+      await tester.enterText(find.byType(TextField).first, 'Hyrox ?');
+      await tester.tap(find.text('L'));
+      await tester.pumpAndSettle();
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pumpAndSettle();
+      await expectLater(
+        find.byType(MaterialApp),
+        matchesGoldenFile('captures/jours_fixes_$nom.png'),
       );
     });
   }

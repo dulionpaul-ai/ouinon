@@ -74,6 +74,11 @@ Wavents.
 - De gauche à droite, toujours la moins bonne réponse à gauche et la
   meilleure à droite (notification, boutons). Dans une liste verticale,
   la meilleure en haut.
+- **Quand**, d'une seule des deux façons (Paul, 27/11/2026) : **certains
+  jours** fixes, ou **tous les N jours** (une tâche, avec « Prochaine
+  fois ») ; faite un autre jour, une tâche se recale sur ce jour
+  (`utils/frequence.dart`). On peut répondre à une question un jour où
+  elle n'est pas prévue (« Pas aujourd'hui »).
 - Une question sans aucun jour est en pause : elle ne sonne jamais, son
   historique est gardé. Une notification ratée reste affichée jusqu'à la
   suivante de la même question.

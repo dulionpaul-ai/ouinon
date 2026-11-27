@@ -38,8 +38,10 @@ class Base {
   /// 8 : nouvelle Ouinon, repartie de zéro (25/11/2026). Les tables de
   /// l'ancienne appli (planning, liste, créneaux) restent dans le fichier,
   /// inutilisées. 9 (26/11/2026) : le « pourquoi » et l'intervalle des
-  /// questions, la table `reglages` (la phrase « Je deviens… »).
-  static const version = 9;
+  /// questions, la table `reglages` (la phrase « Je deviens… »). 10
+  /// (27/11/2026) : « Prochaine fois » d'une tâche (`depart`), et une
+  /// tâche n'a plus de jours fixes.
+  static const version = 10;
 
   final Database db;
 
@@ -170,7 +172,8 @@ class Base {
             heure INTEGER NOT NULL,
             jours INTEGER NOT NULL,
             pourquoi TEXT NOT NULL DEFAULT '',
-            intervalle INTEGER NOT NULL DEFAULT 0
+            intervalle INTEGER NOT NULL DEFAULT 0,
+            depart TEXT
           )''');
         await db.execute('''
           CREATE TABLE reponses (
@@ -210,10 +213,46 @@ class Base {
           }
           await _creeReglages(db);
         }
+        if (ancienne < 10) await _versTaches(db, DateTime.now());
       },
       singleInstance: instanceUnique,
     ),
   );
+
+  /// Version 10 : une tâche (tous les N jours) qui avait aussi des jours
+  /// cochés (« dimanche, tous les 7 jours ») garde seulement
+  /// l'intervalle ; sa prochaine fois est le prochain de ces jours.
+  static Future<void> _versTaches(Database db, DateTime maintenant) async {
+    await db.execute('ALTER TABLE questions ADD COLUMN depart TEXT');
+    await _rangeTaches(db, maintenant);
+  }
+
+  static Future<void> _rangeTaches(Database db, DateTime maintenant) async {
+    final lignes = await db.query(
+      'questions',
+      where: 'intervalle >= 2 AND jours != 0 AND jours != ?',
+      whereArgs: [Question.tousLesJours],
+    );
+    for (final l in lignes) {
+      final jours = l['jours'] as int;
+      var depart = jourDe(maintenant);
+      while (jours & (1 << (depart.weekday - 1)) == 0) {
+        depart = ajouteJours(depart, 1);
+      }
+      await db.update(
+        'questions',
+        {'jours': Question.tousLesJours, 'depart': cleJour(depart)},
+        where: 'id = ?',
+        whereArgs: [l['id']],
+      );
+    }
+  }
+
+  /// Pour les tests : la conversion de la version 10 à un moment donné
+  /// (la colonne existe déjà).
+  @visibleForTesting
+  static Future<void> versTachesSansColonne(Database db, DateTime maintenant) =>
+      _rangeTaches(db, maintenant);
 
   static Future<void> _creeReglages(Database db) => db.execute('''
     CREATE TABLE IF NOT EXISTS reglages (

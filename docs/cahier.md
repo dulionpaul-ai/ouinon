@@ -73,3 +73,15 @@ fichier de réglages. Pour mémoire :
   les jours (aucun par défaut ; raccourcis Tous, Semaine, Week-end).
 - Modifier : tout se change, y compris le nombre de réponses. Supprimer
   (la corbeille en haut) efface aussi ses réponses.
+
+## Quand revient une question (27/11/2026, validé par Paul)
+
+- Dans le formulaire, « Quand » : **l'un ou l'autre**, jamais les deux.
+  - **Certains jours** : les jours cochés (raccourcis Tous, Semaine,
+    Week-end). Le jour est fixe. Aucun jour : en pause.
+  - **Tous les N jours** : « Tous les – 7 jours + » et « Prochaine
+    fois » (une date). Faite un autre jour (même en avance), la suite se
+    recale : arrosées vendredi au lieu de dimanche, la prochaine fois
+    est le vendredi suivant.
+- Dans la liste, « Pas aujourd'hui » : chaque question a aussi ses
+  boutons ; la réponse compte pour aujourd'hui.
